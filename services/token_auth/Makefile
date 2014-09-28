@@ -39,6 +39,13 @@ ct:$(CLIENT_TOKEN_OBJS)
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
 
+.PHONY:install
+install:
+	mkdir -p $(DESTDIR)/etc/
+	cp cds_cfg.xml $(DESTDIR)/etc/
+	mkdir -p $(DESTDIR)/usr/bin/
+	cp tauth $(DESTDIR)/usr/bin/
+
 .PHONY:clean
 clean:
 	rm -rf *.o tauth ct

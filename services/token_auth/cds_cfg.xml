@@ -6,11 +6,11 @@
         <goldenkey>nanjing21k</goldenkey>
     </tokenserver>
     <sqlserver>
-        <ip>10.128.0.27</ip>
+        <ip>www.mysqlmaster.com</ip>
         <!-- 0 for default port-->
         <port>0</port>
-        <user>ucen</user>
-        <password>heqi</password>
+        <user>auth</user>
+        <password>yangsongxiang</password>
         <databasename>ucen</databasename>
     </sqlserver>
 </config>
