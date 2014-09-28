@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <tokenserver>
+        <ip>127.8.0.27</ip>
+        <port>0</port>
+        <goldenkey>nanjing21k</goldenkey>
+    </tokenserver>
+    <sqlserver>
+        <ip>10.128.0.27</ip>
+        <!-- 0 for default port-->
+        <port>0</port>
+        <user>ucen</user>
+        <password>heqi</password>
+        <databasename>ucen</databasename>
+    </sqlserver>
+</config>

@@ -1,0 +1,4 @@
+auth/
+auth.debhelper.log
+auth.substvars
+source/

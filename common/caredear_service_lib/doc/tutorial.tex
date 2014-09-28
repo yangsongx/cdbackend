@@ -1,0 +1,255 @@
+\documentclass[a4paper]{article}
+\title{\xkai{服务器并发处理框架文档}}
+\author{CareDear Service Team}
+\usepackage{fontspec,xunicode,xltxtra,makeidx,xecolor}
+\usepackage{color,listings,tabularx,amsfonts}
+\usepackage{amssymb}
+\usepackage{titlesec}
+\usepackage{epigraph}
+\usepackage{soul}
+\usepackage[bookmarks=true,pdfborder={0 0 0}]{hyperref}
+\setmainfont{WenQuanYi Micro Hei}
+\setsansfont{WenQuanYi Micro Hei}
+\setmonofont{WenQuanYi Micro Hei}
+
+\newcommand\vtextvisiblespace[1][.4em]{%
+  \mbox{\kern.06em\vrule height.5ex}%
+  \vbox{\hrule width#1}%
+  \hbox{\vrule height.5ex}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5\baselineskip}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip=0pt plus 1pt minus 0.1pt
+\newcommand\fontnamekai{KaiTi}
+\newfontinstance\KAI {\fontnamekai}
+\newcommand{\kai}[1]{{\KAI#1}}
+\newcommand\fontnamexkai{STXingkai}
+\newfontinstance\XKAI {\fontnamexkai}
+\newcommand{\xkai}[1]{{\XKAI#1}}
+\newcommand\fontnamelisu{LiSu}
+\newfontinstance\LISU {\fontnamelisu}
+\newcommand{\lisu}[1]{{\LISU#1}}
+%listing global settings
+\lstset{basicstyle=\scriptsize,frame=lines}
+
+%some global color
+\definecolor{light-gray}{rgb}{0.87,0.87,0.87}
+\definecolor{light-yellow}{rgb}{0.88,0.92,0.48}
+\definecolor{mygreen}{rgb}{0.63,1,0.35}
+
+%complicated def
+\lstnewenvironment{myjavacode}[1][]
+      {\lstset{language=Java}\lstset{escapeinside={(*@}{@*)},
+       basicstyle=\footnotesize\ttfamily,
+       numbers=left,numberstyle=\scriptsize,stepnumber=1,numbersep=5pt,
+       breaklines=true,
+       %firstnumber=last,
+           %frame=tblr,
+           framesep=5pt,
+           showstringspaces=false,
+           keywordstyle=\itshape\color{blue},
+          %identifierstyle=\ttfamily,
+           stringstyle=\xecolor{maroon},
+        commentstyle=\color{black},
+        rulecolor=\color{black},
+        xleftmargin=0pt,
+        xrightmargin=0pt,
+        aboveskip=\medskipamount,
+        belowskip=\medskipamount,
+               backgroundcolor=\color{white}, #1
+}}
+{}
+
+%\titleformat{\section}[block]{\kai}{\thesection}{10pt}{}
+\makeindex
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\begin{abstract}
+\kai{本文档介绍一种处理并发的服务器后台运行程序框架，暂叫成\colorbox{mygreen}{CDS(CareDear Service)}}
+\end{abstract}
+
+\section{简介}
+目前服务器程序框架取自memcached(\cite{refMemcach})，并计划将当中数据库处理逻辑简化并替换成自己需要的内容。
+
+　　\subsection{依赖关系}
+代码基于如下软件版本开发:
+
+\bgroup
+\def\arraystretch{1.15}
+\begin{tabular}{|l|l|}
+\hline
+{依赖包} & {说明}\\
+\hline
+{libevents 2.0.21-stable} & {event通知库}\\
+{memcached 1.4.20} & {程序框架开发基于版本}\\
+\hline
+\end{tabular}
+\egroup
+
+同时还需要如下软件包/库：
+\bgroup
+\def\arraystretch{1.15}
+\begin{tabular}{|l|l|}
+\hline
+{依赖包} & {说明}\\
+\hline
+{MySQL-dev} & {C语言访问MySQL的函数借口}\\
+{LibXML2} & {解析XML配置文件}\\
+{LibCrypto} & {用来解密token key}\\
+\hline
+\end{tabular}
+\egroup
+
+　　\subsection{编译代码}
+当前程序库支持binary/.so/.a三种不同编译结果。为简化执行程序部署步骤，默认情况下程序是静态库编译，所以文件比较大。
+
+编译方法：
+
+\begin{myjavacode}[numbers=none]
+$ make cds       (*@ \colorbox{mygreen}{可运行二进制文件cds}@*)
+$ make cs        (*@ \colorbox{mygreen}{动态库文件libcds.so}@*)
+$ make ca        (*@ \colorbox{mygreen}{静态库文件cds.a}@*)
+$ make testcode  (*@ \colorbox{mygreen}{编译测试demo代码，倚赖.so库}@*)
+$ make all       (*@ \colorbox{mygreen}{默认编译结果，生成上述所有文件}@*)
+\end{myjavacode}
+
+若想编译成动态库方式，则在编译时指定STATICLIB数值为false：
+\begin{myjavacode}[numbers=none]
+$ make STATICLIB=false              (*@ \colorbox{mygreen}{动态链接可执行程序}@*)
+$ make STATICLIB=false DEBUG=false  (*@ \colorbox{mygreen}{动态链接可执行程序，且是release版本}@*)
+\end{myjavacode}
+
+    \subsection{运行服务器状态查看}
+从21k-code机器上使用alias的ksxmpp登录，然后在登录上的机器上再使用ksapp3来登录运行程序log存放的位置/home/tokenverify
+    \subsection{最简单服务端调用}
+框架代码初步设计思想是负责并发请求的接受以及数据的读写。数据处理逻辑由各个调用者来完成。
+
+test/server\_demo.c演示如下场景：
+\begin{itemize}
+\item Client发送数值请求
+\item 服务端利用框架接收和返回处理结果。
+\item 服务端代码主要是处理Client发来的数据，demo代码是简单double.
+  \end{itemize}
+代码：
+\begin{myjavacode}
+(*@\colorbox{mygreen}{服务端自己提供处理数据的回调函数，框架只管数据获取和返回}@*)
+int (*@\hl{my\_handler}@*)(int size, void *req, int *len, void *resp){
+    printf("i will process %s\n", param);
+    int i = atoi(param);
+    if(i  > 0)
+    {   
+        i = (i * 2); 
+        sprintf(resp, "H->%d", i);
+        *len = strlen(resp);
+    }   
+    return 0;
+}
+
+int main(int argc, char **argv){
+    struct addition_config cfg; 
+    cfg.ac_cfgfile = "config.xml";
+    cfg.ac_handler = my_handler;
+    cds_init((*@\hl{\&cfg, argc, argv}@*));
+
+    return 0;
+}
+\end{myjavacode}
+
+\section{Token验证模块}
+  \subsection{简介}
+该模块代码置于token\_auth\_service/目录下。主要功能是校验token的合法性，及更新数据库中的用户token过期时间信息。
+
+  \subsection{消息交互}
+    
+\section{家庭圈服务模块}
+  \subsection{简介}
+代码位置位于circle\_mgr\_service/目录
+
+  \subsection{消息交互}
+  
+\section{网盘服务模块}
+    
+\section{使用范例}
+  \subsection{配置文件}
+程序运行中的参数配置目前定义在/etc/cds\_cfg.xml文件中。
+
+xmpp的校验程序(auth)以及token有效期检查等程序都公用这个配置文件，其配置信息如下：
+\begin{myjavacode}[numbers=none]
+<config>
+  (*@ \colorbox{mygreen}{<tokenserver>}@*)
+    <ip>127.0.0.1</ip>
+    <port>11234</port>
+  (*@ \colorbox{mygreen}{</tokenserver>}@*)
+  
+  (*@ \colorbox{mygreen}{<sqlserver>}@*)
+    <ip>10.128.0.27</ip>
+    <port>0</port>
+    <user>ucen</user>
+    <password>heqi</password>
+    <databasename>ucen</databasename>
+  (*@ \colorbox{mygreen}{</sqlserver>}@*)
+</config>
+\end{myjavacode}
+
+这些配置信息用于控制程序运行时使用的参数：
+\begin{itemize}
+\item \colorbox{mygreen}{tokenserver}段是配置auth程序需要连接的token服务端IP和端口值
+\item \colorbox{mygreen}{sqlserver}段是设置token服务器需要访问的MySQL机器的IP地址，端口，用户名，密码以及数据库名称。
+\end{itemize}
+
+在实际使用过程中，我们可以修改配置文件来调整程序运行参数，达到不用重新编译程序的目的。
+
+  
+  \subsection{Token验证}
+  \subsection{处理错误码}
+服务端的处理结果使用int（4-byte)通知客户端。
+
+其错误码定义：
+
+\bgroup
+\def\arraystretch{1.15}
+\begin{tabular}{|l|l|}
+\hline
+{错误码代号} & {说明}\\
+\hline
+{CDS\_OK(0)} & {处理正确的结果}\\
+{CDS\_ERR\_REQ\_TOOLONG(1)} & {客户端请求数据超出范围}\\
+{CDS\_ERR\_NOMEMORY(2)} & {内存不足}\\
+{CDS\_ERR\_REQ\_INVALID(3)} & {客户端请求的数据格式无效}\\
+{CDS\_ERR\_UNMATCH\_USER\_INFO(4)} & {客户端请求的用户信息和token的不一致}\\
+{CDS\_ERR\_USER\_TOKEN\_EXPIRED(5)} & {用户的token已经过有效期}\\
+{CDS\_ERR\_SQL\_DISCONNECTED(6)} & {服务器端的MySQL访问出错}\\
+{CDS\_ERR\_NO\_RESOURCE(7)} & {系统无可用资源(如无法正确生成IPC对象等)}\\
+\hline
+\end{tabular}
+\egroup
+
+定义的代码文件是cds\_public.h
+
+  \subsection{客户端示例}
+客户端代码简单地通过TCP连接server相应端口。
+
+示例代码test/client\_demo.c
+
+\section{数据库操作}
+
+
+
+\section{TODO List}
+\begin{itemize}
+\item 清除无用代码
+\item 去掉所有编译Warning
+\item 增加及优化库函数的原型定义
+  \end{itemize}
+
+\begin{thebibliography}{99}
+\bibitem{refMemcach}memcached: {\em http://memcached.org}, a high-performance cache system.
+\bibitem{reflibevent} Libevent: {\em http://libevent.org}, an open source event notification library.
+\end{thebibliography}
+
+\end{document}
