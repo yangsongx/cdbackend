@@ -82,6 +82,41 @@ extern char *encrypt_token_string_with_aes(const char *token_str, char *aes_key)
 #define UNLOCK_CDS(x) do{pthread_mutex_unlock(&(x));}while(0)
 
 /* some simple Log utils... */
+#ifdef CONFIG_LOG2FILE
+
+#define LOG(fmt, args...)  do { \
+                             FILE *_p = fopen("/tmp/tauth.log", "a+"); \
+                             if(_p) { \
+                                 fprintf(_p, fmt, ##args); \
+                                 fclose(_p); \
+                             } \
+                           }while(0)
+
+#define ERR(fmt, args...)  do { \
+                             FILE *_p = fopen("/tmp/tauth.log", "a+"); \
+                             if(_p) { \
+                                 fprintf(_p, fmt, ##args); \
+                                 fclose(_p); \
+                             } \
+                           }while(0)
+
+#define KPI(fmt, args...)  do { \
+                             FILE *_p = fopen("/tmp/tauth.log", "a+"); \
+                             if(_p) { \
+                                 char _buf[20]; \
+                                 struct timeval _tv; \
+                                 gettimeofday(&_tv, NULL); \
+                                 time_t _n = time(NULL); \
+                                 strftime(_buf, sizeof(_buf), "%m-%d %H:%M:%S", localtime(&_n)); \
+                                 fprintf(_p, "[%s", _buf); \
+                                 fprintf(_p, ".%03ld] ", (_tv.tv_usec/1000)); \
+                                 fprintf(_p, fmt, ##args); \
+                                 fclose(_p); \
+                             } \
+                           }while(0)
+
+# else
+
 #ifdef DEBUG
 #define LOG                printf
 #define ERR                printf
@@ -100,6 +135,8 @@ extern char *encrypt_token_string_with_aes(const char *token_str, char *aes_key)
 #define ERR                printf
 #define KPI(fmt, args...)  do{}while(0)
 #endif
+
+#endif /* CONFIG_LOG2FILE */
 
 #define INFO(fmt, args...) do{printf(fmt, ##args);}while(0)
 

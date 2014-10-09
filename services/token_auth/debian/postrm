@@ -18,9 +18,14 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+TAUTHDIR="/opt/tokenauth"
 
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+
+    if [ -d $TAUTHDIR ]; then
+        rm -rf $TAUTHDIR
+    fi
     ;;
 
     *)

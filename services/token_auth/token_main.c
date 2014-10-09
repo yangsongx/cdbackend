@@ -19,6 +19,9 @@
                              ret = (_err); \
                              goto failed
 
+/* we store pid in file, to make sure we can kill ourself */
+#define MYPID_FILE "/tmp/tauth.pid"
+
 static MYSQL *glb_msql = NULL;
 pthread_mutex_t sql_mutex;
 
@@ -305,6 +308,26 @@ failed:
     return ret;
 }
 
+void store_mypid()
+{
+    FILE  *pidfile;
+    pid_t  mypid;
+
+    mypid = getpid();
+
+    pidfile = fopen(MYPID_FILE, "w+");
+
+    if(!pidfile)
+    {
+        ERR("can't dump the pid to file:%d\n", errno);
+        return;
+    }
+
+    fprintf(pidfile, "%d", mypid);
+
+    fclose(pidfile);
+}
+
 int main(int argc, char **argv)
 {
     struct addition_config cfg;
@@ -331,6 +354,8 @@ int main(int argc, char **argv)
         ERR("Failed create IPC objs:%d\n", errno);
         return -2;
     }
+
+    store_mypid();
 
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = token_handler;

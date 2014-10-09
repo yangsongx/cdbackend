@@ -19,12 +19,10 @@ set -e
 
 case "$1" in
     remove|upgrade|deconfigure)
-    if [ -d /etc/service/tokenauth ]; then
-        svc -d /etc/service/tokenauth
-        sleep 2s
-    fi
 
-    rm -rf /etc/service/tokenauth/
+    if [ -e /tmp/tauth.pid ]; then
+        kill -9 `cat /tmp/tauth.pid`
+    fi
 
     ;;
 

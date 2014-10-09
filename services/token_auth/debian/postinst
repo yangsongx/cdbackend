@@ -17,15 +17,17 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+TAUTHDIR="/opt/tokenauth"
 
 case "$1" in
     configure)
-    if [ ! -d /etc/service/tokenauth ]; then
-        mkdir -p /etc/service/tokenauth
+    if [ ! -d $TAUTHDIR ]; then
+        mkdir -p $TAUTHDIR
     fi
-    echo "#!/bin/sh" > /etc/service/tokenauth/run
-    echo "/usr/bin/tauth -u root -vvv -p 12000 > /tmp/tauth.log 2>&1" >> /etc/service/tokenauth/run
-    chmod a+x /etc/service/tokenauth/run
+    echo "#!/bin/sh" > $TAUTHDIR/start.sh
+    echo "/usr/bin/tauth -u root -vvv -p 12000" >> $TAUTHDIR/start.sh
+    chmod a+x $TAUTHDIR/start.sh
+    start-stop-daemon --start --background --exec $TAUTHDIR/start.sh
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
