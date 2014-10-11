@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <ctype.h>
 #include <openssl/rsa.h>
 #include <openssl/engine.h>
@@ -75,7 +76,7 @@ enum {false =0, true = 1};
 #define AUTH_CONFIG    "/etc/cds_cfg.xml"
 #define MAX_AUTH_CNF_LEN  64
 struct xmpp_auth_config{
-    char ac_server_ip[32]; /**< xxx.xxx.xxx.xxx full len is 16(including ZERO-NULL) */
+    char ac_server_ip[64]; /**< xxx.xxx.xxx.xxx or URL like xxxx.caredear.com, hope it is enough */
     int  ac_server_port;
     char ac_golden_key[MAX_AUTH_CNF_LEN];
 };
@@ -122,7 +123,7 @@ int fetch_config_info(const char *filename, struct xmpp_auth_config *conf) // ch
         {
             get_node_via_xpath("/config/tokenserver/ip", ctx, buf, sizeof(buf));
             get_node_via_xpath("/config/tokenserver/port", ctx, pt, sizeof(pt));
-            strncpy(conf->ac_server_ip, buf, 32);
+            strncpy(conf->ac_server_ip, buf, 64);
             conf->ac_server_port = atoi(pt);
 
             if(get_node_via_xpath("/config/tokenserver/goldenkey", ctx, buf, sizeof(buf)) == 0)
@@ -163,7 +164,36 @@ int get_auth_service(const char *ip, unsigned short int port)
     }
     else
     {
-        addr.sin_addr.s_addr = inet_addr(ip);
+        /* here support both IP(xx.xx.xx.xx) and abc.xyz.com
+
+           FIXME - as Linux man said, gethostbyname() is not re-entrant,
+           maybe we should use _r() version, or use getaddrinfo() to do
+           this in the future?
+         */
+        struct hostent *host;
+        host = gethostbyname(ip);
+        if(!host)
+        {
+            ERR("failed find the IP:%s, errno:%d\n",
+                    ip, errno);
+            goto failed_auth_service;
+        }
+
+        if(host->h_addrtype == AF_INET && host->h_length > 0)
+        {
+            memcpy(&(addr.sin_addr.s_addr), host->h_addr_list[0], 4);
+            ERR("%s <--> %d.%d.%d.%d\n", ip,
+                    (addr.sin_addr.s_addr & 0xFF),
+                    (addr.sin_addr.s_addr & 0xFF00) >> 8,
+                    (addr.sin_addr.s_addr & 0xFF0000) >> 16,
+                    (addr.sin_addr.s_addr & 0xFF000000) >> 24);
+        }
+        else
+        {
+            ERR("the %s IP is incorrect, addr type = %d, addr length = %d\n",
+                    ip, host->h_addrtype, host->h_length);
+            goto failed_auth_service;
+        }
     }
     if(port == 0)
     {
