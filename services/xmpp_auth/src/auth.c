@@ -148,6 +148,7 @@ int fetch_config_info(const char *filename, struct xmpp_auth_config *conf) // ch
  */
 int get_auth_service(const char *ip, unsigned short int port)
 {
+    int i;
     int as;
     struct sockaddr_in addr;
 
@@ -164,36 +165,37 @@ int get_auth_service(const char *ip, unsigned short int port)
     }
     else
     {
-        /* here support both IP(xx.xx.xx.xx) and abc.xyz.com
+        /* here support both IP(xx.xx.xx.xx) and abc.xyz.com */
 
-           FIXME - as Linux man said, gethostbyname() is not re-entrant,
-           maybe we should use _r() version, or use getaddrinfo() to do
-           this in the future?
-         */
-        struct hostent *host;
-        host = gethostbyname(ip);
-        if(!host)
+        struct addrinfo hints, *result, *p;
+
+        memset(&hints, 0x00, sizeof(hints));
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_flags = 0;
+        hints.ai_protocol = 0;
+
+        i = getaddrinfo(ip, NULL, &hints, &result);
+        if(i != 0)
         {
-            ERR("failed find the IP:%s, errno:%d\n",
-                    ip, errno);
+            ERR("failed calling getaddrinfo() : %s\n", gai_strerror(i));
             goto failed_auth_service;
         }
 
-        if(host->h_addrtype == AF_INET && host->h_length > 0)
+        p = result;
+        for(; p != NULL; p = p->ai_next)
         {
-            memcpy(&(addr.sin_addr.s_addr), host->h_addr_list[0], 4);
-            ERR("%s <--> %d.%d.%d.%d\n", ip,
-                    (addr.sin_addr.s_addr & 0xFF),
-                    (addr.sin_addr.s_addr & 0xFF00) >> 8,
-                    (addr.sin_addr.s_addr & 0xFF0000) >> 16,
-                    (addr.sin_addr.s_addr & 0xFF000000) >> 24);
+            if(p->ai_family == AF_INET)
+            {
+                struct sockaddr_in *ipv4 =
+                    (struct sockaddr_in *) (p->ai_addr);
+                INFO("%s <---> IP %s\n", ip, inet_ntoa(ipv4->sin_addr));
+                memcpy(&(addr.sin_addr), &(ipv4->sin_addr), sizeof(struct in_addr));
+                break;
+            }
         }
-        else
-        {
-            ERR("the %s IP is incorrect, addr type = %d, addr length = %d\n",
-                    ip, host->h_addrtype, host->h_length);
-            goto failed_auth_service;
-        }
+
+        freeaddrinfo(result);
     }
     if(port == 0)
     {
