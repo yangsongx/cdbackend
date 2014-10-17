@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 # prerm script for tauth
 #
 # see: dh_installdeb(1)
 
-set -e
+#set -e
 
 # summary of how this script can be called:
 #        * <prerm> `remove'
@@ -20,8 +20,13 @@ set -e
 case "$1" in
     remove|upgrade|deconfigure)
 
-    if [ -e /tmp/tauth.pid ]; then
-        kill -9 `cat /tmp/tauth.pid`
+    echo "will stop service before uninstall..."
+    killall -9  tauth
+
+    if [ $? -eq 0 ]; then
+        echo "service stopped [OK]"
+    else
+        echo "stop a non-existed servie, keep going anyway."
     fi
 
     ;;
