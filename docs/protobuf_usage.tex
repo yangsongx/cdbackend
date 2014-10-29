@@ -1,0 +1,132 @@
+\documentclass[a4paper]{article}
+\title{\kai{protobuf使用}}
+\author{CareDear Service Team}
+\usepackage{fontspec,xunicode,xltxtra,makeidx,xecolor}
+\usepackage{color,listings,tabularx,amsfonts}
+\usepackage{amssymb}
+\usepackage{titlesec}
+\usepackage{epigraph}
+\usepackage{soul}
+\usepackage[bookmarks=true,pdfborder={0 0 0}]{hyperref}
+\setmainfont{WenQuanYi Micro Hei}
+\setsansfont{WenQuanYi Micro Hei}
+\setmonofont{WenQuanYi Micro Hei}
+
+\newcommand\vtextvisiblespace[1][.4em]{%
+  \mbox{\kern.06em\vrule height.5ex}%
+  \vbox{\hrule width#1}%
+  \hbox{\vrule height.5ex}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5\baselineskip}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip=0pt plus 1pt minus 0.1pt
+\newcommand\fontnamekai{KaiTi}
+\newfontinstance\KAI {\fontnamekai}
+\newcommand{\kai}[1]{{\KAI#1}}
+\newcommand\fontnamexkai{STXingkai}
+\newfontinstance\XKAI {\fontnamexkai}
+\newcommand{\xkai}[1]{{\XKAI#1}}
+\newcommand\fontnamelisu{LiSu}
+\newfontinstance\LISU {\fontnamelisu}
+\newcommand{\lisu}[1]{{\LISU#1}}
+%listing global settings
+\lstset{basicstyle=\scriptsize,frame=lines}
+
+%some global color
+\definecolor{light-gray}{rgb}{0.87,0.87,0.87}
+\definecolor{light-yellow}{rgb}{0.88,0.92,0.48}
+\definecolor{mygreen}{rgb}{0.63,1,0.35}
+
+%complicated def
+\lstnewenvironment{myjavacode}[1][]
+      {\lstset{language=Java}\lstset{escapeinside={(*@}{@*)},
+       basicstyle=\footnotesize\ttfamily,
+       numbers=left,numberstyle=\scriptsize,stepnumber=1,numbersep=5pt,
+       breaklines=true,
+       %firstnumber=last,
+           %frame=tblr,
+           framesep=5pt,
+           showstringspaces=false,
+           keywordstyle=\itshape\color{blue},
+          %identifierstyle=\ttfamily,
+           stringstyle=\xecolor{maroon},
+        commentstyle=\color{black},
+        rulecolor=\color{black},
+        xleftmargin=0pt,
+        xrightmargin=0pt,
+        aboveskip=\medskipamount,
+        belowskip=\medskipamount,
+               backgroundcolor=\color{white}, #1
+}}
+{}
+
+%\titleformat{\section}[block]{\kai}{\thesection}{10pt}{}
+\makeindex
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\begin{abstract}
+\kai{本文档介绍Google的服务器间RPC机制－protobuf}
+\end{abstract}
+
+\section{简介}
+这里暂时以Google的protobuf-2.5.0版本为基准，protobuf的完整代码包，可以在Caredear服务器的backend/3rd\_party/protobuf-2.5.0/目录下找到。
+
+代码编译出的结果是一个编译解析器(protoc)，目前支持下面三种语言的绑定：
+
+\begin{enumerate}
+ \item C++
+ \item Python
+ \item Java
+\end{enumerate}
+
+Figure-\ref{figProtoc}是protobuf处理流程，其编译器(protoc)将会把交互消息定义.proto文件(IDL)，按照用户指定语言绑定来自动生成相对应代码。
+\begin{figure}
+\caption{protoc的使用流程}\label{figProtoc}
+\centering
+\includegraphics[scale=0.80]{protoc.eps}
+\end{figure}
+
+各个语言间可以无缝的交互数据，而不必再自己手动地编写代码去解析，或者组装数据包。
+
+\section{Java的绑定}
+目前默认下，protobuf只会生成Java代码，运行需要的库，需要使用Apache Maven包(mvn命令行程序)来编译。
+
+在Ubuntu系统上，使用apt-get install mvn既可得到mvn程序，再使用下面命令：
+
+\begin{lstlisting}
+protobuf/java $ mvn install
+protobuf/java $ mvn package
+\end{lstlisting}
+
+这将会在java/目录下生成target/protobuf-java-2.5.0.jar包，Java语言程序编译和运行，都需要依赖该包。
+
+java -classpath protobuf-java-2.5.0.jar:. Main
+
+\section{使用示例}
+在caredear服务器代码的backend/docs/example/目录下，是一个演示Java前端和C++后端交换数据的流程。
+
+
+
+\section{IDL语法}
+
+\section{关于本文档}
+介绍protobuf话题的文档置于backend/docs/目录下。
+
+%% BEGIN CD-Specific CHANGE
+
+%% END CD-Specific CHANGE
+
+
+
+\begin{thebibliography}{99}
+\bibitem{refMemcach}memcached: {\em http://memcached.org}, a high-performance cache system.
+\bibitem{reflibevent} Libevent: {\em http://libevent.org}, an open source event notification library.
+\end{thebibliography}
+
+\end{document}
+
