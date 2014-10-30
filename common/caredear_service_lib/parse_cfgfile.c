@@ -51,11 +51,19 @@ void fill_server_info(xmlXPathContextPtr ctx, struct sql_server_info *server)
  *parse the config XML file.
  *
  *@cfg_name : the XML file name.
+ *
+ * return -1 for failure(such as not exist the file), 0 for successful
  */
 int parse_config_file(const char *cfg_name, struct sql_server_info *info)
 {
     xmlDocPtr doc;
     xmlXPathContextPtr ctx;
+
+    if(access(cfg_name, F_OK) != 0)
+    {
+        /* File not existed, don't do further job */
+        return -1;
+    }
 
     doc = xmlParseFile(cfg_name);
     if(doc != NULL)

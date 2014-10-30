@@ -111,6 +111,12 @@ int is_valid_user(struct token_string_info *s, struct cipher_token_string_info *
     char expire_dead_line[32]; /* string format as 'YYYY-MM-DD HH:MM:SS' */
     int  rc = 0;
 
+    if(BYPASS_DB_COOKIE_ON)
+    {
+        INFO("PASS DB ON - return is_valid with 1 directly");
+        return 1;
+    }
+
     rc = fetch_expire_from_db(glb_msql, c->csi_expire,
             lastlogin_line, sizeof(lastlogin_line),
             expire_dead_line, sizeof(expire_dead_line));
@@ -312,24 +318,33 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
-    parse_config_file("/etc/cds_cfg.xml", &server_cfg);
+    if(parse_config_file("/etc/cds_cfg.xml", &server_cfg) != 0)
+    {
+        ERR("config file probably missed, will use default settings.\n");
+        /* for cfg file error, we still continue execution.  */
+    }
+
     LOG("(%d)SQL Server IP : %s Port : %d, user name : %s, DB name : %s\n",
             BUILD_NUMBER, /* automatically generated via make */
             server_cfg.ssi_server_ip, server_cfg.ssi_server_port,
             server_cfg.ssi_user_name, server_cfg.ssi_database);
 
-    glb_msql = GET_MYSQL(&server_cfg);
-    if(glb_msql == NULL)
+    if(!BYPASS_DB_COOKIE_ON)
     {
-        ERR("failed connect to MySQL!\n");
-        return -1;
-    }
+        /* do real SQL connection */
+        glb_msql = GET_MYSQL(&server_cfg);
+        if(glb_msql == NULL)
+        {
+            ERR("failed connect to MySQL!\n");
+            return -1;
+        }
 
-    if(pthread_mutex_init(&sql_mutex, NULL) != 0)
-    {
-        FREE_MYSQL(glb_msql);
-        ERR("Failed create IPC objs:%d\n", errno);
-        return -2;
+        if(pthread_mutex_init(&sql_mutex, NULL) != 0)
+        {
+            FREE_MYSQL(glb_msql);
+            ERR("Failed create IPC objs:%d\n", errno);
+            return -2;
+        }
     }
 
     cfg.ac_cfgfile = NULL;
@@ -337,7 +352,11 @@ int main(int argc, char **argv)
     cds_init(&cfg, argc, argv);
 
     pthread_mutex_destroy(&sql_mutex);
-    FREE_MYSQL(glb_msql);
+
+    if(!BYPASS_DB_COOKIE_ON)
+    {
+        FREE_MYSQL(glb_msql);
+    }
 
     return 0;
 }

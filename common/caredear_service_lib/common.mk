@@ -1,4 +1,4 @@
-COMMON_CFLAGS = -W -Wall -Wno-unused-parameter -Wno-old-style-declaration -DCONFIG_LOG2FILE
+COMMON_CFLAGS = -W -Wall -Wno-unused-parameter -Wno-old-style-declaration
 ifeq ($(DEBUG),false)
 COMMON_CFLAGS += -DDEBUG -O2
 else

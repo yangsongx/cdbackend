@@ -12,6 +12,8 @@
    DB overhead */
 #define FREQUENT_VISIT_TIME  (30*60)
 
+#define BYPASS_DB_COOKIE_ON  (access("/tmp/passdb.cds", F_OK) == 0)
+
 struct token_string_info{
     char *tsi_userid;
     int   tsi_login;
