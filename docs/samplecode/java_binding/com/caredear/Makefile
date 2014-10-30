@@ -1,20 +1,12 @@
-# Makefile for the cpp
+# Makefile for the java
 #
-CXX = g++
-AR = ar
+#    how to execute:
+#    `java -classpath protobuf-java-2.5.0.jar:. com.caredear.TokenMain`
 
-SRC = token_main.cc \
-	tokendata.pb.cc
-
-$(shell export CLASSPATH=protobuf-java-2.5.0.jar)
-
-OBJS = $(SRC:.cc=.o)
-
-LDFLAGS = -lprotobuf
 
 .PHONY: all
 all:
-	javac -cp protobuf-java-2.5.0.jar TokenMain.java Tokendata.java
+	javac -cp protobuf-java-2.5.0.jar TokenMain.java TokenMessage.java
 	mv *.class com/caredear/
 
 .cc.o:
@@ -22,5 +14,5 @@ all:
 
 .PHONY:clean
 clean:
-	find . -name '*.o' -exec rm -rf {} ";"
+	find . -name '*.class' -exec rm -rf {} ";"
 

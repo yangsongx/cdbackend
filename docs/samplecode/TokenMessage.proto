@@ -1,14 +1,14 @@
 package com.caredear;
 
 
-message TokenData{
+message TokenRequest{
     required string uid = 1;
     required string appid = 2;
     required string loging = 3;
     required string aes_string = 4;
 }
 
-message TokenResult {
+message TokenResponse {
     required int32 result_code = 1;
-    optional string error_code = 2;
+    optional string extra_code = 2;
 }

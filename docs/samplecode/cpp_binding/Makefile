@@ -4,7 +4,7 @@ CXX = g++
 AR = ar
 
 SRC = token_main.cc \
-	tokendata.pb.cc
+	TokenMessage.pb.cc
 
 OBJS = $(SRC:.cc=.o)
 

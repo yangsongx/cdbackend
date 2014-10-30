@@ -8,7 +8,7 @@
 #include <sys/select.h>
 #include <iostream>
 
-#include "tokendata.pb.h"
+#include "TokenMessage.pb.h"
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
 
@@ -22,7 +22,7 @@ using namespace google::protobuf::io;
 
 int handle_request_data(int fd)
 {
-    TokenData data;
+    TokenRequest data;
     bool ok;
     int  validlen = 0;
     char buf[1024];
@@ -55,15 +55,19 @@ int handle_request_data(int fd)
                 data.uid().c_str(), data.appid().c_str(), data.loging().c_str(), data.aes_string().c_str());
 
                 /* TODO , below will try do ACK */
-                TokenResult result;
-                result.set_result_code(0);
+                TokenResponse result;
                 if(access("/tmp/cookie.bin", F_OK) == 0)
                 {
                     char long_str[100];
                     time_t t;
                     time(&t);
                     sprintf(long_str, "My Phone-%s\n", ctime(&t));
-                    result.set_error_code(long_str);
+                    result.set_extra_code(long_str);
+                    result.set_result_code(99);
+                }
+                else
+                {
+                    result.set_result_code(0);
                 }
 
                 int resp_len = result.ByteSize();

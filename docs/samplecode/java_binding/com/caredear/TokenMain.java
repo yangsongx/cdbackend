@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 
 import com.google.protobuf.*;
-import com.caredear.Tokendata;
+import com.caredear.TokenMessage;
 
 public class TokenMain{
     private static int byte2int(byte[] b) {
@@ -27,14 +27,14 @@ public class TokenMain{
     public static void main(String [] args){
         System.out.println("Try connecting to server socket...");
 
-        //com.google.protobuf.Descriptors.FileDescriptor data = Tokendata.getDescriptor(); // = new TokenData();
-        Tokendata.TokenData.Builder b = Tokendata.TokenData.newBuilder();
+        //com.google.protobuf.Descriptors.FileDescriptor data = TokenMessage.getDescriptor(); // = new TokenRequest();
+        TokenMessage.TokenRequest.Builder b = TokenMessage.TokenRequest.newBuilder();
         b.setUid("13022593515");
         b.setAppid("com.caredear.family");
         b.setLoging("2005-09-07");
         b.setAesString("abcdefg1234567==");
 
-        Tokendata.TokenData data = b.build();
+        TokenMessage.TokenRequest data = b.build();
         System.out.println("the serialize size is : " + data.getSerializedSize());
 
         byte [] stream_data = data.toByteArray();
@@ -67,7 +67,7 @@ public class TokenMain{
             // Next will waiting for the response
             //InputStream in = s.getInputStream();
 
-            Tokendata.TokenResult response;
+            TokenMessage.TokenResponse response;
 
 
             byte [] hdr_len = new byte[4];
@@ -80,11 +80,11 @@ public class TokenMain{
             s.getInputStream().read(rawbyte);
 
 
-            response = Tokendata.TokenResult.parseFrom(rawbyte);
+            response = TokenMessage.TokenResponse.parseFrom(rawbyte);
             ///
             System.out.println("the result code - " + response.getResultCode());
-            if(response.hasErrorCode()){
-                System.out.println("error code - " + response.getErrorCode());
+            if(response.hasExtraCode()){
+                System.out.println("error code - " + response.getExtraCode());
             }
             ///
 
