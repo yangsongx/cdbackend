@@ -20,6 +20,9 @@ $LEADING_URL = "http://www.ip138.com:8080/search.asp?";
 $PRELOAD = "preload.csv";
 
 $FULLUSER = "fulluser.txt";
+$ACTIVEUSER = "activeuser.txt";
+$INACTIVEUSER = "inactiveuser.txt";
+
 ################################################################
 
 # stored the latest mobile=>Province into .csv as preloaded for
@@ -47,6 +50,7 @@ sub get_num_list() {
     open(CSV, "$PRELOAD") || die "failed open preload csv";
     while(<CSV>){
         @lines = split(",");
+        chomp($lines[1]);
         ${$myh}{$lines[0]} = $lines[1];
     }
     close(CSV);
@@ -103,9 +107,16 @@ sub get_num_list() {
     close(FULL);
 }
 
-sub check_active(){
+# process the num_list, and give out a new list which contained
+# province info, stored in global %prov_list
+sub get_prov_list(){
+    my($myh) = (@_);
 }
 
+
+# export TeX section for plot the analysis result
+sub export_tex_section() {
+}
 
 ##
 # Main Entry Point Start
