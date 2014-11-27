@@ -30,11 +30,17 @@ $INACTIVEUSER = "inactiveuser.txt";
 sub update_csvdata() {
     my ($myl) = (@_);
     # remmember to encode it as UTF-8
-    open(CSV, ">:encoding(utf-8)", "$PRELOAD") or die "failed try writing $PRELOAD\n";
+    open(CSV, ">$PRELOAD") or die "failed try writing $PRELOAD\n";
     foreach $k (keys $myl){
-      $v = ${$myl}{$k};
-      $val = decode("gbk", $v);
-      print CSV "$k,$val\n";
+        if($k =~ /1\d{8}/) {
+            $v = ${$myl}{$k};
+            printf("[DEBUG] the key:$k, the val:$v\n");
+#$val = decode("gbk", $v);
+#           $v = encode("utf-8", $val);
+            print CSV "$k,$v\n";
+      } else {
+          printf("ATTENTION, found an invalid key, ignore update it to CSV...\n");
+      }
     }
     close(CSV);
 }
@@ -47,7 +53,7 @@ sub get_num_list() {
     $UA->agent("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.124 Safari/537.36");
 
     #First try get all existed records from a preload csv file.
-    open(CSV, "$PRELOAD") || die "failed open preload csv";
+    open(CSV, "<:encoding(utf-8)", "$PRELOAD") || die "failed open preload csv";
     while(<CSV>){
         @lines = split(",");
         chomp($lines[1]);
@@ -62,7 +68,7 @@ sub get_num_list() {
     while(<FULL>){
         $line = $_;
         chomp($line); # here store one mobile number, like 13022592323
-        printf("the phone number=$line\n");
+
         unless (exists ${$myh}{$line}) {
             printf("$line didn't existed in the preload.csv, will get it from internet...\n");
             my $url = $LEADING_URL . "mobile=" . $line . "&action=mobile";
@@ -80,10 +86,14 @@ sub get_num_list() {
                     if($_ =~ /\Q$TXT_ANCHOR\E.*class=tdc2\>\<.*--\>(.*)\<\/TD\>/) {
                         $h = $1;
                         if($h =~ /(.*)\&nbsp;(.*)/) {
-                            ${$myh}{$line} = $1;
-                            $o = ${$myh}{$line};
+                            $o = $1;
+                            printf("[DEBUG] the raw html data:$o\n");
                             $out = decode("gbk", $o);
+                            printf("[DEBUG] after gdk html data:$out\n");
                             $o = encode("utf-8", $out);
+
+                            ${$myh}{$line} = $o; # we store as UTF-8
+
                             printf("\t$line ==> $o\n");
                             last; #remember , last is C's break;
                         }
@@ -92,11 +102,16 @@ sub get_num_list() {
                     } elsif($newline == 1) {
                         $newline = 0;
                         if($_ =~ /\>(.*)\&nbsp;(.*)\<\/TD\>/){
-                            ${$myh}{$line} = $1;
-                            $o = ${$myh}{$line};
+                            $o = $1;
+                            printf("[DEBUG2] the raw html data:$o\n");
                             $out = decode("gbk", $o);
+                            printf("[DEBUG2] after gdk html data:$out\n");
                             $o = encode("utf-8", $out);
+
+                            ${$myh}{$line} = $o;
+
                             printf("\t$line ==> $o\n");
+                            last;
                         }
                     }
                 }
@@ -111,6 +126,20 @@ sub get_num_list() {
 # province info, stored in global %prov_list
 sub get_prov_list(){
     my($myh) = (@_);
+
+    foreach $k (keys $myh) {
+        unless (exists ${$myh}{$k}) {
+            $prov_list{${$myh}{$k}} = 1;#first new province
+        } else {
+            $prov_list{${$myh}{$k}} ++;
+        }
+    }
+
+    #sort for hash's value
+    binmode(STDOUT, ':encoding(utf8)');
+    foreach $k (sort {$prov_list{$b} <=> $prov_list{$a}} keys %prov_list){
+        printf("$k=>$prov_list{$k}\n");
+    }
 }
 
 
@@ -120,7 +149,6 @@ sub export_tex_section() {
 
 ##
 # Main Entry Point Start
-
 
 ##
 # num_list :
@@ -139,6 +167,8 @@ our %num_list;
 #  ...          ...
 our %prov_list;
 
+#binmode(STDOUT, ':encoding(utf8)');
+
 &get_num_list(\%num_list);
 $len = keys %num_list;
 printf("After call get_num_list, the whole users info account = $len\n");
@@ -146,3 +176,6 @@ printf("After call get_num_list, the whole users info account = $len\n");
 &update_csvdata(\%num_list);
 printf("All user data stored in $PRELOAD\n");
 
+&get_prov_list(\%num_list);
+#after above function call, %prov_list stored the
+#calculated province list data.
