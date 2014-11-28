@@ -22,6 +22,30 @@ $PRELOAD = "preload.csv";
 $FULLUSER = "fulluser.txt";
 $ACTIVEUSER = "activeuser.txt";
 $INACTIVEUSER = "inactiveuser.txt";
+$TEXRESULT = "report.tex";
+
+##
+# num_list :
+#
+# {13x xxxx xxxx} => "Province1"
+# {13x xxxx xxxx} => "Province2"
+# {13x xxxx xxxx} => "Province3"
+# ....        ....       ....
+our %num_list;
+
+##
+# prov_list - account how many provinces
+# {Province1} => 30
+# {Province2} => 98
+# {Province3} => 3
+#  ...          ...
+our %prov_list;
+
+##
+# Active user's province list
+#
+our %active_prov_list;
+our %inactive_prov_list;
 
 ################################################################
 
@@ -34,9 +58,7 @@ sub update_csvdata() {
     foreach $k (keys $myl){
         if($k =~ /1\d{8}/) {
             $v = ${$myl}{$k};
-            printf("[DEBUG] the key:$k, the val:$v\n");
-#$val = decode("gbk", $v);
-#           $v = encode("utf-8", $val);
+#printf("[DEBUG] the key:$k, the val:$v\n");
             print CSV "$k,$v\n";
       } else {
           printf("ATTENTION, found an invalid key, ignore update it to CSV...\n");
@@ -127,6 +149,7 @@ sub get_num_list() {
 sub get_prov_list(){
     my($myh) = (@_);
 
+    # full province list
     foreach $k (keys $myh) {
         unless (exists ${$myh}{$k}) {
             $prov_list{${$myh}{$k}} = 1;#first new province
@@ -135,37 +158,120 @@ sub get_prov_list(){
         }
     }
 
-    #sort for hash's value
-    binmode(STDOUT, ':encoding(utf8)');
-    foreach $k (sort {$prov_list{$b} <=> $prov_list{$a}} keys %prov_list){
-        printf("$k=>$prov_list{$k}\n");
+
+    my %tmpactive;
+    open (ACTIVE, "$ACTIVEUSER") || die "failed open active user data";
+    while(<ACTIVE>) {
+        $line = $_;
+        chomp($line);
+
+        if(exists ${$myh}{$line}) {
+            $tmpactive{$line} = ${$myh}{$line};
+        }
+    }
+    close(ACTIVE);
+
+    my $len = keys %tmpactive;
+    printf("totally $len active users...\n");
+
+    foreach $ky (keys %tmpactive) {
+        unless (exists $active_prov_list{$tmpactive{$ky}}) {
+            $active_prov_list{$tmpactive{$ky}} = 1;
+        } else {
+            $active_prov_list{$tmpactive{$ky}} ++;
+        }
+    }
+
+    my %tmpinactive;
+    open(INACTIVE, "$INACTIVEUSER") || die "failed open inactive user data";
+    while(<INACTIVE>) {
+        $line = $_;
+        chomp($line);
+
+        if(exists ${$myh}{$line}) {
+            $tmpinactive{$line} = ${$myh}{$line};
+        }
+    }
+    close(INACTIVE);
+
+    $len = keys %tmpinactive;
+    printf("totally $len inactive users...\n");
+
+    foreach $ky (keys %tmpinactive) {
+        unless (exists $inactive_prov_list{$tmpinactive{$ky}}) {
+            $inactive_prov_list{$tmpinactive{$ky}} = 1;
+        } else {
+            $inactive_prov_list{$tmpinactive{$ky}} ++;
+        }
     }
 }
 
 
 # export TeX section for plot the analysis result
 sub export_tex_section() {
+    my @sortedlist;
+    my $count=0;
+
+    open(TEX, ">:encoding(utf-8)", "$TEXRESULT") || die "failed create the \'$TEXRESULT\' file\n";
+
+    print TEX "\\begin{bchart}\n";
+    foreach $k (sort {$prov_list{$b} <=> $prov_list{$a}} keys %prov_list){
+        $count++;
+        if($count == 1) {
+            print TEX "\\bcbar[text=$k,color=red]{$prov_list{$k}}\n";
+        } elsif($count == 2) {
+            print TEX "\\bcbar[text=$k,color=orange]{$prov_list{$k}}\n";
+        } elsif($count == 3) {
+            print TEX "\\bcbar[text=$k,color=green!60!blue]{$prov_list{$k}}\n";
+        }else {
+            print TEX "\\bcbar[label=$k]{$prov_list{$k}}\n";
+        }
+    }
+    print TEX "\\end{bchart}\n";
+
+    print TEX "\n\nBelow are active pie and sorted list...\n\n";
+
+    $fulllen = keys %num_list;
+    $activelen = keys %active_prov_list;
+    $inactivelen = keys %inactive_prov_list;
+    $medialen = ($fulllen - $activelen - $inactivelen);
+
+    $count = 0;
+    print TEX "\\begin{bchart}\n";
+    foreach $ky (sort {$active_prov_list{$b} <=> $active_prov_list{$a}} keys %active_prov_list) {
+        $count++;
+        if($count <= 3) {
+            print TEX "\\bcbar[text==$ky]{$active_prov_list{$ky}}\n";
+        } else {
+            print TEX "\\bcbar[label=$ky]{$active_prov_list{$ky}}\n";
+        }
+    }
+    print TEX "\\end{bchart}\n";
+
+    print TEX "\n\nBelow are inactive pie and sorted list...\n\n";
+    $count = 0;
+    print TEX "\\begin{bchart}\n";
+    foreach $ky (sort {$inactive_prov_list{$b} <=> $inactive_prov_list{$a}} keys %inactive_prov_list) {
+        $count++;
+        if($count <= 3) {
+            print TEX "\\bcbar[text==$ky]{$inactive_prov_list{$ky}}\n";
+        } else {
+            print TEX "\\bcbar[label=$ky]{$inactive_prov_list{$ky}}\n";
+        }
+    }
+    print TEX "\\end{bchart}\n";
+
+    $full = keys %num_list;
+    printf ("full users:$full\n");
+
+    close(TEX);
 }
+
+
 
 ##
 # Main Entry Point Start
 
-##
-# num_list :
-#
-# {13x xxxx xxxx} => "Province1"
-# {13x xxxx xxxx} => "Province2"
-# {13x xxxx xxxx} => "Province3"
-# ....        ....       ....
-our %num_list;
-
-##
-# prov_list - account how many provinces
-# {Province1} => 30
-# {Province2} => 98
-# {Province3} => 3
-#  ...          ...
-our %prov_list;
 
 #binmode(STDOUT, ':encoding(utf8)');
 
@@ -179,3 +285,6 @@ printf("All user data stored in $PRELOAD\n");
 &get_prov_list(\%num_list);
 #after above function call, %prov_list stored the
 #calculated province list data.
+
+&export_tex_section();
+
