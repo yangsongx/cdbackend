@@ -2,7 +2,7 @@
 #
 CC = gcc
 
-SRC = nds_main.c nds_sql.c
+SRC = nds_main.c nds_sql.c nds_quota.c
 
 include ../../common/caredear_service_lib/common.mk
 CFLAGS = $(COMMON_CFLAGS) -I../../common/caredear_service_lib/ `mysql_config --cflags`

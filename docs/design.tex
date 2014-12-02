@@ -1,0 +1,331 @@
+\documentclass{beamer}
+%\usetheme{CambridgeUS}
+%\usetheme{Hannover}
+\usepackage{fontspec,xunicode,xltxtra,xecolor,listings,color}
+\usepackage{bchart}
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes,trees,calc,automata,positioning}
+\tikzset{
+  mybox/.style={
+    rectangle,
+    rounded corners,
+    draw=black
+  },
+}
+
+\setmainfont{WenQuanYi Micro Hei}
+\setsansfont{WenQuanYi Micro Hei}
+\setmonofont{WenQuanYi Micro Hei}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip=0pt plus 1pt minus 0.1pt
+
+\begin{document}
+\defverbatim[colored]\apicode{%
+  \begin{lstlisting}[basicstyle=\tiny,language=java,frame=lines,showspaces=false,emphstyle=\color{blue}]
+import com.caredear.common.util.CdRecycleUsrData;
+
+int CdRecycleUsrData.saveDeletedContactData(String deleted_contact);
+int CdRecycleUsrData.restoreDeletedContactData(Context context);
+\end{lstlisting}
+}
+\defverbatim[colored]\mycode{%
+  \begin{lstlisting}[basicstyle=\tiny,language=java,frame=lines,showspaces=false,emphstyle=\color{blue}]
+import com.caredear.common.util.CdRecycleUsrData;
+
+String deleted_contact="张三:13022593515;李四:02652148888;";
+int ret = CdRecycleUsrData.saveDeletedContactData(deleted_contact);
+if(ret == 0){
+    log("Cool, we did it!");
+} else {
+    log("error happen for backup the deleted contact!");
+}
+\end{lstlisting}
+}
+\defverbatim[colored]\restcode{%
+  \begin{lstlisting}[basicstyle=\tiny,language=java,frame=lines,showspaces=false,emphstyle=\color{blue}]
+import com.caredear.common.util.CdRecycleUsrData;
+
+private Context mCtx;
+mCtx = getApplicationContext()
+int ret = CdRecycleUsrData.restoreDeletedContactData(mCtx)
+if(ret == 0){
+    log("Cool, we did it!");
+} else {
+    log("error happen for restore the deleted contact!");
+}
+\end{lstlisting}
+}
+
+\title{亲连}
+\institute{CearDear Service Team}
+\frame{\titlepage}
+
+\begin{frame}
+\frametitle{2014年11月份注册用户地理位置分布(合计599)}
+
+\scalebox{0.5}
+{
+\begin{bchart}[max=120]
+\bcbar[text=江苏,color=red]{120}
+\bcbar[text=广东,color=orange]{107}
+\bcbar[text=北京,color=green!60!blue]{85}
+\bcbar[label=上海]{36}
+\bcbar[label=浙江]{20}
+\bcbar[label=陕西]{20}
+\bcbar[label=四川]{20}
+\bcbar[label=湖北]{19}
+\bcbar[label=河南]{18}
+\bcbar[label=山东]{17}
+\bcbar[label=天津]{13}
+\bcbar[label=河北]{13}
+\bcbar[label=湖南]{13}
+\bcbar[label=重庆]{13}
+\bcbar[label=黑龙江]{12}
+\bcbar[label=山西]{11}
+\bcbar[label=福建]{10}
+\bcbar[label=江西]{8}
+\bcbar[label=安徽]{8}
+\bcbar[label=辽宁]{8}
+\bcbar[label=贵州]{7}
+\bcbar[label=广西]{4}
+\bcbar[label=新疆]{3}
+\bcbar[label=海南]{3}
+\bcbar[label=内蒙古]{3}
+\bcbar[label=甘肃]{3}
+\bcbar[label=云南]{2}
+\bcbar[label=吉林]{2}
+\bcbar[label=宁夏]{1}
+\end{bchart}
+}
+\end{frame}
+
+\begin{frame}
+\frametitle{活跃用户分布情况}
+
+\def\angle{0}
+\def\radius{3}
+\def\cyclelist{{"red","orange","blue","green"}}
+\newcount\cyclecount \cyclecount=-1
+\newcount\ind \ind=-1
+\scalebox{0.8}
+{
+\begin{tikzpicture}[nodes = {font=\sffamily}]
+  \foreach \percent/\name in {
+      67/最近一周登录用户,
+      25/一个月内登录用户,
+      8/不活跃用户
+    } {
+      \ifx\percent\empty\else               % If \percent is empty, do nothing
+        \global\advance\cyclecount by 1     % Advance cyclecount
+        \global\advance\ind by 1            % Advance list index
+        \ifnum3<\cyclecount                 % If cyclecount is larger than list
+          \global\cyclecount=0              %   reset cyclecount and
+          \global\ind=0                     %   reset list index
+        \fi
+        \pgfmathparse{\cyclelist[\the\ind]} % Get color from cycle list
+        \edef\color{\pgfmathresult}         %   and store as \color
+        % Draw angle and set labels
+        \draw[fill={\color!50},draw={\color}] (0,0) -- (\angle:\radius)
+          arc (\angle:\angle+\percent*3.6:\radius) -- cycle;
+        \node at (\angle+0.5*\percent*3.6:0.7*\radius) {\percent\,\%};
+        \node[pin=\angle+0.5*\percent*3.6:\name]
+          at (\angle+0.5*\percent*3.6:\radius) {};
+        \pgfmathparse{\angle+\percent*3.6}  % Advance angle
+        \xdef\angle{\pgfmathresult}         %   and store in \angle
+      \fi
+    };
+\end{tikzpicture}
+}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{活跃用户地理位置分布}
+\scalebox{0.53}
+{
+\begin{bchart}
+\bcbar[text=广东]{67}
+\bcbar[text=江苏]{62}
+\bcbar[text=北京]{56}
+\bcbar[label=上海]{25}
+\bcbar[label=四川]{17}
+\bcbar[label=河南]{15}
+\bcbar[label=陕西]{15}
+\bcbar[label=湖北]{13}
+\bcbar[label=浙江]{13}
+\bcbar[label=山东]{12}
+\bcbar[label=天津]{11}
+\bcbar[label=黑龙江]{10}
+\bcbar[label=重庆]{9}
+\bcbar[label=湖南]{9}
+\bcbar[label=河北]{9}
+\bcbar[label=山西]{8}
+\bcbar[label=辽宁]{7}
+\bcbar[label=江西]{7}
+\bcbar[label=安徽]{6}
+\bcbar[label=贵州]{6}
+\bcbar[label=福建]{5}
+\bcbar[label=甘肃]{3}
+\bcbar[label=内蒙古]{3}
+\bcbar[label=广西]{3}
+\bcbar[label=新疆]{3}
+\bcbar[label=吉林]{2}
+\bcbar[label=海南]{2}
+\bcbar[label=云南]{2}
+\bcbar[label=宁夏]{1}
+\end{bchart}
+}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{注册用户地理位置分布－2014-11-21,358用户}
+\scalebox{0.53}
+{
+\begin{bchart}[max=101]
+ \bcbar[text=江苏,color=red]{101}
+ \bcbar[text=广东,color=orange]{82}
+ \bcbar[text=北京,color=green!60!blue]{39}
+ \bcbar[label=上海]{15}
+ \bcbar[label=重庆]{11}
+ \bcbar[label=河南]{11}
+ \bcbar[label=浙江]{10}
+ \bcbar[label=陕西]{10}
+ \bcbar[label=河北]{9}
+ \bcbar[label=山东]{9}
+ \bcbar[label=湖南]{7}
+ \bcbar[label=湖北]{7}
+ \bcbar[label=黑龙江]{7}
+ \bcbar[label=天津]{7}
+ \bcbar[label=福建]{6}
+ \bcbar[label=四川]{4}
+ \bcbar[label=贵州]{3}
+ \bcbar[label=安徽]{3}
+ \bcbar[label=海南]{2}
+ \bcbar[label=云南]{2}
+ \bcbar[label=辽宁]{3}
+ \bcbar[label=江西]{1}
+ \bcbar[label=广西]{1}
+ \bcbar[label=新疆]{1}
+ \bcbar[label=吉林]{1}
+ \bcbar[label=宁夏]{1}
+\end{bchart}
+}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{活跃用户分布情况}
+
+\def\angle{0}
+\def\radius{3}
+\def\cyclelist{{"red","orange","blue","green"}}
+\newcount\cyclecount \cyclecount=-1
+\newcount\ind \ind=-1
+\begin{tikzpicture}[nodes = {font=\sffamily}]
+  \foreach \percent/\name in {
+      72/最近一周登录用户,
+      19/一个月内登录用户,
+      9/不活跃用户
+    } {
+      \ifx\percent\empty\else               % If \percent is empty, do nothing
+        \global\advance\cyclecount by 1     % Advance cyclecount
+        \global\advance\ind by 1            % Advance list index
+        \ifnum3<\cyclecount                 % If cyclecount is larger than list
+          \global\cyclecount=0              %   reset cyclecount and
+          \global\ind=0                     %   reset list index
+        \fi
+        \pgfmathparse{\cyclelist[\the\ind]} % Get color from cycle list
+        \edef\color{\pgfmathresult}         %   and store as \color
+        % Draw angle and set labels
+        \draw[fill={\color!50},draw={\color}] (0,0) -- (\angle:\radius)
+          arc (\angle:\angle+\percent*3.6:\radius) -- cycle;
+        \node at (\angle+0.5*\percent*3.6:0.7*\radius) {\percent\,\%};
+        \node[pin=\angle+0.5*\percent*3.6:\name]
+          at (\angle+0.5*\percent*3.6:\radius) {};
+        \pgfmathparse{\angle+\percent*3.6}  % Advance angle
+        \xdef\angle{\pgfmathresult}         %   and store in \angle
+      \fi
+    };
+\end{tikzpicture}
+
+
+\end{frame}
+
+\begin{frame}
+\frametitle{活跃用户地理分布－2014-11-21}
+\scalebox{0.53}
+{
+\begin{bchart}[max=51,color=red]
+ \bcbar[text=江苏]{51}
+ \bcbar[text=广东]{51}
+ \bcbar[text=北京]{37}
+ \bcbar[label=上海]{12}
+ \bcbar[label=重庆]{10}
+ \bcbar[label=河南]{11}
+ \bcbar[label=浙江]{10}
+ \bcbar[label=河北]{9} 
+ \bcbar[label=陕西]{7}
+ \bcbar[label=山东]{7}
+ \bcbar[label=湖南]{7}
+ \bcbar[label=湖北]{6}
+ \bcbar[label=黑龙江]{5}
+ \bcbar[label=天津]{7}
+ \bcbar[label=福建]{5}
+ \bcbar[label=四川]{3}
+ \bcbar[label=贵州]{3}
+ \bcbar[label=安徽]{2}
+ \bcbar[label=海南]{2}
+ \bcbar[label=云南]{2}
+ \bcbar[label=辽宁]{3}
+ \bcbar[label=江西]{1}
+ \bcbar[label=广西]{1}
+ \bcbar[label=新疆]{1}
+ \bcbar[label=吉林]{1}
+ \bcbar[label=宁夏]{1}
+\end{bchart}
+}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{注册用户地理位置分布: 2014-11-18, 305用户}
+\scalebox{0.53}
+{
+\begin{bchart}[max=92]
+ \bcbar[text=江苏,color=red]{92}
+ \bcbar[text=广东,color=orange]{77}
+ \bcbar[text=北京,color=green!60!blue]{30}
+ \bcbar[label=上海]{15}
+ \bcbar[label=重庆]{11}
+ \bcbar[label=浙江]{9}
+ \bcbar[label=陕西]{9}
+ \bcbar[label=山东]{8}
+ \bcbar[label=湖南]{6}
+ \bcbar[label=福建]{6}
+ \bcbar[label=河北]{6}
+ \bcbar[label=湖北]{5}
+ \bcbar[label=河南]{5}
+ \bcbar[label=黑龙江]{5}
+ \bcbar[label=贵州]{3}
+ \bcbar[label=安徽]{3}
+ \bcbar[label=四川]{3}
+ \bcbar[label=海南]{2}
+ \bcbar[label=云南]{2}
+ \bcbar[label=辽宁]{2}
+ \bcbar[label=江西]{1}
+ \bcbar[label=天津]{1}
+ \bcbar[label=广西]{1}
+ \bcbar[label=新疆]{1}
+ \bcbar[label=吉林]{1}
+ \bcbar[label=宁夏]{1}
+\end{bchart}
+}
+
+\end{frame}
+
+\end{document}
