@@ -4,9 +4,8 @@ CC = gcc
 
 SRC = nds_main.c nds_sql.c
 
-
-COMMON_CFLAGS = -I../ -W -Wall -Wno-unused-parameter -Wno-old-style-declaration `mysql_config --cflags`
-CFLAGS = $(COMMON_CFLAGS)
+include ../../common/caredear_service_lib/common.mk
+CFLAGS = $(COMMON_CFLAGS) -I../../common/caredear_service_lib/ `mysql_config --cflags`
 
 # Release should use -O2
 
@@ -16,7 +15,7 @@ else
 CFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L ../ -lcds -pthread -levent -lcrypto -lxml2 `mysql_config --libs`
+LDFLAGS = -L ../../common/caredear_service_lib/ -lcds -pthread -levent -lcrypto -lxml2 `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
@@ -36,4 +35,4 @@ nds:$(OBJS)
 
 .PHONY:clean
 clean:
-	rm -rf *.o cms a.out
+	rm -rf *.o nds a.out

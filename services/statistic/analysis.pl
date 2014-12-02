@@ -45,7 +45,9 @@ our %prov_list;
 # Active user's province list
 #
 our %active_prov_list;
+our $active_len;
 our %inactive_prov_list;
+our $inactive_len;
 
 ################################################################
 
@@ -171,8 +173,7 @@ sub get_prov_list(){
     }
     close(ACTIVE);
 
-    my $len = keys %tmpactive;
-    printf("totally $len active users...\n");
+    $active_len = keys %tmpactive;
 
     foreach $ky (keys %tmpactive) {
         unless (exists $active_prov_list{$tmpactive{$ky}}) {
@@ -194,8 +195,7 @@ sub get_prov_list(){
     }
     close(INACTIVE);
 
-    $len = keys %tmpinactive;
-    printf("totally $len inactive users...\n");
+    $inactive_len = keys %tmpinactive;
 
     foreach $ky (keys %tmpinactive) {
         unless (exists $inactive_prov_list{$tmpinactive{$ky}}) {
@@ -232,16 +232,17 @@ sub export_tex_section() {
     print TEX "\n\nBelow are active pie and sorted list...\n\n";
 
     $fulllen = keys %num_list;
-    $activelen = keys %active_prov_list;
-    $inactivelen = keys %inactive_prov_list;
-    $medialen = ($fulllen - $activelen - $inactivelen);
+    $medialen = ($fulllen - $active_len - $inactive_len);
+
+    $ratio_active = $active_len / $fulllen;
+    printf("$active_len / $fulllen , ratio action: $ratio_active\n");
 
     $count = 0;
     print TEX "\\begin{bchart}\n";
     foreach $ky (sort {$active_prov_list{$b} <=> $active_prov_list{$a}} keys %active_prov_list) {
         $count++;
         if($count <= 3) {
-            print TEX "\\bcbar[text==$ky]{$active_prov_list{$ky}}\n";
+            print TEX "\\bcbar[text=$ky]{$active_prov_list{$ky}}\n";
         } else {
             print TEX "\\bcbar[label=$ky]{$active_prov_list{$ky}}\n";
         }
