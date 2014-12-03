@@ -12,6 +12,12 @@
 #include <mcheck.h>
 #endif
 
+#include <openssl/hmac.h>
+#include <qiniu/base.h>
+#include <qiniu/io.h>
+#include <qiniu/rs.h>
+
+
 #include "cds_public.h"
 #include "nds_def.h"
 
@@ -22,6 +28,167 @@
 
 static MYSQL *nds_sql = NULL;
 
+/* QINIU SDK KEYS... */
+Qiniu_Client qn;
+const char *QINIU_ACCESS_KEY = "5haoQZguw4iGPnjUuJnhOGufZMjrQnuSdySzGboj";
+const char *QINIU_SECRET_KEY = "OADMEtVegAXAhCJBhRSXXeEd_YRYzEPyHwzJDs95";
+
+int init_qiniu_lib()
+{
+    Qiniu_Servend_Init(-1);
+
+    // per req creates one
+    //Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
+
+    return 0;
+}
+
+void purely_api(const char *fn)
+{
+    Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
+    char buf[1024];
+    sprintf(buf, "caredear-cloud:%s", fn);
+
+    Qiniu_RS_PutPolicy p;
+    Qiniu_Zero(p);
+    p.scope = buf;
+    printf("the scope:%s\n", p.scope);
+
+    char *f = Qiniu_RS_PutPolicy_Token(&p, NULL);
+    printf("the token:\n%s\n\n", f);
+}
+
+void another_test(const char *filename)
+{
+    Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
+    char buf[1024];
+    sprintf(buf, "caredear-pic:%s", filename);
+
+    Qiniu_RS_PutPolicy p;
+    Qiniu_Zero(p);
+    p.scope = buf;
+    //p.expires = 2451491200;
+
+    printf("the scope:%s\n", p.scope);
+
+    char *f = Qiniu_RS_PutPolicy_Token(&p, NULL);
+    printf("the token:\n%s\n\n", f);
+
+    Qiniu_Error err;
+    Qiniu_Io_PutRet putRet;
+    err = Qiniu_Io_PutFile(&qn, &putRet, f, NULL, filename, NULL);
+
+    printf("the status code = %d\n", err.code);
+    if(err.code != 200)
+    {
+        printf("the msg:%s\n", err.message);
+    }
+
+    exit(0);
+}
+
+void test_download_url()
+{
+    //char url[] = "http://caredear-cloud.qiniudn.com/300047\%2F14175708058725878";
+    char url[] = "http://caredear-cloud.qiniudn.com/300047/14175708058725878";
+    Qiniu_RS_GetPolicy getPolicy;
+    getPolicy.expires = 1420162805;
+    char *p = Qiniu_RS_GetPolicy_MakeRequest(&getPolicy, url, NULL);
+
+    printf("the data\n%s\n", p);
+}
+// test code;
+void try_upload(const char *filename)
+{
+#if 1
+    test_download_url();
+#else
+    // per req creates one
+    Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
+
+#if 0
+    unsigned char putpolicy[] ="eyJzY29wZSI6Im15LWJ1Y2tldDpzdW5mbG93ZXIuanBnIiwiZGVhZGxpbmUiOjE0NTE0OTEyMDAs"
+                      "InJldHVybkJvZHkiOiJ7XCJuYW1lXCI6JChmbmFtZSksXCJzaXplXCI6JChmc2l6ZSksXCJ3XCI6"
+                      "JChpbWFnZUluZm8ud2lkdGgpLFwiaFwiOiQoaW1hZ2VJbmZvLmhlaWdodCksXCJoYXNoXCI6JChl"
+                      "dGFnKX0ifQ==";
+#else
+    Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
+    char buf[1024];
+    sprintf(buf, "caredear-pic:%s", filename);
+    char json[1024];
+    char fly[1024];
+    int flen= sizeof(fly);
+
+    Qiniu_RS_PutPolicy p;
+    Qiniu_Zero(p);
+    p.scope = buf;
+    p.expires = 2451491200;
+
+    printf("the scope:%s\n", p.scope);
+
+    sprintf(json, "{\"scope\":\"%s\",\"fsizeLimit\":10000000,\"deadline\":1420162805}",
+            "caredear-cloud:300047/14175708058725878");
+
+    printf("json:\n%s\n", json);
+
+
+    char *putpolicy = base64(json, strlen(json), &flen);
+
+    /*
+    char putpolicy[] ="eyJzY29wZSI6Im15LWJ1Y2tldDpzdW5mbG93ZXIuanBnIiwiZGVhZGxpbmUiOjE0NTE0OTEyMDAs"
+                      "InJldHVybkJvZHkiOiJ7XCJuYW1lXCI6JChmbmFtZSksXCJzaXplXCI6JChmc2l6ZSksXCJ3XCI6"
+                      "JChpbWFnZUluZm8ud2lkdGgpLFwiaFwiOiQoaW1hZ2VJbmZvLmhlaWdodCksXCJoYXNoXCI6JChl"
+                      "dGFnKX0ifQo=";
+                      */
+#endif
+
+    unsigned char key[] = "OADMEtVegAXAhCJBhRSXXeEd_YRYzEPyHwzJDs95";
+
+    char md[1024];
+    int mdlen = sizeof(md);
+    memset(md, '\0', sizeof(md));
+
+
+    printf("putpolic:\n%s\n", putpolicy);
+    printf("sizeof(key)=%d\n", sizeof(key));
+    printf("policy len=%d\n", strlen(putpolicy));
+
+    char *bin = HMAC(EVP_sha1(),
+            key,
+            strlen(key),
+            putpolicy,
+            strlen(putpolicy),
+            md,
+           &mdlen);
+
+    printf("the cmdlen=%d\n", mdlen);
+
+    char *f = base64(bin, mdlen, &flen);
+
+    printf("After base64, len=%d\n",flen);
+    printf("the result:%s\n", f);
+
+    sprintf(md, "%s:%s:%s",
+            QINIU_ACCESS_KEY, f, putpolicy);
+
+    printf("\n\n\t NOw, the whole token is:\n%s\n",
+            md);
+
+    // now, md is the upload token
+    Qiniu_Error err;
+    Qiniu_Io_PutRet putRet;
+    char badkey[] ="300047/14175708058725878";
+    err = Qiniu_Io_PutFile(&qn, &putRet, md, badkey, filename, NULL);
+
+    printf("the status code = %d\n", err.code);
+    if(err.code != 200)
+    {
+        printf("the msg:%s\n", err.message);
+    }
+
+#endif
+    exit(0);
+}
 
 /**
  * call back function, handle Token
@@ -53,6 +220,18 @@ int main(int argc, char **argv)
 #ifdef CHECK_MEM_LEAK
     mtrace();
 #endif
+
+
+    /* Init Qiniu stuff,as we need it's service */
+    if(init_qiniu_lib() != 0)
+    {
+        ERR("failed init the Qiniu lib.\n");
+        return -1;
+    }
+
+    try_upload("/tmp/abc.png");
+    //another_test("/tmp/abc.png");
+
 
     /* try get the SQL server info */
     parse_config_file("/etc/cds_cfg.xml", &sql_cfg);
