@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define __USE_XOPEN
+//#define __USE_XOPEN
 #include <time.h>
 
 #ifdef CHECK_MEM_LEAK
@@ -21,10 +21,23 @@
 #include "cds_public.h"
 #include "nds_def.h"
 
+// max/min are arleady defined in STL...
+#undef max
+#undef min
+
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+#include <google/protobuf/io/coded_stream.h>
+#include "NetdiskMessage.pb.h"
+
 #define COMPOSE_RESP(_err)   *(int *)resp = (_err); \
                              *len = sizeof(int); \
                              ret = (_err); \
                              goto failed
+
+/* Now, we're going to C++ world */
+using namespace std;
+using namespace google::protobuf::io;
+using namespace com::caredear;
 
 static MYSQL *nds_sql = NULL;
 
@@ -32,16 +45,6 @@ static MYSQL *nds_sql = NULL;
 Qiniu_Client qn;
 const char *QINIU_ACCESS_KEY = "5haoQZguw4iGPnjUuJnhOGufZMjrQnuSdySzGboj";
 const char *QINIU_SECRET_KEY = "OADMEtVegAXAhCJBhRSXXeEd_YRYzEPyHwzJDs95";
-
-int init_qiniu_lib()
-{
-    Qiniu_Servend_Init(-1);
-
-    // per req creates one
-    //Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
-
-    return 0;
-}
 
 void purely_api(const char *fn)
 {
@@ -191,26 +194,49 @@ void try_upload(const char *filename)
 }
 
 /**
- * call back function, handle Token
+ * call back function, handle obj is NetdiskMessage
  *
  * return error values if sth wrong.
  */
-int cms_handler(int size, void *req, int *len, void *resp)
+int nds_handler(int size, void *req, int *len, void *resp)
 {
     int ret = CDS_OK;
+    bool ok = false;
 
     if(size >= 1024)
     {
         /* Note - actually, len checking already done at .SO side... */
         ERR("Exceed limit(%d > %d), don't handle this request\n",
                 size, 1024);
-        COMPOSE_RESP(CDS_ERR_REQ_TOOLONG);
+        //COMPOSE_RESP(CDS_ERR_REQ_TOOLONG);
+        // TODO - DON"T use goto here, to avoid C++ compilor error
     }
 
-    LOG("got %d size (%s) from client\n",
-                    size, (char *)req);
+    LOG("got %d size from client\n", size);
 
-failed:
+    NetdiskRequest reqobj;
+    ArrayInputStream in(req, size);
+    CodedInputStream is(&in);
+
+    ok = reqobj.ParseFromCodedStream(&is);
+    if(ok)
+    {
+        // After go here, all data section got
+        // and stored in NetdiskRequest obj.
+#ifdef DEBUG // dump the content
+        printf("==== DUMP the objs... ====\n");
+        printf("user:%s, filename:%s\n",
+                reqobj.user().c_str(), reqobj.filename().c_str());
+        printf("==== END DUMP ====\n");
+#endif
+
+    }
+    else
+    {
+        ERR("**Failed parse the obj in protobuf!\n");
+    }
+
+//failed:
     return ret;
 }
 
@@ -221,17 +247,11 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
-
     /* Init Qiniu stuff,as we need it's service */
-    if(init_qiniu_lib() != 0)
-    {
-        ERR("failed init the Qiniu lib.\n");
-        return -1;
-    }
+    Qiniu_Servend_Init(-1);
 
-    try_upload("/tmp/abc.png");
+    //try_upload("/tmp/abc.png");
     //another_test("/tmp/abc.png");
-
 
     /* try get the SQL server info */
     parse_config_file("/etc/cds_cfg.xml", &sql_cfg);
@@ -253,7 +273,7 @@ int main(int argc, char **argv)
     }
 
     cfg.ac_cfgfile = NULL;
-    cfg.ac_handler = cms_handler;
+    cfg.ac_handler = nds_handler;
     cds_init(&cfg, argc, argv);
 
     CLEAN_DB_MUTEX();

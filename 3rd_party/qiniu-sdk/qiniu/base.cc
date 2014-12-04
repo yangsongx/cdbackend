@@ -8,6 +8,7 @@
  */
 
 #include "base.h"
+#include "../b64/b64.h"
 #include "../b64/urlsafe_b64.h"
 #include <assert.h>
 #include <time.h>

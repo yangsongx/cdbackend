@@ -56,11 +56,13 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
 \begin{frame}[fragile]
 \frametitle{上传文件}
 
-Hello:
-
 \begin{tikzpicture}
-\node [mybox] (ID1) {\begin{lstlisting}
-int i;
+\node [mybox] (ID1) {\begin{lstlisting}[frame=none,basicstyle=\tiny]
+{
+  "user":"130xxxxxxxx",
+  "filename":"abc.png",
+  "filesize":23456
+}
                      \end{lstlisting}};
 \end{tikzpicture}
 \end{frame}
@@ -83,13 +85,50 @@ int i;
   \framesubtitle{运行情况}
 \begin{tikzpicture}
 \node [mybox] (ID21k) {21k-code};
-\node [mybox, right of = ID21k, xshift=1.5cm] (IDksadmin) {ksadmin};
-\node [mybox, right of = IDksadmin, xshift=1.5cm] (IDksapp1) {ksapp1};
-\node [mybox, right of = IDksadmin, xshift=1.5cm, yshift=-1.5cm] (IDksapp3) {ksapp3};
+\node [mybox, right of = ID21k, xshift=2.8cm] (IDksadmin) {ksadmin};
+\node [mybox, right of = IDksadmin, xshift=2.9cm, yshift=1.5cm] (IDksapp1) {ksapp1};
+\node [mybox, right of = IDksadmin, xshift=2.9cm, yshift=-1.5cm] (IDksapp3) {ksapp3};
+% arrow
+\draw [->] (IDksadmin) -- (IDksapp1) node [pos=.4,above,font=\footnotesize,color=orange, sloped] {ksapp1};
+\draw [->] (IDksadmin) -- (IDksapp3) node [pos=.4,above,font=\footnotesize,color=orange, sloped] {ksapp3};
+\draw [->] (ID21k) -- (IDksadmin) node [pos=.5,above,font=\footnotesize,color=orange] {ksadmin};
+\node [green!90, above] at (IDksapp1.north) {UserCenter,Web前端};
+\node [green!90, above] at (IDksapp3.north) {Token验证服务器};
+\end{tikzpicture}
+
+服务端口分配:
+\bgroup
+\def\arraystretch{1.15} 
+\begin{tabular}{|c|c|}
+{服务名称} & {端口号}\\
+        \hline
+{注册Token} & {11999(暂定)}  \\
+{Token验证(tauth)} & {12000}  \\
+{网盘服务} & {12001} \\
+\end{tabular}
+\egroup
+\end{frame}
+
+%  ######################
+\begin{frame}
+\frametitle{调试}
+  \framesubtitle{Log文件位置}
+\begin{tikzpicture}
+\node [mybox] (ID21k) {21k-code};
+\node [mybox, right of = ID21k, xshift=1.0cm] (IDksadmin) {ksadmin};
+\node [mybox, right of = IDksadmin, xshift=2.5cm, yshift=1.5cm] (IDksapp1) {ksapp1};
+\node [mybox, right of = IDksadmin, xshift=2.5cm, yshift=-1.5cm] (IDksapp3) {ksapp3};
+% arrow
+\draw [->] (IDksadmin) -- (IDksapp1);
+\draw [->] (IDksadmin) -- (IDksapp3);
+\draw [->] (ID21k) -- (IDksadmin);
+\node [green!90, above] at (IDksapp1.north) {UserCenter,Web前端};
+\node [green!90, above] at (IDksapp3.north) {Token验证服务器};
+\node [blue!90, right, font=\scriptsize] at (IDksapp1.east) {/opt/usercenter/logs/application.log};
+\node [blue!90, right, font=\scriptsize] at (IDksapp3.east) {/home/tokenverify/nohup.out};
 \end{tikzpicture}
 
 \end{frame}
-
 %  ######################
 \begin{frame}
 \frametitle{调试}

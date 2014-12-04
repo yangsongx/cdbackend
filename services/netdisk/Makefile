@@ -2,11 +2,25 @@
 #
 QINIU_SDK = ../../3rd_party/qiniu-sdk/
 
-CC = gcc
-SRC = nds_main.c nds_sql.c nds_quota.c
+CC = g++
+SRC = $(QINIU_SDK)/qiniu/auth_mac.cc \
+      $(QINIU_SDK)/qiniu/base.cc \
+      $(QINIU_SDK)/qiniu/base_io.cc \
+      $(QINIU_SDK)/qiniu/http.cc \
+      $(QINIU_SDK)/qiniu/io.cc \
+      $(QINIU_SDK)/qiniu/conf.cc \
+      $(QINIU_SDK)/qiniu/resumable_io.cc \
+      $(QINIU_SDK)/qiniu/rs.cc \
+      $(QINIU_SDK)/b64/urlsafe_b64.cc \
+      $(QINIU_SDK)/cJSON/cJSON.cc \
+      NetdiskMessage.pb.cc \
+      nds_main.cc \
+      nds_sql.cc \
+      nds_quota.cc
 
-include ../../common/caredear_service_lib/common.mk
-CFLAGS = $(COMMON_CFLAGS) -I../../common/caredear_service_lib/ -I $(QINIU_SDK) `mysql_config --cflags` -g -O0
+
+#include ../../common/caredear_service_lib/common.mk
+CXXFLAGS = $(COMMON_CFLAGS) -I../../common/caredear_service_lib/ -I $(QINIU_SDK) `mysql_config --cflags` -g -O0 -fpermissive
 
 # Release should use -O2
 
@@ -16,7 +30,7 @@ else
 CFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L ../../common/caredear_service_lib/ -L $(QINIU_SDK) -lqiniu -lcds -pthread -levent -lcurl -lssl -lcrypto -lxml2 `mysql_config --libs`
+LDFLAGS = -L ../../common/caredear_service_lib/ -L $(QINIU_SDK) -lcds -pthread -levent -lcurl -lssl -lcrypto -lxml2 -lprotobuf `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
@@ -24,16 +38,17 @@ ifeq ($(STATICLIB),false)
 LDFLAGS += -lm -ldl -lz -lrt -static
 endif
 
-OBJS = $(SRC:.c=.o)
+OBJS = $(SRC:.cc=.o)
 
 all:nds
 
 nds:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-.c.o:
-	$(CC) $(CFLAGS) -c $< -o $@
+.cc.o:
+	$(CC) $(CXXFLAGS) -c $< -o $@
 
 .PHONY:clean
 clean:
 	rm -rf *.o nds a.out
+	find $(QINIU_SDK) -name '*.o' -exec rm -rf {} ";"

@@ -53,6 +53,8 @@
 #include "b64.h"
 #endif
 
+// CAREDEAER CODE for pass build on cpp
+using namespace B64_NAMESPACE;
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

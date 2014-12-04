@@ -11,7 +11,6 @@ SRC = b64/urlsafe_b64.c \
       qiniu/auth_mac.c \
       qiniu/base.c \
       qiniu/base_io.c \
-      qiniu/conf.c \
       qiniu/http.c \
       qiniu/io.c \
       qiniu/resumable_io.c \

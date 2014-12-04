@@ -1,0 +1,14 @@
+package com.caredear;
+
+message NetdiskRequest{
+    required string user = 1;  // user's mobile number(such as 130xxxxxxxx)
+    required string filename = 2;
+    required int32  filesize = 3;
+}
+
+message NetdiskResponse{
+    required int32 result_code = 1;
+    required string uploadurl = 2;
+    required string downloadurl = 3;
+    required string netdisckey = 4;
+}
