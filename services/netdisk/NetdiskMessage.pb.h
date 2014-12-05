@@ -117,20 +117,30 @@ class NetdiskRequest : public ::google::protobuf::Message {
   inline ::std::string* release_filename();
   inline void set_allocated_filename(::std::string* filename);
 
+  // required int32 filesize = 3;
+  inline bool has_filesize() const;
+  inline void clear_filesize();
+  static const int kFilesizeFieldNumber = 3;
+  inline ::google::protobuf::int32 filesize() const;
+  inline void set_filesize(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:com.caredear.NetdiskRequest)
  private:
   inline void set_has_user();
   inline void clear_has_user();
   inline void set_has_filename();
   inline void clear_has_filename();
+  inline void set_has_filesize();
+  inline void clear_has_filesize();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::std::string* user_;
   ::std::string* filename_;
+  ::google::protobuf::int32 filesize_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
 
   friend void  protobuf_AddDesc_NetdiskMessage_2eproto();
   friend void protobuf_AssignDesc_NetdiskMessage_2eproto();
@@ -411,6 +421,28 @@ inline void NetdiskRequest::set_allocated_filename(::std::string* filename) {
     clear_has_filename();
     filename_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   }
+}
+
+// required int32 filesize = 3;
+inline bool NetdiskRequest::has_filesize() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void NetdiskRequest::set_has_filesize() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void NetdiskRequest::clear_has_filesize() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void NetdiskRequest::clear_filesize() {
+  filesize_ = 0;
+  clear_has_filesize();
+}
+inline ::google::protobuf::int32 NetdiskRequest::filesize() const {
+  return filesize_;
+}
+inline void NetdiskRequest::set_filesize(::google::protobuf::int32 value) {
+  set_has_filesize();
+  filesize_ = value;
 }
 
 // -------------------------------------------------------------------

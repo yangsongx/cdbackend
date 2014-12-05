@@ -1,5 +1,6 @@
 # Makefile for NetDisk Service
 #
+DEBUG=true
 QINIU_SDK = ../../3rd_party/qiniu-sdk/
 
 CC = g++
@@ -20,14 +21,14 @@ SRC = $(QINIU_SDK)/qiniu/auth_mac.cc \
 
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = $(COMMON_CFLAGS) -I../../common/caredear_service_lib/ -I $(QINIU_SDK) `mysql_config --cflags` -g -O0 -fpermissive
+CXXFLAGS = $(COMMON_CFLAGS) -I../../common/caredear_service_lib/ -I $(QINIU_SDK) -I /usr/include/libxml2/ `mysql_config --cflags` -fpermissive
 
 # Release should use -O2
 
 ifeq ($(DEBUG),false)
-CFLAGS += -DDEBUG -O2
+CXXFLAGS += -DDEBUG -O2
 else
-CFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
+CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
 LDFLAGS = -L ../../common/caredear_service_lib/ -L $(QINIU_SDK) -lcds -pthread -levent -lcurl -lssl -lcrypto -lxml2 -lprotobuf `mysql_config --libs`

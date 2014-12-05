@@ -18,7 +18,7 @@ struct sql_server_info sql_cfg = {
     0,
     "root",
     "njcm",
-    "ucen"
+    ""
 };
 
 /**

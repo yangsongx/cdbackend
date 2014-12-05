@@ -5,7 +5,7 @@ CC = gcc
 SRC = client_demo.c
 
 # Release should use -O2
-CFLAGS = -W -Wall -Wno-old-style-declaration -Wno-implicit-function-declaration -Wno-unused-parameter -g -O0 -DDEBUG -I../
+CFLAGS = -W -Wall -Wno-old-style-declaration -Wno-implicit-function-declaration -Wno-unused-parameter -g -O0 -DDEBUG -I../ -I /usr/include/libxml2/
 LDFLAGS=-pthread
 OBJS = $(SRC:.c=.o)
 

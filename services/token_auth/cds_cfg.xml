@@ -5,6 +5,7 @@
         <port>0</port>
         <goldenkey>nanjing21k</goldenkey>
     </tokenserver>
+
     <sqlserver>
         <ip>www.mysqlmaster.com</ip>
         <!-- 0 for default port-->
@@ -13,4 +14,23 @@
         <password>yangsongxiang</password>
         <databasename>ucen</databasename>
     </sqlserver>
+
+    <!-- Below are used for netdisk service (nds) -->
+    <netdisk>
+        <qiniu>
+            <access_key>5haoQZguw4iGPnjUuJnhOGufZMjrQnuSdySzGboj</access_key>
+            <secret_key>OADMEtVegAXAhCJBhRSXXeEd_YRYzEPyHwzJDs95</secret_key>
+            <bucket>caredear-cloud</bucket>
+            <!-- 30 days -->
+            <expiration>2592000</expiration>
+            <!-- 200M -->
+            <quota>200000000</quota>
+        </qiniu>
+        <sqlserver>
+            <ip>127.0.0.1</ip>
+            <user>root</user>
+            <password>njcm</password>
+            <databasename>ucen</databasename>
+        </sqlserver>
+    </netdisk>
 </config>

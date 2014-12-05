@@ -192,11 +192,8 @@ static void settings_init(void) {
     settings.tail_repair_time = TAIL_REPAIR_TIME_DEFAULT;
     settings.flush_enabled = true;
 
-    /* TODO - should we set this manually? */
-    settings.leading_len_type = LEN_TYPE_ASCII;
-
-    /* NOTE - Don't init the new-added callback,
-       as it will be init by other caller via library */
+    /* NOTE - Don't init the new-added callback and leading_len_type,
+       as they will be inited by other caller via library */
 }
 
 /*
@@ -2936,6 +2933,8 @@ int cds_init(struct addition_config *acfg, int argc, char **argv)
     {
         settings.callback_func = acfg->ac_handler;
     }
+
+	settings.leading_len_type = acfg->ac_lentype;
 
     ENTRY_POINT(argc, argv);
 

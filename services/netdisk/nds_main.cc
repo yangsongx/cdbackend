@@ -5,8 +5,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#define __USE_XOPEN
+
+#ifndef __cplusplus
+#define __USE_XOPEN
+#endif
+
 #include <time.h>
+
+#include <libxml/tree.h>
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
 
 #ifdef CHECK_MEM_LEAK
 #include <mcheck.h>
@@ -43,8 +51,76 @@ static MYSQL *nds_sql = NULL;
 
 /* QINIU SDK KEYS... */
 Qiniu_Client qn;
-const char *QINIU_ACCESS_KEY = "5haoQZguw4iGPnjUuJnhOGufZMjrQnuSdySzGboj";
-const char *QINIU_SECRET_KEY = "OADMEtVegAXAhCJBhRSXXeEd_YRYzEPyHwzJDs95";
+const char *QINIU_ACCESS_KEY;// = "5haoQZguw4iGPnjUuJnhOGufZMjrQnuSdySzGboj";
+const char *QINIU_SECRET_KEY;// = "OADMEtVegAXAhCJBhRSXXeEd_YRYzEPyHwzJDs95";
+
+int init_and_config(const char *cfg_file)
+{
+    int ret = -1;
+    xmlDocPtr doc;
+    xmlXPathContextPtr ctx;
+
+    static char access_key[128];
+    static char secret_key[128];
+
+    /* Init Qiniu stuff,as we need it's service */
+    Qiniu_Servend_Init(-1);
+
+    if(access(cfg_file, F_OK) != 0)
+    {
+        ERR("\'%s\' not existed!\n", cfg_file);
+        return -1;
+    }
+
+    doc = xmlParseFile(cfg_file);
+    if(doc != NULL)
+    {
+        ctx = xmlXPathNewContext(doc);
+        if(ctx != NULL)
+        {
+            get_node_via_xpath("/config/netdisk/qiniu/access_key", ctx,
+                    access_key, sizeof(access_key));
+
+            get_node_via_xpath("/config/netdisk/qiniu/secret_key", ctx,
+                    secret_key, sizeof(secret_key));
+
+            get_node_via_xpath("/config/netdisk/sqlserver/ip", ctx,
+                    sql_cfg.ssi_server_ip, 32);
+
+            get_node_via_xpath("/config/netdisk/sqlserver/user", ctx,
+                    sql_cfg.ssi_user_name, 32);
+
+            get_node_via_xpath("/config/netdisk/sqlserver/password", ctx,
+                    sql_cfg.ssi_user_password, 32);
+
+            QINIU_ACCESS_KEY = access_key;
+            QINIU_SECRET_KEY = secret_key;
+
+            // FIXME , I don't parse database name here, as we will
+            // use database.dbtable in SQL command.
+
+            xmlXPathFreeContext(ctx);
+            ret = 0;
+        }
+
+        xmlFreeDoc(doc);
+
+        LOG("ACCESS KEY:%s, SECRET KEY:%s\n",
+                QINIU_ACCESS_KEY, QINIU_SECRET_KEY);
+        LOG("SQL Server IP : %s Port : %d, user name : %s\n",
+                sql_cfg.ssi_server_ip, sql_cfg.ssi_server_port,
+                sql_cfg.ssi_user_name);
+    }
+
+    nds_sql = GET_CMSSQL(&sql_cfg);
+    if(nds_sql == NULL)
+    {
+        ERR("failed connecting to the SQL server!\n");
+        return -1;
+    }
+
+    return ret;
+}
 
 void purely_api(const char *fn)
 {
@@ -193,23 +269,47 @@ void try_upload(const char *filename)
     exit(0);
 }
 
+
 /**
- * call back function, handle obj is NetdiskMessage
+ * call back function, handle obj is NetdiskMessage(NetdiskRequest/NetdiskResponse)
  *
  * return error values if sth wrong.
  */
-int nds_handler(int size, void *req, int *len, void *resp)
+int nds_handler(int size, void *req, int *len_resp, void *resp)
 {
+    unsigned short len;
     int ret = CDS_OK;
     bool ok = false;
+    NetdiskResponse nd_resp;
 
     if(size >= 1024)
     {
         /* Note - actually, len checking already done at .SO side... */
         ERR("Exceed limit(%d > %d), don't handle this request\n",
                 size, 1024);
-        //COMPOSE_RESP(CDS_ERR_REQ_TOOLONG);
-        // TODO - DON"T use goto here, to avoid C++ compilor error
+        ret = CDS_ERR_REQ_TOOLONG;
+        nd_resp.set_result_code(ret);
+        nd_resp.set_uploadurl("");
+        nd_resp.set_downloadurl("");
+        nd_resp.set_netdisckey("");
+        len = nd_resp.ByteSize();
+        ArrayOutputStream aos(resp, len);
+        CodedOutputStream cos(&aos);
+
+        LOG("sizeof(short)=%ld, value=%d\n",
+                sizeof(len), len);
+        // adding leading length
+        cos.WriteRaw(&len, sizeof(len));
+        if(nd_resp.SerializeToCodedStream(&cos))
+        {
+            INFO("composed the TOOLONG error response\n");
+        }
+        else
+        {
+            ERR("***Failed compose the TOOLOG Error Msg\n");
+        }
+
+        return ret;
     }
 
     LOG("got %d size from client\n", size);
@@ -221,15 +321,40 @@ int nds_handler(int size, void *req, int *len, void *resp)
     ok = reqobj.ParseFromCodedStream(&is);
     if(ok)
     {
+        ERR("\n\n$$$$$$$$$$$$$$GOOD$$$$$$$$$$$$$$$\n");
         // After go here, all data section got
         // and stored in NetdiskRequest obj.
 #ifdef DEBUG // dump the content
-        printf("==== DUMP the objs... ====\n");
-        printf("user:%s, filename:%s\n",
-                reqobj.user().c_str(), reqobj.filename().c_str());
-        printf("==== END DUMP ====\n");
+        LOG("==== DUMP the objs... ====\n");
+        LOG("user:%s, filename:%s, filesize=%d\n",
+                reqobj.user().c_str(), reqobj.filename().c_str(),
+                reqobj.filesize());
+        LOG("==== END DUMP ====\n");
 #endif
 
+        LOG("After some processing, will try report the response..\n");
+
+        nd_resp.set_result_code(CDS_OK);
+        nd_resp.set_uploadurl("http://download.url?token=xxxx");
+        nd_resp.set_downloadurl("download.zip");
+        nd_resp.set_netdisckey("2003/hello");
+        len = nd_resp.ByteSize();
+        ArrayOutputStream as(resp, 1024);
+        CodedOutputStream cs(&as);
+
+        LOG("sizeof(short)=%ld, value=%d\n",
+                sizeof(len), len);
+        // adding leading length
+        cs.WriteRaw(&len, sizeof(len));
+        *len_resp = (len + 2);
+        if(nd_resp.SerializeToCodedStream(&cs))
+        {
+            INFO("composed the TOOLONG error response\n");
+        }
+        else
+        {
+            ERR("***Failed compose the response Msg....\n");
+        }
     }
     else
     {
@@ -244,24 +369,17 @@ int main(int argc, char **argv)
 {
     struct addition_config cfg;
 #ifdef CHECK_MEM_LEAK
+    setenv("MALLOC_TRACE", "/tmp/nds.memleak", 1);
     mtrace();
 #endif
 
-    /* Init Qiniu stuff,as we need it's service */
-    Qiniu_Servend_Init(-1);
 
     //try_upload("/tmp/abc.png");
     //another_test("/tmp/abc.png");
 
-    /* try get the SQL server info */
-    parse_config_file("/etc/cds_cfg.xml", &sql_cfg);
-    LOG("SQL Server IP : %s Port : %d, user name : %s, DB name : %s\n",
-            sql_cfg.ssi_server_ip, sql_cfg.ssi_server_port,
-            sql_cfg.ssi_user_name, sql_cfg.ssi_database);
-    nds_sql = GET_CMSSQL(&sql_cfg);
-    if(nds_sql == NULL)
+    if(init_and_config("/etc/cds_cfg.xml") != 0)
     {
-        ERR("failed connecting to the SQL server!\n");
+        ERR("Failed init and get config info! quit this netdisk service!\n");
         return -1;
     }
 
@@ -274,6 +392,8 @@ int main(int argc, char **argv)
 
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = nds_handler;
+	cfg.ac_lentype = LEN_TYPE_BIN; /* we use binary leading type */
+	LOG("i set ac_lentyp=%d\n", cfg.ac_lentype);
     cds_init(&cfg, argc, argv);
 
     CLEAN_DB_MUTEX();

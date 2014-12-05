@@ -6,6 +6,10 @@ extern "C"
 {
 #endif
 
+#include <libxml/tree.h>
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
+
 /* max SQL command length */
 #define CDS_MAX_SQL  512
 
@@ -42,6 +46,7 @@ struct addition_config
 {
     const char *ac_cfgfile;  /**< we plan use XML as the cfg file */
     cb_func     ac_handler;  /**< Caller provided the handler file */
+	int         ac_lentype;  /**< LEN_TYPE_BIN/LEN_TYPE_ASCII */
 };
 
 /**
@@ -61,6 +66,7 @@ extern struct sql_server_info server_cfg;
 
 extern char *convert_err_to_str(int errcode);
 extern int parse_config_file(const char *cfg_name, struct sql_server_info *info);
+extern int get_node_via_xpath(const char *xpath, xmlXPathContextPtr ctx, char *result, int result_size);
 extern pthread_mutex_t sql_mutex;
 extern int cds_init(struct addition_config *adcfg, int argc, char **argv);
 

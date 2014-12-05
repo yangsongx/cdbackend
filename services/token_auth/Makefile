@@ -11,7 +11,7 @@ CLIENT_TOKEN_SRC = client_token.c
 
 
 include ../../common/caredear_service_lib/common.mk
-CFLAGS = $(COMMON_CFLAGS) -I../../common/caredear_service_lib/ `mysql_config --cflags`
+CFLAGS = $(COMMON_CFLAGS) -I../../common/caredear_service_lib/ `mysql_config --cflags` -I /usr/include/libxml2/
 
 ifeq ($(CONFIG_SINGLE_APPTOKEN),true)
 CFLAGS += -DCONFIG_SINGLE_APPTOKEN

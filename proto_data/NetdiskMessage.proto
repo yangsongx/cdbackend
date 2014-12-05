@@ -7,7 +7,7 @@ message NetdiskRequest{
 }
 
 message NetdiskResponse{
-    required int32 result_code = 1;
+    required int32 result_code = 1; //CDS_XXX error code
     required string uploadurl = 2;
     required string downloadurl = 3;
     required string netdisckey = 4;

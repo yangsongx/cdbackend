@@ -7,7 +7,7 @@ SRC = cms_main.c cms_sql.c cms_auth.c
 
 include ../../common/caredear_service_lib/common.mk
 COMMON_CFLAGS = -I ../../common/caredear_service_lib/ `mysql_config --cflags`
-CFLAGS = $(COMMON_CFLAGS)
+CFLAGS = $(COMMON_CFLAGS) -I /usr/include/libxml2/
 
 # Release should use -O2
 

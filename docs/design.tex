@@ -57,13 +57,15 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
 \frametitle{上传文件}
 
 \begin{tikzpicture}
+% the input from APK
 \node [mybox] (ID1) {\begin{lstlisting}[frame=none,basicstyle=\tiny]
 {
   "user":"130xxxxxxxx",
   "filename":"abc.png",
   "filesize":23456
 }
-                     \end{lstlisting}};
+                     \end{lstlisting}
+};
 \end{tikzpicture}
 \end{frame}
 
@@ -120,6 +122,27 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
 \node [mybox, right of = IDksadmin, xshift=2.5cm, yshift=-1.5cm] (IDksapp3) {ksapp3};
 % arrow
 \draw [->] (IDksadmin) -- (IDksapp1);
+\draw [->] (IDksadmin) -- (IDksapp3);
+\draw [->] (ID21k) -- (IDksadmin);
+\node [green!90, above] at (IDksapp1.north) {UserCenter,Web前端};
+\node [green!90, above] at (IDksapp3.north) {Token验证服务器};
+\node [blue!90, right, font=\scriptsize] at (IDksapp1.east) {/opt/usercenter/logs/application.log};
+\node [blue!90, right, font=\scriptsize] at (IDksapp3.east) {/home/tokenverify/nohup.out};
+\end{tikzpicture}
+
+\end{frame}
+
+%  ######################
+\begin{frame}
+\frametitle{调试}
+  \framesubtitle{交换文件命令}
+\begin{tikzpicture}
+\node [mybox] (ID21k) {21k-code};
+\node [mybox, right of = ID21k, xshift=1.0cm] (IDksadmin) {ksadmin};
+\node [mybox, right of = IDksadmin, xshift=2.5cm, yshift=1.5cm] (IDksapp1) {ksapp1};
+\node [mybox, right of = IDksadmin, xshift=2.5cm, yshift=-1.5cm] (IDksapp3) {ksapp3};
+% arrow
+\draw [->, thick] (IDksadmin) -- (IDksapp1);
 \draw [->] (IDksadmin) -- (IDksapp3);
 \draw [->] (ID21k) -- (IDksadmin);
 \node [green!90, above] at (IDksapp1.north) {UserCenter,Web前端};
