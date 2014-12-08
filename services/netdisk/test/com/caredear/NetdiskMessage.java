@@ -38,28 +38,43 @@ public final class NetdiskMessage {
     com.google.protobuf.ByteString
         getUserBytes();
 
-    // required string filename = 2;
+    // required string md5 = 2;
     /**
-     * <code>required string filename = 2;</code>
+     * <code>required string md5 = 2;</code>
+     */
+    boolean hasMd5();
+    /**
+     * <code>required string md5 = 2;</code>
+     */
+    java.lang.String getMd5();
+    /**
+     * <code>required string md5 = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getMd5Bytes();
+
+    // required string filename = 3;
+    /**
+     * <code>required string filename = 3;</code>
      */
     boolean hasFilename();
     /**
-     * <code>required string filename = 2;</code>
+     * <code>required string filename = 3;</code>
      */
     java.lang.String getFilename();
     /**
-     * <code>required string filename = 2;</code>
+     * <code>required string filename = 3;</code>
      */
     com.google.protobuf.ByteString
         getFilenameBytes();
 
-    // required int32 filesize = 3;
+    // required int32 filesize = 4;
     /**
-     * <code>required int32 filesize = 3;</code>
+     * <code>required int32 filesize = 4;</code>
      */
     boolean hasFilesize();
     /**
-     * <code>required int32 filesize = 3;</code>
+     * <code>required int32 filesize = 4;</code>
      */
     int getFilesize();
   }
@@ -121,11 +136,16 @@ public final class NetdiskMessage {
             }
             case 18: {
               bitField0_ |= 0x00000002;
+              md5_ = input.readBytes();
+              break;
+            }
+            case 26: {
+              bitField0_ |= 0x00000004;
               filename_ = input.readBytes();
               break;
             }
-            case 24: {
-              bitField0_ |= 0x00000004;
+            case 32: {
+              bitField0_ |= 0x00000008;
               filesize_ = input.readInt32();
               break;
             }
@@ -224,17 +244,60 @@ public final class NetdiskMessage {
       }
     }
 
-    // required string filename = 2;
-    public static final int FILENAME_FIELD_NUMBER = 2;
-    private java.lang.Object filename_;
+    // required string md5 = 2;
+    public static final int MD5_FIELD_NUMBER = 2;
+    private java.lang.Object md5_;
     /**
-     * <code>required string filename = 2;</code>
+     * <code>required string md5 = 2;</code>
      */
-    public boolean hasFilename() {
+    public boolean hasMd5() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>required string filename = 2;</code>
+     * <code>required string md5 = 2;</code>
+     */
+    public java.lang.String getMd5() {
+      java.lang.Object ref = md5_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          md5_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>required string md5 = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getMd5Bytes() {
+      java.lang.Object ref = md5_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        md5_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    // required string filename = 3;
+    public static final int FILENAME_FIELD_NUMBER = 3;
+    private java.lang.Object filename_;
+    /**
+     * <code>required string filename = 3;</code>
+     */
+    public boolean hasFilename() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>required string filename = 3;</code>
      */
     public java.lang.String getFilename() {
       java.lang.Object ref = filename_;
@@ -251,7 +314,7 @@ public final class NetdiskMessage {
       }
     }
     /**
-     * <code>required string filename = 2;</code>
+     * <code>required string filename = 3;</code>
      */
     public com.google.protobuf.ByteString
         getFilenameBytes() {
@@ -267,17 +330,17 @@ public final class NetdiskMessage {
       }
     }
 
-    // required int32 filesize = 3;
-    public static final int FILESIZE_FIELD_NUMBER = 3;
+    // required int32 filesize = 4;
+    public static final int FILESIZE_FIELD_NUMBER = 4;
     private int filesize_;
     /**
-     * <code>required int32 filesize = 3;</code>
+     * <code>required int32 filesize = 4;</code>
      */
     public boolean hasFilesize() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>required int32 filesize = 3;</code>
+     * <code>required int32 filesize = 4;</code>
      */
     public int getFilesize() {
       return filesize_;
@@ -285,6 +348,7 @@ public final class NetdiskMessage {
 
     private void initFields() {
       user_ = "";
+      md5_ = "";
       filename_ = "";
       filesize_ = 0;
     }
@@ -294,6 +358,10 @@ public final class NetdiskMessage {
       if (isInitialized != -1) return isInitialized == 1;
 
       if (!hasUser()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasMd5()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -316,10 +384,13 @@ public final class NetdiskMessage {
         output.writeBytes(1, getUserBytes());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getFilenameBytes());
+        output.writeBytes(2, getMd5Bytes());
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeInt32(3, filesize_);
+        output.writeBytes(3, getFilenameBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeInt32(4, filesize_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -336,11 +407,15 @@ public final class NetdiskMessage {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getFilenameBytes());
+          .computeBytesSize(2, getMd5Bytes());
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(3, filesize_);
+          .computeBytesSize(3, getFilenameBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(4, filesize_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -460,10 +535,12 @@ public final class NetdiskMessage {
         super.clear();
         user_ = "";
         bitField0_ = (bitField0_ & ~0x00000001);
-        filename_ = "";
+        md5_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
-        filesize_ = 0;
+        filename_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
+        filesize_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
 
@@ -499,9 +576,13 @@ public final class NetdiskMessage {
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
-        result.filename_ = filename_;
+        result.md5_ = md5_;
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
+        }
+        result.filename_ = filename_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
         }
         result.filesize_ = filesize_;
         result.bitField0_ = to_bitField0_;
@@ -525,8 +606,13 @@ public final class NetdiskMessage {
           user_ = other.user_;
           onChanged();
         }
-        if (other.hasFilename()) {
+        if (other.hasMd5()) {
           bitField0_ |= 0x00000002;
+          md5_ = other.md5_;
+          onChanged();
+        }
+        if (other.hasFilename()) {
+          bitField0_ |= 0x00000004;
           filename_ = other.filename_;
           onChanged();
         }
@@ -539,6 +625,10 @@ public final class NetdiskMessage {
 
       public final boolean isInitialized() {
         if (!hasUser()) {
+          
+          return false;
+        }
+        if (!hasMd5()) {
           
           return false;
         }
@@ -670,16 +760,90 @@ public final class NetdiskMessage {
         return this;
       }
 
-      // required string filename = 2;
-      private java.lang.Object filename_ = "";
+      // required string md5 = 2;
+      private java.lang.Object md5_ = "";
       /**
-       * <code>required string filename = 2;</code>
+       * <code>required string md5 = 2;</code>
        */
-      public boolean hasFilename() {
+      public boolean hasMd5() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>required string filename = 2;</code>
+       * <code>required string md5 = 2;</code>
+       */
+      public java.lang.String getMd5() {
+        java.lang.Object ref = md5_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          md5_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>required string md5 = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getMd5Bytes() {
+        java.lang.Object ref = md5_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          md5_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>required string md5 = 2;</code>
+       */
+      public Builder setMd5(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        md5_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string md5 = 2;</code>
+       */
+      public Builder clearMd5() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        md5_ = getDefaultInstance().getMd5();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string md5 = 2;</code>
+       */
+      public Builder setMd5Bytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        md5_ = value;
+        onChanged();
+        return this;
+      }
+
+      // required string filename = 3;
+      private java.lang.Object filename_ = "";
+      /**
+       * <code>required string filename = 3;</code>
+       */
+      public boolean hasFilename() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>required string filename = 3;</code>
        */
       public java.lang.String getFilename() {
         java.lang.Object ref = filename_;
@@ -693,7 +857,7 @@ public final class NetdiskMessage {
         }
       }
       /**
-       * <code>required string filename = 2;</code>
+       * <code>required string filename = 3;</code>
        */
       public com.google.protobuf.ByteString
           getFilenameBytes() {
@@ -709,69 +873,69 @@ public final class NetdiskMessage {
         }
       }
       /**
-       * <code>required string filename = 2;</code>
+       * <code>required string filename = 3;</code>
        */
       public Builder setFilename(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  bitField0_ |= 0x00000004;
         filename_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>required string filename = 2;</code>
+       * <code>required string filename = 3;</code>
        */
       public Builder clearFilename() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000004);
         filename_ = getDefaultInstance().getFilename();
         onChanged();
         return this;
       }
       /**
-       * <code>required string filename = 2;</code>
+       * <code>required string filename = 3;</code>
        */
       public Builder setFilenameBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000002;
+  bitField0_ |= 0x00000004;
         filename_ = value;
         onChanged();
         return this;
       }
 
-      // required int32 filesize = 3;
+      // required int32 filesize = 4;
       private int filesize_ ;
       /**
-       * <code>required int32 filesize = 3;</code>
+       * <code>required int32 filesize = 4;</code>
        */
       public boolean hasFilesize() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
-       * <code>required int32 filesize = 3;</code>
+       * <code>required int32 filesize = 4;</code>
        */
       public int getFilesize() {
         return filesize_;
       }
       /**
-       * <code>required int32 filesize = 3;</code>
+       * <code>required int32 filesize = 4;</code>
        */
       public Builder setFilesize(int value) {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000008;
         filesize_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>required int32 filesize = 3;</code>
+       * <code>required int32 filesize = 4;</code>
        */
       public Builder clearFilesize() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000008);
         filesize_ = 0;
         onChanged();
         return this;
@@ -794,27 +958,35 @@ public final class NetdiskMessage {
     // required int32 result_code = 1;
     /**
      * <code>required int32 result_code = 1;</code>
+     *
+     * <pre>
+     *CDS_XXX error code
+     * </pre>
      */
     boolean hasResultCode();
     /**
      * <code>required int32 result_code = 1;</code>
+     *
+     * <pre>
+     *CDS_XXX error code
+     * </pre>
      */
     int getResultCode();
 
-    // required string uploadurl = 2;
+    // required string uploadtoken = 2;
     /**
-     * <code>required string uploadurl = 2;</code>
+     * <code>required string uploadtoken = 2;</code>
      */
-    boolean hasUploadurl();
+    boolean hasUploadtoken();
     /**
-     * <code>required string uploadurl = 2;</code>
+     * <code>required string uploadtoken = 2;</code>
      */
-    java.lang.String getUploadurl();
+    java.lang.String getUploadtoken();
     /**
-     * <code>required string uploadurl = 2;</code>
+     * <code>required string uploadtoken = 2;</code>
      */
     com.google.protobuf.ByteString
-        getUploadurlBytes();
+        getUploadtokenBytes();
 
     // required string downloadurl = 3;
     /**
@@ -904,7 +1076,7 @@ public final class NetdiskMessage {
             }
             case 18: {
               bitField0_ |= 0x00000002;
-              uploadurl_ = input.readBytes();
+              uploadtoken_ = input.readBytes();
               break;
             }
             case 26: {
@@ -962,31 +1134,39 @@ public final class NetdiskMessage {
     private int resultCode_;
     /**
      * <code>required int32 result_code = 1;</code>
+     *
+     * <pre>
+     *CDS_XXX error code
+     * </pre>
      */
     public boolean hasResultCode() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
      * <code>required int32 result_code = 1;</code>
+     *
+     * <pre>
+     *CDS_XXX error code
+     * </pre>
      */
     public int getResultCode() {
       return resultCode_;
     }
 
-    // required string uploadurl = 2;
-    public static final int UPLOADURL_FIELD_NUMBER = 2;
-    private java.lang.Object uploadurl_;
+    // required string uploadtoken = 2;
+    public static final int UPLOADTOKEN_FIELD_NUMBER = 2;
+    private java.lang.Object uploadtoken_;
     /**
-     * <code>required string uploadurl = 2;</code>
+     * <code>required string uploadtoken = 2;</code>
      */
-    public boolean hasUploadurl() {
+    public boolean hasUploadtoken() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>required string uploadurl = 2;</code>
+     * <code>required string uploadtoken = 2;</code>
      */
-    public java.lang.String getUploadurl() {
-      java.lang.Object ref = uploadurl_;
+    public java.lang.String getUploadtoken() {
+      java.lang.Object ref = uploadtoken_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
@@ -994,22 +1174,22 @@ public final class NetdiskMessage {
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          uploadurl_ = s;
+          uploadtoken_ = s;
         }
         return s;
       }
     }
     /**
-     * <code>required string uploadurl = 2;</code>
+     * <code>required string uploadtoken = 2;</code>
      */
     public com.google.protobuf.ByteString
-        getUploadurlBytes() {
-      java.lang.Object ref = uploadurl_;
+        getUploadtokenBytes() {
+      java.lang.Object ref = uploadtoken_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        uploadurl_ = b;
+        uploadtoken_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
@@ -1104,7 +1284,7 @@ public final class NetdiskMessage {
 
     private void initFields() {
       resultCode_ = 0;
-      uploadurl_ = "";
+      uploadtoken_ = "";
       downloadurl_ = "";
       netdisckey_ = "";
     }
@@ -1117,7 +1297,7 @@ public final class NetdiskMessage {
         memoizedIsInitialized = 0;
         return false;
       }
-      if (!hasUploadurl()) {
+      if (!hasUploadtoken()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -1140,7 +1320,7 @@ public final class NetdiskMessage {
         output.writeInt32(1, resultCode_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, getUploadurlBytes());
+        output.writeBytes(2, getUploadtokenBytes());
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeBytes(3, getDownloadurlBytes());
@@ -1163,7 +1343,7 @@ public final class NetdiskMessage {
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, getUploadurlBytes());
+          .computeBytesSize(2, getUploadtokenBytes());
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
@@ -1291,7 +1471,7 @@ public final class NetdiskMessage {
         super.clear();
         resultCode_ = 0;
         bitField0_ = (bitField0_ & ~0x00000001);
-        uploadurl_ = "";
+        uploadtoken_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
         downloadurl_ = "";
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -1332,7 +1512,7 @@ public final class NetdiskMessage {
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
-        result.uploadurl_ = uploadurl_;
+        result.uploadtoken_ = uploadtoken_;
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
@@ -1360,9 +1540,9 @@ public final class NetdiskMessage {
         if (other.hasResultCode()) {
           setResultCode(other.getResultCode());
         }
-        if (other.hasUploadurl()) {
+        if (other.hasUploadtoken()) {
           bitField0_ |= 0x00000002;
-          uploadurl_ = other.uploadurl_;
+          uploadtoken_ = other.uploadtoken_;
           onChanged();
         }
         if (other.hasDownloadurl()) {
@@ -1384,7 +1564,7 @@ public final class NetdiskMessage {
           
           return false;
         }
-        if (!hasUploadurl()) {
+        if (!hasUploadtoken()) {
           
           return false;
         }
@@ -1422,18 +1602,30 @@ public final class NetdiskMessage {
       private int resultCode_ ;
       /**
        * <code>required int32 result_code = 1;</code>
+       *
+       * <pre>
+       *CDS_XXX error code
+       * </pre>
        */
       public boolean hasResultCode() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
        * <code>required int32 result_code = 1;</code>
+       *
+       * <pre>
+       *CDS_XXX error code
+       * </pre>
        */
       public int getResultCode() {
         return resultCode_;
       }
       /**
        * <code>required int32 result_code = 1;</code>
+       *
+       * <pre>
+       *CDS_XXX error code
+       * </pre>
        */
       public Builder setResultCode(int value) {
         bitField0_ |= 0x00000001;
@@ -1443,6 +1635,10 @@ public final class NetdiskMessage {
       }
       /**
        * <code>required int32 result_code = 1;</code>
+       *
+       * <pre>
+       *CDS_XXX error code
+       * </pre>
        */
       public Builder clearResultCode() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1451,76 +1647,76 @@ public final class NetdiskMessage {
         return this;
       }
 
-      // required string uploadurl = 2;
-      private java.lang.Object uploadurl_ = "";
+      // required string uploadtoken = 2;
+      private java.lang.Object uploadtoken_ = "";
       /**
-       * <code>required string uploadurl = 2;</code>
+       * <code>required string uploadtoken = 2;</code>
        */
-      public boolean hasUploadurl() {
+      public boolean hasUploadtoken() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>required string uploadurl = 2;</code>
+       * <code>required string uploadtoken = 2;</code>
        */
-      public java.lang.String getUploadurl() {
-        java.lang.Object ref = uploadurl_;
+      public java.lang.String getUploadtoken() {
+        java.lang.Object ref = uploadtoken_;
         if (!(ref instanceof java.lang.String)) {
           java.lang.String s = ((com.google.protobuf.ByteString) ref)
               .toStringUtf8();
-          uploadurl_ = s;
+          uploadtoken_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
         }
       }
       /**
-       * <code>required string uploadurl = 2;</code>
+       * <code>required string uploadtoken = 2;</code>
        */
       public com.google.protobuf.ByteString
-          getUploadurlBytes() {
-        java.lang.Object ref = uploadurl_;
+          getUploadtokenBytes() {
+        java.lang.Object ref = uploadtoken_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          uploadurl_ = b;
+          uploadtoken_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>required string uploadurl = 2;</code>
+       * <code>required string uploadtoken = 2;</code>
        */
-      public Builder setUploadurl(
+      public Builder setUploadtoken(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000002;
-        uploadurl_ = value;
+        uploadtoken_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>required string uploadurl = 2;</code>
+       * <code>required string uploadtoken = 2;</code>
        */
-      public Builder clearUploadurl() {
+      public Builder clearUploadtoken() {
         bitField0_ = (bitField0_ & ~0x00000002);
-        uploadurl_ = getDefaultInstance().getUploadurl();
+        uploadtoken_ = getDefaultInstance().getUploadtoken();
         onChanged();
         return this;
       }
       /**
-       * <code>required string uploadurl = 2;</code>
+       * <code>required string uploadtoken = 2;</code>
        */
-      public Builder setUploadurlBytes(
+      public Builder setUploadtokenBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000002;
-        uploadurl_ = value;
+        uploadtoken_ = value;
         onChanged();
         return this;
       }
@@ -1703,12 +1899,12 @@ public final class NetdiskMessage {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\024NetdiskMessage.proto\022\014com.caredear\"B\n\016" +
-      "NetdiskRequest\022\014\n\004user\030\001 \002(\t\022\020\n\010filename" +
-      "\030\002 \002(\t\022\020\n\010filesize\030\003 \002(\005\"b\n\017NetdiskRespo" +
-      "nse\022\023\n\013result_code\030\001 \002(\005\022\021\n\tuploadurl\030\002 " +
-      "\002(\t\022\023\n\013downloadurl\030\003 \002(\t\022\022\n\nnetdisckey\030\004" +
-      " \002(\t"
+      "\n\024NetdiskMessage.proto\022\014com.caredear\"O\n\016" +
+      "NetdiskRequest\022\014\n\004user\030\001 \002(\t\022\013\n\003md5\030\002 \002(" +
+      "\t\022\020\n\010filename\030\003 \002(\t\022\020\n\010filesize\030\004 \002(\005\"d\n" +
+      "\017NetdiskResponse\022\023\n\013result_code\030\001 \002(\005\022\023\n" +
+      "\013uploadtoken\030\002 \002(\t\022\023\n\013downloadurl\030\003 \002(\t\022" +
+      "\022\n\nnetdisckey\030\004 \002(\t"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -1720,13 +1916,13 @@ public final class NetdiskMessage {
           internal_static_com_caredear_NetdiskRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_caredear_NetdiskRequest_descriptor,
-              new java.lang.String[] { "User", "Filename", "Filesize", });
+              new java.lang.String[] { "User", "Md5", "Filename", "Filesize", });
           internal_static_com_caredear_NetdiskResponse_descriptor =
             getDescriptor().getMessageTypes().get(1);
           internal_static_com_caredear_NetdiskResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_caredear_NetdiskResponse_descriptor,
-              new java.lang.String[] { "ResultCode", "Uploadurl", "Downloadurl", "Netdisckey", });
+              new java.lang.String[] { "ResultCode", "Uploadtoken", "Downloadurl", "Netdisckey", });
           return null;
         }
       };

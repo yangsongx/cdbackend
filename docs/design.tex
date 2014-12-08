@@ -62,10 +62,17 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
 {
   "user":"130xxxxxxxx",
   "filename":"abc.png",
-  "filesize":23456
+  "md5":xxxxxxx
 }
                      \end{lstlisting}
 };
+
+\node [mybox, right of = ID1, xshift=4cm] (IDWeb) {\begin{lstlisting}
+(Web)
+                       \end{lstlisting}
+};
+
+\draw [->, thick] (IDWeb) -- (ID1);
 \end{tikzpicture}
 \end{frame}
 
@@ -77,6 +84,11 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
 \end{frame}
 
 
+%  ######################
+\begin{frame}
+\frametitle{删除文件}
+
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Debug and Tips}

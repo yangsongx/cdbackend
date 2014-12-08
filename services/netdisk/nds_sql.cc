@@ -5,9 +5,10 @@
 
 #include <my_global.h>
 #include <mysql.h>
-#include "cds_public.h"
 
+#include "cds_public.h"
 #include "nds_def.h"
+
 
 /* DB lock protection */
 static pthread_mutex_t cms_sql_mutex;
@@ -71,4 +72,16 @@ void FREE_CMSSQL(MYSQL *m)
 {
     if(m != NULL)
         mysql_close(m);
+}
+
+
+int already_existed(NetdiskRequest *p_obj)
+{
+    int existed = 0;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT * FROM;");
+
+    return existed;
 }

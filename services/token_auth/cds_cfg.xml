@@ -20,6 +20,7 @@
         <qiniu>
             <access_key>5haoQZguw4iGPnjUuJnhOGufZMjrQnuSdySzGboj</access_key>
             <secret_key>OADMEtVegAXAhCJBhRSXXeEd_YRYzEPyHwzJDs95</secret_key>
+            <domain>.qiniudn.com</domain>
             <bucket>caredear-cloud</bucket>
             <!-- 30 days -->
             <expiration>2592000</expiration>

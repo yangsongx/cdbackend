@@ -21,6 +21,7 @@
 #endif
 
 #include <openssl/hmac.h>
+#include <openssl/md5.h>
 #include <qiniu/base.h>
 #include <qiniu/io.h>
 #include <qiniu/rs.h>
@@ -29,18 +30,10 @@
 #include "cds_public.h"
 #include "nds_def.h"
 
-// max/min are arleady defined in STL...
-#undef max
-#undef min
 
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
 #include "NetdiskMessage.pb.h"
-
-#define COMPOSE_RESP(_err)   *(int *)resp = (_err); \
-                             *len = sizeof(int); \
-                             ret = (_err); \
-                             goto failed
 
 /* Now, we're going to C++ world */
 using namespace std;
@@ -51,8 +44,11 @@ static MYSQL *nds_sql = NULL;
 
 /* QINIU SDK KEYS... */
 Qiniu_Client qn;
-const char *QINIU_ACCESS_KEY;// = "5haoQZguw4iGPnjUuJnhOGufZMjrQnuSdySzGboj";
-const char *QINIU_SECRET_KEY;// = "OADMEtVegAXAhCJBhRSXXeEd_YRYzEPyHwzJDs95";
+const char *QINIU_ACCESS_KEY;
+const char *QINIU_SECRET_KEY;
+const char *qiniu_bucket;
+const char *qiniu_domain;
+unsigned int qiniu_expires = 2592000; // 30 dyas by default
 
 int init_and_config(const char *cfg_file)
 {
@@ -62,6 +58,8 @@ int init_and_config(const char *cfg_file)
 
     static char access_key[128];
     static char secret_key[128];
+    static char bucket[128];
+    static char domain[128];
 
     /* Init Qiniu stuff,as we need it's service */
     Qiniu_Servend_Init(-1);
@@ -92,12 +90,27 @@ int init_and_config(const char *cfg_file)
 
             get_node_via_xpath("/config/netdisk/sqlserver/password", ctx,
                     sql_cfg.ssi_user_password, 32);
+            // FIXME , I don't parse database name here, as we will
+            // use database.dbtable in SQL command.
 
             QINIU_ACCESS_KEY = access_key;
             QINIU_SECRET_KEY = secret_key;
 
-            // FIXME , I don't parse database name here, as we will
-            // use database.dbtable in SQL command.
+
+            // re-use a static buf temp for store int...
+            get_node_via_xpath("/config/netdisk/qiniu/expiration", ctx,
+                    domain, sizeof(domain));
+            qiniu_expires = atoi(domain);
+
+            //next, overwrite the domain immediately
+            get_node_via_xpath("/config/netdisk/qiniu/domain", ctx,
+                    domain, sizeof(domain));
+
+            get_node_via_xpath("/config/netdisk/qiniu/bucket", ctx,
+                    bucket, sizeof(bucket));
+
+            qiniu_domain = domain;
+            qiniu_bucket = bucket;
 
             xmlXPathFreeContext(ctx);
             ret = 0;
@@ -166,6 +179,33 @@ void another_test(const char *filename)
     exit(0);
 }
 
+int get_md5(const char *filename, char *p_md5)
+{
+    int ret = -1;
+    int len = 0;
+    char buf[2046];
+    MD5_CTX ctx;
+    FILE *f = fopen(filename, "rb");
+
+    if(f != NULL)
+    {
+        MD5_Init(&ctx);
+
+        while((len = fread(buf, 1, sizeof(buf), f)) != 0)
+        {
+            MD5_Update(&ctx, buf, len);
+        }
+
+        MD5_Final((unsigned char *)p_md5, &ctx);
+
+        fclose(f);
+
+        ret = 0;
+    }
+
+    return ret;
+}
+
 void test_download_url()
 {
     //char url[] = "http://caredear-cloud.qiniudn.com/300047\%2F14175708058725878";
@@ -176,97 +216,73 @@ void test_download_url()
 
     printf("the data\n%s\n", p);
 }
-// test code;
-void try_upload(const char *filename)
+
+int get_download_url(NetdiskRequest *p_obj, NetdiskResponse *p_resp)
 {
-#if 1
-    test_download_url();
-#else
+    Qiniu_RS_GetPolicy get_policy;
+    get_policy.expires = qiniu_expires;
+    char domain_str[512]; // a normal http://wwww.xxxx.xxx should not exceed 512 byte
+
+    snprintf(domain_str, sizeof(domain_str),
+            "%s%s", qiniu_bucket, qiniu_domain);
+
+    char *baseurl = Qiniu_RS_MakeBaseUrl(domain_str, p_obj->md5().c_str());
+    LOG("Now, baseurl=%s\n", baseurl);
+
+    char *download_url = Qiniu_RS_GetPolicy_MakeRequest(&get_policy, baseurl, NULL);
+
+    LOG("download url=%s\n", download_url);
+
+    Qiniu_Free(baseurl);
+
+    return 0;
+}
+
+
+/**
+ * Created the upload policy
+ *
+ */
+int generate_upload_token(NetdiskRequest *p_obj)
+{
+    Qiniu_RS_PutPolicy put_policy;
+
     // per req creates one
     Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
 
+    memset(&put_policy, 0x00, sizeof(put_policy));
+    put_policy.scope = qiniu_bucket;
+    put_policy.expires = qiniu_expires;
+
+    char *uptoken= Qiniu_RS_PutPolicy_Token(&put_policy, NULL);
+
+    LOG("the QINIU SDK created base64 string on policy:%s\n", uptoken);
+
+    LOG("\n\nDOWNLOAD...\n\n");
+    get_download_url(p_obj, NULL);
 #if 0
-    unsigned char putpolicy[] ="eyJzY29wZSI6Im15LWJ1Y2tldDpzdW5mbG93ZXIuanBnIiwiZGVhZGxpbmUiOjE0NTE0OTEyMDAs"
-                      "InJldHVybkJvZHkiOiJ7XCJuYW1lXCI6JChmbmFtZSksXCJzaXplXCI6JChmc2l6ZSksXCJ3XCI6"
-                      "JChpbWFnZUluZm8ud2lkdGgpLFwiaFwiOiQoaW1hZ2VJbmZvLmhlaWdodCksXCJoYXNoXCI6JChl"
-                      "dGFnKX0ifQ==";
-#else
-    Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
-    char buf[1024];
-    sprintf(buf, "caredear-pic:%s", filename);
-    char json[1024];
-    char fly[1024];
-    int flen= sizeof(fly);
+    // 
+    // TODO - below code is just testing ...
+    // as upload should be done at apk side....
 
-    Qiniu_RS_PutPolicy p;
-    Qiniu_Zero(p);
-    p.scope = buf;
-    p.expires = 2451491200;
-
-    printf("the scope:%s\n", p.scope);
-
-    sprintf(json, "{\"scope\":\"%s\",\"fsizeLimit\":10000000,\"deadline\":1420162805}",
-            "caredear-cloud:300047/14175708058725878");
-
-    printf("json:\n%s\n", json);
-
-
-    char *putpolicy = base64(json, strlen(json), &flen);
-
-    /*
-    char putpolicy[] ="eyJzY29wZSI6Im15LWJ1Y2tldDpzdW5mbG93ZXIuanBnIiwiZGVhZGxpbmUiOjE0NTE0OTEyMDAs"
-                      "InJldHVybkJvZHkiOiJ7XCJuYW1lXCI6JChmbmFtZSksXCJzaXplXCI6JChmc2l6ZSksXCJ3XCI6"
-                      "JChpbWFnZUluZm8ud2lkdGgpLFwiaFwiOiQoaW1hZ2VJbmZvLmhlaWdodCksXCJoYXNoXCI6JChl"
-                      "dGFnKX0ifQo=";
-                      */
-#endif
-
-    unsigned char key[] = "OADMEtVegAXAhCJBhRSXXeEd_YRYzEPyHwzJDs95";
-
-    char md[1024];
-    int mdlen = sizeof(md);
-    memset(md, '\0', sizeof(md));
-
-
-    printf("putpolic:\n%s\n", putpolicy);
-    printf("sizeof(key)=%d\n", sizeof(key));
-    printf("policy len=%d\n", strlen(putpolicy));
-
-    char *bin = HMAC(EVP_sha1(),
-            key,
-            strlen(key),
-            putpolicy,
-            strlen(putpolicy),
-            md,
-           &mdlen);
-
-    printf("the cmdlen=%d\n", mdlen);
-
-    char *f = base64(bin, mdlen, &flen);
-
-    printf("After base64, len=%d\n",flen);
-    printf("the result:%s\n", f);
-
-    sprintf(md, "%s:%s:%s",
-            QINIU_ACCESS_KEY, f, putpolicy);
-
-    printf("\n\n\t NOw, the whole token is:\n%s\n",
-            md);
-
-    // now, md is the upload token
+    // Actually, we need fill response fields...
     Qiniu_Error err;
     Qiniu_Io_PutRet putRet;
-    char badkey[] ="300047/14175708058725878";
-    err = Qiniu_Io_PutFile(&qn, &putRet, md, badkey, filename, NULL);
+    LOG("Uploading to server with key %s\n", p_obj->md5().c_str());
+    err = Qiniu_Io_PutFile(&qn, &putRet, uptoken, p_obj->md5().c_str(),
+            p_obj->filename().c_str(), NULL);
 
     printf("the status code = %d\n", err.code);
     if(err.code != 200)
     {
         printf("the msg:%s\n", err.message);
     }
-
 #endif
-    exit(0);
+    // DO NOT FORGET release resource...
+    Qiniu_Free(uptoken);
+    Qiniu_Client_Cleanup(&qn);
+
+    return 0;
 }
 
 
@@ -321,17 +337,24 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
     ok = reqobj.ParseFromCodedStream(&is);
     if(ok)
     {
-        ERR("\n\n$$$$$$$$$$$$$$GOOD$$$$$$$$$$$$$$$\n");
         // After go here, all data section got
         // and stored in NetdiskRequest obj.
 #ifdef DEBUG // dump the content
-        LOG("==== DUMP the objs... ====\n");
-        LOG("user:%s, filename:%s, filesize=%d\n",
+        LOG("\n==== DUMP the objs... ====\n");
+        LOG("user:%s, filename:%s, MD5=%s\n",
                 reqobj.user().c_str(), reqobj.filename().c_str(),
-                reqobj.filesize());
-        LOG("==== END DUMP ====\n");
+                reqobj.md5().c_str());
+        LOG("==== END DUMP ====\n\n");
 #endif
 
+        if(already_existed(&reqobj) != 0)
+        {
+            //TODO, response with a already case data.
+        }
+
+        generate_upload_token(&reqobj);
+
+        // Below code are POST code handling..
         LOG("After some processing, will try report the response..\n");
 
         nd_resp.set_result_code(CDS_OK);
@@ -361,7 +384,6 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
         ERR("**Failed parse the obj in protobuf!\n");
     }
 
-//failed:
     return ret;
 }
 
@@ -372,10 +394,6 @@ int main(int argc, char **argv)
     setenv("MALLOC_TRACE", "/tmp/nds.memleak", 1);
     mtrace();
 #endif
-
-
-    //try_upload("/tmp/abc.png");
-    //another_test("/tmp/abc.png");
 
     if(init_and_config("/etc/cds_cfg.xml") != 0)
     {

@@ -1,12 +1,35 @@
 package com.caredear;
 
 import java.io.*;
+import java.nio.*;
+import java.nio.channels.*;
+import java.math.*;
 import java.net.*;
+import java.security.*;
 
 import com.google.protobuf.*;
 import com.caredear.NetdiskMessage;
 
 public class test{
+
+    private static String calculateMD5(String filename) {
+        String md5 = "";
+        File file = new File(filename);
+        try{
+            MessageDigest mdObj = MessageDigest.getInstance("MD5");
+            FileInputStream in = new FileInputStream(file);
+            MappedByteBuffer byteBuffer = in.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+            mdObj.update(byteBuffer);
+            BigInteger bi = new BigInteger(1, mdObj.digest());
+            md5 = bi.toString(16);
+
+            in.close();
+        } catch(Exception e) {
+            System.out.println("exception got in MD5!");
+        }
+
+        return md5;
+    }
 
     private static int byte2int(byte[] b) {
         int i = 0;
@@ -49,6 +72,7 @@ public class test{
 			target_ip = args[0];
 		}
 
+
 		System.out.println("Try connecting to " + target_ip);
 
 		try{
@@ -56,10 +80,16 @@ public class test{
 			System.out.println("... Connected to the server[OK]");
 
 			// Now, simulate a netdisk request to backend(C++) program...
+            String uploadFile = "abc.png";  // debuging file...
 			NetdiskMessage.NetdiskRequest.Builder bd = NetdiskMessage.NetdiskRequest.newBuilder();
 			bd.setUser("13815882359");
-			bd.setFilename("abc.jpg");
-			bd.setFilesize(2018);
+			bd.setFilename(uploadFile);
+
+            String fileMd5 = calculateMD5(uploadFile);
+            System.out.println("File MD5 = " + fileMd5);
+            bd.setMd5(fileMd5);
+
+			//bd.setFilesize(2018);
 
 			NetdiskMessage.NetdiskRequest reqData = bd.build();
 			System.out.println("the serialize size = " + reqData.getSerializedSize());

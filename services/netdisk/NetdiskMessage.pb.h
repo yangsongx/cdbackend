@@ -105,10 +105,22 @@ class NetdiskRequest : public ::google::protobuf::Message {
   inline ::std::string* release_user();
   inline void set_allocated_user(::std::string* user);
 
-  // required string filename = 2;
+  // required string md5 = 2;
+  inline bool has_md5() const;
+  inline void clear_md5();
+  static const int kMd5FieldNumber = 2;
+  inline const ::std::string& md5() const;
+  inline void set_md5(const ::std::string& value);
+  inline void set_md5(const char* value);
+  inline void set_md5(const char* value, size_t size);
+  inline ::std::string* mutable_md5();
+  inline ::std::string* release_md5();
+  inline void set_allocated_md5(::std::string* md5);
+
+  // optional string filename = 3;
   inline bool has_filename() const;
   inline void clear_filename();
-  static const int kFilenameFieldNumber = 2;
+  static const int kFilenameFieldNumber = 3;
   inline const ::std::string& filename() const;
   inline void set_filename(const ::std::string& value);
   inline void set_filename(const char* value);
@@ -117,10 +129,10 @@ class NetdiskRequest : public ::google::protobuf::Message {
   inline ::std::string* release_filename();
   inline void set_allocated_filename(::std::string* filename);
 
-  // required int32 filesize = 3;
+  // optional int32 filesize = 4;
   inline bool has_filesize() const;
   inline void clear_filesize();
-  static const int kFilesizeFieldNumber = 3;
+  static const int kFilesizeFieldNumber = 4;
   inline ::google::protobuf::int32 filesize() const;
   inline void set_filesize(::google::protobuf::int32 value);
 
@@ -128,6 +140,8 @@ class NetdiskRequest : public ::google::protobuf::Message {
  private:
   inline void set_has_user();
   inline void clear_has_user();
+  inline void set_has_md5();
+  inline void clear_has_md5();
   inline void set_has_filename();
   inline void clear_has_filename();
   inline void set_has_filesize();
@@ -136,11 +150,12 @@ class NetdiskRequest : public ::google::protobuf::Message {
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::std::string* user_;
+  ::std::string* md5_;
   ::std::string* filename_;
   ::google::protobuf::int32 filesize_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
 
   friend void  protobuf_AddDesc_NetdiskMessage_2eproto();
   friend void protobuf_AssignDesc_NetdiskMessage_2eproto();
@@ -353,15 +368,85 @@ inline void NetdiskRequest::set_allocated_user(::std::string* user) {
   }
 }
 
-// required string filename = 2;
-inline bool NetdiskRequest::has_filename() const {
+// required string md5 = 2;
+inline bool NetdiskRequest::has_md5() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void NetdiskRequest::set_has_filename() {
+inline void NetdiskRequest::set_has_md5() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void NetdiskRequest::clear_has_filename() {
+inline void NetdiskRequest::clear_has_md5() {
   _has_bits_[0] &= ~0x00000002u;
+}
+inline void NetdiskRequest::clear_md5() {
+  if (md5_ != &::google::protobuf::internal::kEmptyString) {
+    md5_->clear();
+  }
+  clear_has_md5();
+}
+inline const ::std::string& NetdiskRequest::md5() const {
+  return *md5_;
+}
+inline void NetdiskRequest::set_md5(const ::std::string& value) {
+  set_has_md5();
+  if (md5_ == &::google::protobuf::internal::kEmptyString) {
+    md5_ = new ::std::string;
+  }
+  md5_->assign(value);
+}
+inline void NetdiskRequest::set_md5(const char* value) {
+  set_has_md5();
+  if (md5_ == &::google::protobuf::internal::kEmptyString) {
+    md5_ = new ::std::string;
+  }
+  md5_->assign(value);
+}
+inline void NetdiskRequest::set_md5(const char* value, size_t size) {
+  set_has_md5();
+  if (md5_ == &::google::protobuf::internal::kEmptyString) {
+    md5_ = new ::std::string;
+  }
+  md5_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* NetdiskRequest::mutable_md5() {
+  set_has_md5();
+  if (md5_ == &::google::protobuf::internal::kEmptyString) {
+    md5_ = new ::std::string;
+  }
+  return md5_;
+}
+inline ::std::string* NetdiskRequest::release_md5() {
+  clear_has_md5();
+  if (md5_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = md5_;
+    md5_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void NetdiskRequest::set_allocated_md5(::std::string* md5) {
+  if (md5_ != &::google::protobuf::internal::kEmptyString) {
+    delete md5_;
+  }
+  if (md5) {
+    set_has_md5();
+    md5_ = md5;
+  } else {
+    clear_has_md5();
+    md5_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// optional string filename = 3;
+inline bool NetdiskRequest::has_filename() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void NetdiskRequest::set_has_filename() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void NetdiskRequest::clear_has_filename() {
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline void NetdiskRequest::clear_filename() {
   if (filename_ != &::google::protobuf::internal::kEmptyString) {
@@ -423,15 +508,15 @@ inline void NetdiskRequest::set_allocated_filename(::std::string* filename) {
   }
 }
 
-// required int32 filesize = 3;
+// optional int32 filesize = 4;
 inline bool NetdiskRequest::has_filesize() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+  return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void NetdiskRequest::set_has_filesize() {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000008u;
 }
 inline void NetdiskRequest::clear_has_filesize() {
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline void NetdiskRequest::clear_filesize() {
   filesize_ = 0;

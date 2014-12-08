@@ -8,6 +8,15 @@
 #include <my_global.h>
 #include <mysql.h>
 
+#ifdef __cplusplus
+#undef min
+#undef max
+#endif
+
+#include "NetdiskMessage.pb.h"
+
+using namespace com::caredear;
+
 extern struct sql_server_info sql_cfg;
 
 extern int INIT_DB_MUTEX();
@@ -15,5 +24,7 @@ extern int CLEAN_DB_MUTEX();
 
 extern MYSQL *GET_CMSSQL(struct sql_server_info *server);
 extern void FREE_CMSSQL(MYSQL *m);
+
+extern int already_existed(NetdiskRequest *p_obj);
 
 #endif

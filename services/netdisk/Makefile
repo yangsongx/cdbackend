@@ -4,16 +4,16 @@ DEBUG=true
 QINIU_SDK = ../../3rd_party/qiniu-sdk/
 
 CC = g++
-SRC = $(QINIU_SDK)/qiniu/auth_mac.cc \
-      $(QINIU_SDK)/qiniu/base.cc \
-      $(QINIU_SDK)/qiniu/base_io.cc \
-      $(QINIU_SDK)/qiniu/http.cc \
-      $(QINIU_SDK)/qiniu/io.cc \
-      $(QINIU_SDK)/qiniu/conf.cc \
-      $(QINIU_SDK)/qiniu/resumable_io.cc \
-      $(QINIU_SDK)/qiniu/rs.cc \
-      $(QINIU_SDK)/b64/urlsafe_b64.cc \
-      $(QINIU_SDK)/cJSON/cJSON.cc \
+SRC = $(QINIU_SDK)qiniu/auth_mac.cc \
+      $(QINIU_SDK)qiniu/base.cc \
+      $(QINIU_SDK)qiniu/base_io.cc \
+      $(QINIU_SDK)qiniu/http.cc \
+      $(QINIU_SDK)qiniu/io.cc \
+      $(QINIU_SDK)qiniu/conf.cc \
+      $(QINIU_SDK)qiniu/resumable_io.cc \
+      $(QINIU_SDK)qiniu/rs.cc \
+      $(QINIU_SDK)b64/urlsafe_b64.cc \
+      $(QINIU_SDK)cJSON/cJSON.cc \
       NetdiskMessage.pb.cc \
       nds_main.cc \
       nds_sql.cc \
