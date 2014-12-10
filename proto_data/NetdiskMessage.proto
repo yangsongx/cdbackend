@@ -1,15 +1,27 @@
 package com.caredear;
 
+enum Opcode{
+    UPLOADING = 0;
+    UPLOADED = 1;
+    DELETE = 2;
+    RENAME = 3;
+}
+
 message NetdiskRequest{
     required string user = 1;  // user's mobile number(such as 130xxxxxxxx)
-    required string md5 = 2;
-    required string filename = 3;
-    required int32  filesize = 4;
+    required Opcode opcode = 2;
+
+    optional string md5 = 3;       // upload case fields...
+    optional string filename = 4;
+    optional int32  filesize = 5;
 }
 
 message NetdiskResponse{
-    required int32 result_code = 1; //CDS_XXX error code
-    required string uploadtoken = 2;
-    required string downloadurl = 3;
-    required string netdisckey = 4;
+    required Opcode opcode = 1;
+    required int32 result_code = 2; //CDS_XXX error code
+    optional string errormsg = 3;   // store further error reason
+
+    optional string uploadtoken = 4; // upload case fields...
+    optional string downloadurl = 5;
+    optional string netdisckey = 6;
 }

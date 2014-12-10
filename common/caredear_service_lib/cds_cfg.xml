@@ -28,10 +28,11 @@
             <quota>200000000</quota>
         </qiniu>
         <sqlserver>
-            <ip>127.0.0.1</ip>
-            <user>root</user>
-            <password>njcm</password>
-            <databasename>ucen</databasename>
+            <ip>192.168.1.13</ip>
+            <user>netdisk</user>
+            <password>heqi</password>
+            <!-- keep below blank -->
+            <databasename></databasename>
         </sqlserver>
     </netdisk>
 </config>

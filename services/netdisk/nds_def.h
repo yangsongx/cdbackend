@@ -17,6 +17,7 @@
 
 using namespace com::caredear;
 
+extern unsigned int qiniu_quota;
 extern struct sql_server_info sql_cfg;
 
 extern int INIT_DB_MUTEX();
@@ -25,6 +26,6 @@ extern int CLEAN_DB_MUTEX();
 extern MYSQL *GET_CMSSQL(struct sql_server_info *server);
 extern void FREE_CMSSQL(MYSQL *m);
 
-extern int already_existed(NetdiskRequest *p_obj);
+extern int already_existed(MYSQL *ms, NetdiskRequest *p_obj);
 
 #endif

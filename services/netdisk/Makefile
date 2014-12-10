@@ -36,7 +36,7 @@ LDFLAGS = -L ../../common/caredear_service_lib/ -L $(QINIU_SDK) -lcds -pthread -
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
 ifeq ($(STATICLIB),false)
-LDFLAGS += -lm -ldl -lz -lrt -static
+LDFLAGS += -lldap_r -llber -lidn -lrtmp -lm -ldl -lz -lrt -static
 endif
 
 OBJS = $(SRC:.cc=.o)

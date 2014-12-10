@@ -23,6 +23,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
@@ -37,6 +38,27 @@ void protobuf_ShutdownFile_NetdiskMessage_2eproto();
 class NetdiskRequest;
 class NetdiskResponse;
 
+enum Opcode {
+  UPLOADING = 0,
+  UPLOADED = 1,
+  DELETE = 2,
+  RENAME = 3
+};
+bool Opcode_IsValid(int value);
+const Opcode Opcode_MIN = UPLOADING;
+const Opcode Opcode_MAX = RENAME;
+const int Opcode_ARRAYSIZE = Opcode_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* Opcode_descriptor();
+inline const ::std::string& Opcode_Name(Opcode value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    Opcode_descriptor(), value);
+}
+inline bool Opcode_Parse(
+    const ::std::string& name, Opcode* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<Opcode>(
+    Opcode_descriptor(), name, value);
+}
 // ===================================================================
 
 class NetdiskRequest : public ::google::protobuf::Message {
@@ -105,10 +127,17 @@ class NetdiskRequest : public ::google::protobuf::Message {
   inline ::std::string* release_user();
   inline void set_allocated_user(::std::string* user);
 
-  // required string md5 = 2;
+  // required .com.caredear.Opcode opcode = 2;
+  inline bool has_opcode() const;
+  inline void clear_opcode();
+  static const int kOpcodeFieldNumber = 2;
+  inline ::com::caredear::Opcode opcode() const;
+  inline void set_opcode(::com::caredear::Opcode value);
+
+  // optional string md5 = 3;
   inline bool has_md5() const;
   inline void clear_md5();
-  static const int kMd5FieldNumber = 2;
+  static const int kMd5FieldNumber = 3;
   inline const ::std::string& md5() const;
   inline void set_md5(const ::std::string& value);
   inline void set_md5(const char* value);
@@ -117,10 +146,10 @@ class NetdiskRequest : public ::google::protobuf::Message {
   inline ::std::string* release_md5();
   inline void set_allocated_md5(::std::string* md5);
 
-  // optional string filename = 3;
+  // optional string filename = 4;
   inline bool has_filename() const;
   inline void clear_filename();
-  static const int kFilenameFieldNumber = 3;
+  static const int kFilenameFieldNumber = 4;
   inline const ::std::string& filename() const;
   inline void set_filename(const ::std::string& value);
   inline void set_filename(const char* value);
@@ -129,10 +158,10 @@ class NetdiskRequest : public ::google::protobuf::Message {
   inline ::std::string* release_filename();
   inline void set_allocated_filename(::std::string* filename);
 
-  // optional int32 filesize = 4;
+  // optional int32 filesize = 5;
   inline bool has_filesize() const;
   inline void clear_filesize();
-  static const int kFilesizeFieldNumber = 4;
+  static const int kFilesizeFieldNumber = 5;
   inline ::google::protobuf::int32 filesize() const;
   inline void set_filesize(::google::protobuf::int32 value);
 
@@ -140,6 +169,8 @@ class NetdiskRequest : public ::google::protobuf::Message {
  private:
   inline void set_has_user();
   inline void clear_has_user();
+  inline void set_has_opcode();
+  inline void clear_has_opcode();
   inline void set_has_md5();
   inline void clear_has_md5();
   inline void set_has_filename();
@@ -151,11 +182,12 @@ class NetdiskRequest : public ::google::protobuf::Message {
 
   ::std::string* user_;
   ::std::string* md5_;
-  ::std::string* filename_;
+  int opcode_;
   ::google::protobuf::int32 filesize_;
+  ::std::string* filename_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
 
   friend void  protobuf_AddDesc_NetdiskMessage_2eproto();
   friend void protobuf_AssignDesc_NetdiskMessage_2eproto();
@@ -220,29 +252,48 @@ class NetdiskResponse : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required int32 result_code = 1;
+  // required .com.caredear.Opcode opcode = 1;
+  inline bool has_opcode() const;
+  inline void clear_opcode();
+  static const int kOpcodeFieldNumber = 1;
+  inline ::com::caredear::Opcode opcode() const;
+  inline void set_opcode(::com::caredear::Opcode value);
+
+  // required int32 result_code = 2;
   inline bool has_result_code() const;
   inline void clear_result_code();
-  static const int kResultCodeFieldNumber = 1;
+  static const int kResultCodeFieldNumber = 2;
   inline ::google::protobuf::int32 result_code() const;
   inline void set_result_code(::google::protobuf::int32 value);
 
-  // required string uploadurl = 2;
-  inline bool has_uploadurl() const;
-  inline void clear_uploadurl();
-  static const int kUploadurlFieldNumber = 2;
-  inline const ::std::string& uploadurl() const;
-  inline void set_uploadurl(const ::std::string& value);
-  inline void set_uploadurl(const char* value);
-  inline void set_uploadurl(const char* value, size_t size);
-  inline ::std::string* mutable_uploadurl();
-  inline ::std::string* release_uploadurl();
-  inline void set_allocated_uploadurl(::std::string* uploadurl);
+  // optional string errormsg = 3;
+  inline bool has_errormsg() const;
+  inline void clear_errormsg();
+  static const int kErrormsgFieldNumber = 3;
+  inline const ::std::string& errormsg() const;
+  inline void set_errormsg(const ::std::string& value);
+  inline void set_errormsg(const char* value);
+  inline void set_errormsg(const char* value, size_t size);
+  inline ::std::string* mutable_errormsg();
+  inline ::std::string* release_errormsg();
+  inline void set_allocated_errormsg(::std::string* errormsg);
 
-  // required string downloadurl = 3;
+  // optional string uploadtoken = 4;
+  inline bool has_uploadtoken() const;
+  inline void clear_uploadtoken();
+  static const int kUploadtokenFieldNumber = 4;
+  inline const ::std::string& uploadtoken() const;
+  inline void set_uploadtoken(const ::std::string& value);
+  inline void set_uploadtoken(const char* value);
+  inline void set_uploadtoken(const char* value, size_t size);
+  inline ::std::string* mutable_uploadtoken();
+  inline ::std::string* release_uploadtoken();
+  inline void set_allocated_uploadtoken(::std::string* uploadtoken);
+
+  // optional string downloadurl = 5;
   inline bool has_downloadurl() const;
   inline void clear_downloadurl();
-  static const int kDownloadurlFieldNumber = 3;
+  static const int kDownloadurlFieldNumber = 5;
   inline const ::std::string& downloadurl() const;
   inline void set_downloadurl(const ::std::string& value);
   inline void set_downloadurl(const char* value);
@@ -251,10 +302,10 @@ class NetdiskResponse : public ::google::protobuf::Message {
   inline ::std::string* release_downloadurl();
   inline void set_allocated_downloadurl(::std::string* downloadurl);
 
-  // required string netdisckey = 4;
+  // optional string netdisckey = 6;
   inline bool has_netdisckey() const;
   inline void clear_netdisckey();
-  static const int kNetdisckeyFieldNumber = 4;
+  static const int kNetdisckeyFieldNumber = 6;
   inline const ::std::string& netdisckey() const;
   inline void set_netdisckey(const ::std::string& value);
   inline void set_netdisckey(const char* value);
@@ -265,10 +316,14 @@ class NetdiskResponse : public ::google::protobuf::Message {
 
   // @@protoc_insertion_point(class_scope:com.caredear.NetdiskResponse)
  private:
+  inline void set_has_opcode();
+  inline void clear_has_opcode();
   inline void set_has_result_code();
   inline void clear_has_result_code();
-  inline void set_has_uploadurl();
-  inline void clear_has_uploadurl();
+  inline void set_has_errormsg();
+  inline void clear_has_errormsg();
+  inline void set_has_uploadtoken();
+  inline void clear_has_uploadtoken();
   inline void set_has_downloadurl();
   inline void clear_has_downloadurl();
   inline void set_has_netdisckey();
@@ -276,13 +331,15 @@ class NetdiskResponse : public ::google::protobuf::Message {
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::std::string* uploadurl_;
+  int opcode_;
+  ::google::protobuf::int32 result_code_;
+  ::std::string* errormsg_;
+  ::std::string* uploadtoken_;
   ::std::string* downloadurl_;
   ::std::string* netdisckey_;
-  ::google::protobuf::int32 result_code_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(6 + 31) / 32];
 
   friend void  protobuf_AddDesc_NetdiskMessage_2eproto();
   friend void protobuf_AssignDesc_NetdiskMessage_2eproto();
@@ -368,15 +425,38 @@ inline void NetdiskRequest::set_allocated_user(::std::string* user) {
   }
 }
 
-// required string md5 = 2;
-inline bool NetdiskRequest::has_md5() const {
+// required .com.caredear.Opcode opcode = 2;
+inline bool NetdiskRequest::has_opcode() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void NetdiskRequest::set_has_md5() {
+inline void NetdiskRequest::set_has_opcode() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void NetdiskRequest::clear_has_md5() {
+inline void NetdiskRequest::clear_has_opcode() {
   _has_bits_[0] &= ~0x00000002u;
+}
+inline void NetdiskRequest::clear_opcode() {
+  opcode_ = 0;
+  clear_has_opcode();
+}
+inline ::com::caredear::Opcode NetdiskRequest::opcode() const {
+  return static_cast< ::com::caredear::Opcode >(opcode_);
+}
+inline void NetdiskRequest::set_opcode(::com::caredear::Opcode value) {
+  assert(::com::caredear::Opcode_IsValid(value));
+  set_has_opcode();
+  opcode_ = value;
+}
+
+// optional string md5 = 3;
+inline bool NetdiskRequest::has_md5() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void NetdiskRequest::set_has_md5() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void NetdiskRequest::clear_has_md5() {
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline void NetdiskRequest::clear_md5() {
   if (md5_ != &::google::protobuf::internal::kEmptyString) {
@@ -438,15 +518,15 @@ inline void NetdiskRequest::set_allocated_md5(::std::string* md5) {
   }
 }
 
-// optional string filename = 3;
+// optional string filename = 4;
 inline bool NetdiskRequest::has_filename() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+  return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void NetdiskRequest::set_has_filename() {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000008u;
 }
 inline void NetdiskRequest::clear_has_filename() {
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline void NetdiskRequest::clear_filename() {
   if (filename_ != &::google::protobuf::internal::kEmptyString) {
@@ -508,15 +588,15 @@ inline void NetdiskRequest::set_allocated_filename(::std::string* filename) {
   }
 }
 
-// optional int32 filesize = 4;
+// optional int32 filesize = 5;
 inline bool NetdiskRequest::has_filesize() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+  return (_has_bits_[0] & 0x00000010u) != 0;
 }
 inline void NetdiskRequest::set_has_filesize() {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000010u;
 }
 inline void NetdiskRequest::clear_has_filesize() {
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000010u;
 }
 inline void NetdiskRequest::clear_filesize() {
   filesize_ = 0;
@@ -534,15 +614,38 @@ inline void NetdiskRequest::set_filesize(::google::protobuf::int32 value) {
 
 // NetdiskResponse
 
-// required int32 result_code = 1;
-inline bool NetdiskResponse::has_result_code() const {
+// required .com.caredear.Opcode opcode = 1;
+inline bool NetdiskResponse::has_opcode() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void NetdiskResponse::set_has_result_code() {
+inline void NetdiskResponse::set_has_opcode() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void NetdiskResponse::clear_has_result_code() {
+inline void NetdiskResponse::clear_has_opcode() {
   _has_bits_[0] &= ~0x00000001u;
+}
+inline void NetdiskResponse::clear_opcode() {
+  opcode_ = 0;
+  clear_has_opcode();
+}
+inline ::com::caredear::Opcode NetdiskResponse::opcode() const {
+  return static_cast< ::com::caredear::Opcode >(opcode_);
+}
+inline void NetdiskResponse::set_opcode(::com::caredear::Opcode value) {
+  assert(::com::caredear::Opcode_IsValid(value));
+  set_has_opcode();
+  opcode_ = value;
+}
+
+// required int32 result_code = 2;
+inline bool NetdiskResponse::has_result_code() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void NetdiskResponse::set_has_result_code() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void NetdiskResponse::clear_has_result_code() {
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline void NetdiskResponse::clear_result_code() {
   result_code_ = 0;
@@ -556,85 +659,155 @@ inline void NetdiskResponse::set_result_code(::google::protobuf::int32 value) {
   result_code_ = value;
 }
 
-// required string uploadurl = 2;
-inline bool NetdiskResponse::has_uploadurl() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+// optional string errormsg = 3;
+inline bool NetdiskResponse::has_errormsg() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
 }
-inline void NetdiskResponse::set_has_uploadurl() {
-  _has_bits_[0] |= 0x00000002u;
+inline void NetdiskResponse::set_has_errormsg() {
+  _has_bits_[0] |= 0x00000004u;
 }
-inline void NetdiskResponse::clear_has_uploadurl() {
-  _has_bits_[0] &= ~0x00000002u;
+inline void NetdiskResponse::clear_has_errormsg() {
+  _has_bits_[0] &= ~0x00000004u;
 }
-inline void NetdiskResponse::clear_uploadurl() {
-  if (uploadurl_ != &::google::protobuf::internal::kEmptyString) {
-    uploadurl_->clear();
+inline void NetdiskResponse::clear_errormsg() {
+  if (errormsg_ != &::google::protobuf::internal::kEmptyString) {
+    errormsg_->clear();
   }
-  clear_has_uploadurl();
+  clear_has_errormsg();
 }
-inline const ::std::string& NetdiskResponse::uploadurl() const {
-  return *uploadurl_;
+inline const ::std::string& NetdiskResponse::errormsg() const {
+  return *errormsg_;
 }
-inline void NetdiskResponse::set_uploadurl(const ::std::string& value) {
-  set_has_uploadurl();
-  if (uploadurl_ == &::google::protobuf::internal::kEmptyString) {
-    uploadurl_ = new ::std::string;
+inline void NetdiskResponse::set_errormsg(const ::std::string& value) {
+  set_has_errormsg();
+  if (errormsg_ == &::google::protobuf::internal::kEmptyString) {
+    errormsg_ = new ::std::string;
   }
-  uploadurl_->assign(value);
+  errormsg_->assign(value);
 }
-inline void NetdiskResponse::set_uploadurl(const char* value) {
-  set_has_uploadurl();
-  if (uploadurl_ == &::google::protobuf::internal::kEmptyString) {
-    uploadurl_ = new ::std::string;
+inline void NetdiskResponse::set_errormsg(const char* value) {
+  set_has_errormsg();
+  if (errormsg_ == &::google::protobuf::internal::kEmptyString) {
+    errormsg_ = new ::std::string;
   }
-  uploadurl_->assign(value);
+  errormsg_->assign(value);
 }
-inline void NetdiskResponse::set_uploadurl(const char* value, size_t size) {
-  set_has_uploadurl();
-  if (uploadurl_ == &::google::protobuf::internal::kEmptyString) {
-    uploadurl_ = new ::std::string;
+inline void NetdiskResponse::set_errormsg(const char* value, size_t size) {
+  set_has_errormsg();
+  if (errormsg_ == &::google::protobuf::internal::kEmptyString) {
+    errormsg_ = new ::std::string;
   }
-  uploadurl_->assign(reinterpret_cast<const char*>(value), size);
+  errormsg_->assign(reinterpret_cast<const char*>(value), size);
 }
-inline ::std::string* NetdiskResponse::mutable_uploadurl() {
-  set_has_uploadurl();
-  if (uploadurl_ == &::google::protobuf::internal::kEmptyString) {
-    uploadurl_ = new ::std::string;
+inline ::std::string* NetdiskResponse::mutable_errormsg() {
+  set_has_errormsg();
+  if (errormsg_ == &::google::protobuf::internal::kEmptyString) {
+    errormsg_ = new ::std::string;
   }
-  return uploadurl_;
+  return errormsg_;
 }
-inline ::std::string* NetdiskResponse::release_uploadurl() {
-  clear_has_uploadurl();
-  if (uploadurl_ == &::google::protobuf::internal::kEmptyString) {
+inline ::std::string* NetdiskResponse::release_errormsg() {
+  clear_has_errormsg();
+  if (errormsg_ == &::google::protobuf::internal::kEmptyString) {
     return NULL;
   } else {
-    ::std::string* temp = uploadurl_;
-    uploadurl_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    ::std::string* temp = errormsg_;
+    errormsg_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
     return temp;
   }
 }
-inline void NetdiskResponse::set_allocated_uploadurl(::std::string* uploadurl) {
-  if (uploadurl_ != &::google::protobuf::internal::kEmptyString) {
-    delete uploadurl_;
+inline void NetdiskResponse::set_allocated_errormsg(::std::string* errormsg) {
+  if (errormsg_ != &::google::protobuf::internal::kEmptyString) {
+    delete errormsg_;
   }
-  if (uploadurl) {
-    set_has_uploadurl();
-    uploadurl_ = uploadurl;
+  if (errormsg) {
+    set_has_errormsg();
+    errormsg_ = errormsg;
   } else {
-    clear_has_uploadurl();
-    uploadurl_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    clear_has_errormsg();
+    errormsg_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   }
 }
 
-// required string downloadurl = 3;
+// optional string uploadtoken = 4;
+inline bool NetdiskResponse::has_uploadtoken() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void NetdiskResponse::set_has_uploadtoken() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void NetdiskResponse::clear_has_uploadtoken() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void NetdiskResponse::clear_uploadtoken() {
+  if (uploadtoken_ != &::google::protobuf::internal::kEmptyString) {
+    uploadtoken_->clear();
+  }
+  clear_has_uploadtoken();
+}
+inline const ::std::string& NetdiskResponse::uploadtoken() const {
+  return *uploadtoken_;
+}
+inline void NetdiskResponse::set_uploadtoken(const ::std::string& value) {
+  set_has_uploadtoken();
+  if (uploadtoken_ == &::google::protobuf::internal::kEmptyString) {
+    uploadtoken_ = new ::std::string;
+  }
+  uploadtoken_->assign(value);
+}
+inline void NetdiskResponse::set_uploadtoken(const char* value) {
+  set_has_uploadtoken();
+  if (uploadtoken_ == &::google::protobuf::internal::kEmptyString) {
+    uploadtoken_ = new ::std::string;
+  }
+  uploadtoken_->assign(value);
+}
+inline void NetdiskResponse::set_uploadtoken(const char* value, size_t size) {
+  set_has_uploadtoken();
+  if (uploadtoken_ == &::google::protobuf::internal::kEmptyString) {
+    uploadtoken_ = new ::std::string;
+  }
+  uploadtoken_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* NetdiskResponse::mutable_uploadtoken() {
+  set_has_uploadtoken();
+  if (uploadtoken_ == &::google::protobuf::internal::kEmptyString) {
+    uploadtoken_ = new ::std::string;
+  }
+  return uploadtoken_;
+}
+inline ::std::string* NetdiskResponse::release_uploadtoken() {
+  clear_has_uploadtoken();
+  if (uploadtoken_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = uploadtoken_;
+    uploadtoken_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void NetdiskResponse::set_allocated_uploadtoken(::std::string* uploadtoken) {
+  if (uploadtoken_ != &::google::protobuf::internal::kEmptyString) {
+    delete uploadtoken_;
+  }
+  if (uploadtoken) {
+    set_has_uploadtoken();
+    uploadtoken_ = uploadtoken;
+  } else {
+    clear_has_uploadtoken();
+    uploadtoken_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// optional string downloadurl = 5;
 inline bool NetdiskResponse::has_downloadurl() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+  return (_has_bits_[0] & 0x00000010u) != 0;
 }
 inline void NetdiskResponse::set_has_downloadurl() {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000010u;
 }
 inline void NetdiskResponse::clear_has_downloadurl() {
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000010u;
 }
 inline void NetdiskResponse::clear_downloadurl() {
   if (downloadurl_ != &::google::protobuf::internal::kEmptyString) {
@@ -696,15 +869,15 @@ inline void NetdiskResponse::set_allocated_downloadurl(::std::string* downloadur
   }
 }
 
-// required string netdisckey = 4;
+// optional string netdisckey = 6;
 inline bool NetdiskResponse::has_netdisckey() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+  return (_has_bits_[0] & 0x00000020u) != 0;
 }
 inline void NetdiskResponse::set_has_netdisckey() {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000020u;
 }
 inline void NetdiskResponse::clear_has_netdisckey() {
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000020u;
 }
 inline void NetdiskResponse::clear_netdisckey() {
   if (netdisckey_ != &::google::protobuf::internal::kEmptyString) {
@@ -776,6 +949,10 @@ inline void NetdiskResponse::set_allocated_netdisckey(::std::string* netdisckey)
 namespace google {
 namespace protobuf {
 
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::Opcode>() {
+  return ::com::caredear::Opcode_descriptor();
+}
 
 }  // namespace google
 }  // namespace protobuf

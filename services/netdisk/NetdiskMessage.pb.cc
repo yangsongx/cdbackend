@@ -27,6 +27,7 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* NetdiskResponse_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   NetdiskResponse_reflection_ = NULL;
+const ::google::protobuf::EnumDescriptor* Opcode_descriptor_ = NULL;
 
 }  // namespace
 
@@ -38,8 +39,9 @@ void protobuf_AssignDesc_NetdiskMessage_2eproto() {
       "NetdiskMessage.proto");
   GOOGLE_CHECK(file != NULL);
   NetdiskRequest_descriptor_ = file->message_type(0);
-  static const int NetdiskRequest_offsets_[4] = {
+  static const int NetdiskRequest_offsets_[5] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, user_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, opcode_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, md5_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, filename_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, filesize_),
@@ -56,9 +58,11 @@ void protobuf_AssignDesc_NetdiskMessage_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(NetdiskRequest));
   NetdiskResponse_descriptor_ = file->message_type(1);
-  static const int NetdiskResponse_offsets_[4] = {
+  static const int NetdiskResponse_offsets_[6] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskResponse, opcode_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskResponse, result_code_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskResponse, uploadurl_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskResponse, errormsg_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskResponse, uploadtoken_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskResponse, downloadurl_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskResponse, netdisckey_),
   };
@@ -73,6 +77,7 @@ void protobuf_AssignDesc_NetdiskMessage_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(NetdiskResponse));
+  Opcode_descriptor_ = file->enum_type(0);
 }
 
 namespace {
@@ -107,12 +112,16 @@ void protobuf_AddDesc_NetdiskMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\024NetdiskMessage.proto\022\014com.caredear\"O\n\016"
-    "NetdiskRequest\022\014\n\004user\030\001 \002(\t\022\013\n\003md5\030\002 \002("
-    "\t\022\020\n\010filename\030\003 \001(\t\022\020\n\010filesize\030\004 \001(\005\"b\n"
-    "\017NetdiskResponse\022\023\n\013result_code\030\001 \002(\005\022\021\n"
-    "\tuploadurl\030\002 \002(\t\022\023\n\013downloadurl\030\003 \002(\t\022\022\n"
-    "\nnetdisckey\030\004 \002(\t", 217);
+    "\n\024NetdiskMessage.proto\022\014com.caredear\"u\n\016"
+    "NetdiskRequest\022\014\n\004user\030\001 \002(\t\022$\n\006opcode\030\002"
+    " \002(\0162\024.com.caredear.Opcode\022\013\n\003md5\030\003 \001(\t\022"
+    "\020\n\010filename\030\004 \001(\t\022\020\n\010filesize\030\005 \001(\005\"\234\001\n\017"
+    "NetdiskResponse\022$\n\006opcode\030\001 \002(\0162\024.com.ca"
+    "redear.Opcode\022\023\n\013result_code\030\002 \002(\005\022\020\n\010er"
+    "rormsg\030\003 \001(\t\022\023\n\013uploadtoken\030\004 \001(\t\022\023\n\013dow"
+    "nloadurl\030\005 \001(\t\022\022\n\nnetdisckey\030\006 \001(\t*=\n\006Op"
+    "code\022\r\n\tUPLOADING\020\000\022\014\n\010UPLOADED\020\001\022\n\n\006DEL"
+    "ETE\020\002\022\n\n\006RENAME\020\003", 377);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "NetdiskMessage.proto", &protobuf_RegisterTypes);
   NetdiskRequest::default_instance_ = new NetdiskRequest();
@@ -128,11 +137,28 @@ struct StaticDescriptorInitializer_NetdiskMessage_2eproto {
     protobuf_AddDesc_NetdiskMessage_2eproto();
   }
 } static_descriptor_initializer_NetdiskMessage_2eproto_;
+const ::google::protobuf::EnumDescriptor* Opcode_descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return Opcode_descriptor_;
+}
+bool Opcode_IsValid(int value) {
+  switch(value) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+      return true;
+    default:
+      return false;
+  }
+}
+
 
 // ===================================================================
 
 #ifndef _MSC_VER
 const int NetdiskRequest::kUserFieldNumber;
+const int NetdiskRequest::kOpcodeFieldNumber;
 const int NetdiskRequest::kMd5FieldNumber;
 const int NetdiskRequest::kFilenameFieldNumber;
 const int NetdiskRequest::kFilesizeFieldNumber;
@@ -155,6 +181,7 @@ NetdiskRequest::NetdiskRequest(const NetdiskRequest& from)
 void NetdiskRequest::SharedCtor() {
   _cached_size_ = 0;
   user_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  opcode_ = 0;
   md5_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   filename_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   filesize_ = 0;
@@ -207,6 +234,7 @@ void NetdiskRequest::Clear() {
         user_->clear();
       }
     }
+    opcode_ = 0;
     if (has_md5()) {
       if (md5_ != &::google::protobuf::internal::kEmptyString) {
         md5_->clear();
@@ -241,12 +269,33 @@ bool NetdiskRequest::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(18)) goto parse_md5;
+        if (input->ExpectTag(16)) goto parse_opcode;
         break;
       }
 
-      // required string md5 = 2;
+      // required .com.caredear.Opcode opcode = 2;
       case 2: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_opcode:
+          int value;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          if (::com::caredear::Opcode_IsValid(value)) {
+            set_opcode(static_cast< ::com::caredear::Opcode >(value));
+          } else {
+            mutable_unknown_fields()->AddVarint(2, value);
+          }
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(26)) goto parse_md5;
+        break;
+      }
+
+      // optional string md5 = 3;
+      case 3: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_md5:
@@ -258,12 +307,12 @@ bool NetdiskRequest::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(26)) goto parse_filename;
+        if (input->ExpectTag(34)) goto parse_filename;
         break;
       }
 
-      // optional string filename = 3;
-      case 3: {
+      // optional string filename = 4;
+      case 4: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_filename:
@@ -275,12 +324,12 @@ bool NetdiskRequest::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(32)) goto parse_filesize;
+        if (input->ExpectTag(40)) goto parse_filesize;
         break;
       }
 
-      // optional int32 filesize = 4;
-      case 4: {
+      // optional int32 filesize = 5;
+      case 5: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_filesize:
@@ -322,27 +371,33 @@ void NetdiskRequest::SerializeWithCachedSizes(
       1, this->user(), output);
   }
 
-  // required string md5 = 2;
+  // required .com.caredear.Opcode opcode = 2;
+  if (has_opcode()) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      2, this->opcode(), output);
+  }
+
+  // optional string md5 = 3;
   if (has_md5()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->md5().data(), this->md5().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
     ::google::protobuf::internal::WireFormatLite::WriteString(
-      2, this->md5(), output);
+      3, this->md5(), output);
   }
 
-  // optional string filename = 3;
+  // optional string filename = 4;
   if (has_filename()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->filename().data(), this->filename().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
     ::google::protobuf::internal::WireFormatLite::WriteString(
-      3, this->filename(), output);
+      4, this->filename(), output);
   }
 
-  // optional int32 filesize = 4;
+  // optional int32 filesize = 5;
   if (has_filesize()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(4, this->filesize(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(5, this->filesize(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -363,29 +418,35 @@ void NetdiskRequest::SerializeWithCachedSizes(
         1, this->user(), target);
   }
 
-  // required string md5 = 2;
+  // required .com.caredear.Opcode opcode = 2;
+  if (has_opcode()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      2, this->opcode(), target);
+  }
+
+  // optional string md5 = 3;
   if (has_md5()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->md5().data(), this->md5().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        2, this->md5(), target);
+        3, this->md5(), target);
   }
 
-  // optional string filename = 3;
+  // optional string filename = 4;
   if (has_filename()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->filename().data(), this->filename().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        3, this->filename(), target);
+        4, this->filename(), target);
   }
 
-  // optional int32 filesize = 4;
+  // optional int32 filesize = 5;
   if (has_filesize()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(4, this->filesize(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(5, this->filesize(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -406,21 +467,27 @@ int NetdiskRequest::ByteSize() const {
           this->user());
     }
 
-    // required string md5 = 2;
+    // required .com.caredear.Opcode opcode = 2;
+    if (has_opcode()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::EnumSize(this->opcode());
+    }
+
+    // optional string md5 = 3;
     if (has_md5()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->md5());
     }
 
-    // optional string filename = 3;
+    // optional string filename = 4;
     if (has_filename()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->filename());
     }
 
-    // optional int32 filesize = 4;
+    // optional int32 filesize = 5;
     if (has_filesize()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
@@ -457,6 +524,9 @@ void NetdiskRequest::MergeFrom(const NetdiskRequest& from) {
     if (from.has_user()) {
       set_user(from.user());
     }
+    if (from.has_opcode()) {
+      set_opcode(from.opcode());
+    }
     if (from.has_md5()) {
       set_md5(from.md5());
     }
@@ -491,6 +561,7 @@ bool NetdiskRequest::IsInitialized() const {
 void NetdiskRequest::Swap(NetdiskRequest* other) {
   if (other != this) {
     std::swap(user_, other->user_);
+    std::swap(opcode_, other->opcode_);
     std::swap(md5_, other->md5_);
     std::swap(filename_, other->filename_);
     std::swap(filesize_, other->filesize_);
@@ -512,8 +583,10 @@ void NetdiskRequest::Swap(NetdiskRequest* other) {
 // ===================================================================
 
 #ifndef _MSC_VER
+const int NetdiskResponse::kOpcodeFieldNumber;
 const int NetdiskResponse::kResultCodeFieldNumber;
-const int NetdiskResponse::kUploadurlFieldNumber;
+const int NetdiskResponse::kErrormsgFieldNumber;
+const int NetdiskResponse::kUploadtokenFieldNumber;
 const int NetdiskResponse::kDownloadurlFieldNumber;
 const int NetdiskResponse::kNetdisckeyFieldNumber;
 #endif  // !_MSC_VER
@@ -534,8 +607,10 @@ NetdiskResponse::NetdiskResponse(const NetdiskResponse& from)
 
 void NetdiskResponse::SharedCtor() {
   _cached_size_ = 0;
+  opcode_ = 0;
   result_code_ = 0;
-  uploadurl_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  errormsg_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  uploadtoken_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   downloadurl_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   netdisckey_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
@@ -546,8 +621,11 @@ NetdiskResponse::~NetdiskResponse() {
 }
 
 void NetdiskResponse::SharedDtor() {
-  if (uploadurl_ != &::google::protobuf::internal::kEmptyString) {
-    delete uploadurl_;
+  if (errormsg_ != &::google::protobuf::internal::kEmptyString) {
+    delete errormsg_;
+  }
+  if (uploadtoken_ != &::google::protobuf::internal::kEmptyString) {
+    delete uploadtoken_;
   }
   if (downloadurl_ != &::google::protobuf::internal::kEmptyString) {
     delete downloadurl_;
@@ -582,10 +660,16 @@ NetdiskResponse* NetdiskResponse::New() const {
 
 void NetdiskResponse::Clear() {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    opcode_ = 0;
     result_code_ = 0;
-    if (has_uploadurl()) {
-      if (uploadurl_ != &::google::protobuf::internal::kEmptyString) {
-        uploadurl_->clear();
+    if (has_errormsg()) {
+      if (errormsg_ != &::google::protobuf::internal::kEmptyString) {
+        errormsg_->clear();
+      }
+    }
+    if (has_uploadtoken()) {
+      if (uploadtoken_ != &::google::protobuf::internal::kEmptyString) {
+        uploadtoken_->clear();
       }
     }
     if (has_downloadurl()) {
@@ -609,10 +693,31 @@ bool NetdiskResponse::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required int32 result_code = 1;
+      // required .com.caredear.Opcode opcode = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+          int value;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          if (::com::caredear::Opcode_IsValid(value)) {
+            set_opcode(static_cast< ::com::caredear::Opcode >(value));
+          } else {
+            mutable_unknown_fields()->AddVarint(1, value);
+          }
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(16)) goto parse_result_code;
+        break;
+      }
+
+      // required int32 result_code = 2;
+      case 2: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_result_code:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &result_code_)));
@@ -620,29 +725,46 @@ bool NetdiskResponse::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(18)) goto parse_uploadurl;
+        if (input->ExpectTag(26)) goto parse_errormsg;
         break;
       }
 
-      // required string uploadurl = 2;
-      case 2: {
+      // optional string errormsg = 3;
+      case 3: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_uploadurl:
+         parse_errormsg:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_uploadurl()));
+                input, this->mutable_errormsg()));
           ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-            this->uploadurl().data(), this->uploadurl().length(),
+            this->errormsg().data(), this->errormsg().length(),
             ::google::protobuf::internal::WireFormat::PARSE);
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(26)) goto parse_downloadurl;
+        if (input->ExpectTag(34)) goto parse_uploadtoken;
         break;
       }
 
-      // required string downloadurl = 3;
-      case 3: {
+      // optional string uploadtoken = 4;
+      case 4: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_uploadtoken:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_uploadtoken()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->uploadtoken().data(), this->uploadtoken().length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(42)) goto parse_downloadurl;
+        break;
+      }
+
+      // optional string downloadurl = 5;
+      case 5: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_downloadurl:
@@ -654,12 +776,12 @@ bool NetdiskResponse::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(34)) goto parse_netdisckey;
+        if (input->ExpectTag(50)) goto parse_netdisckey;
         break;
       }
 
-      // required string netdisckey = 4;
-      case 4: {
+      // optional string netdisckey = 6;
+      case 6: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_netdisckey:
@@ -693,36 +815,51 @@ bool NetdiskResponse::MergePartialFromCodedStream(
 
 void NetdiskResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // required int32 result_code = 1;
-  if (has_result_code()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->result_code(), output);
+  // required .com.caredear.Opcode opcode = 1;
+  if (has_opcode()) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      1, this->opcode(), output);
   }
 
-  // required string uploadurl = 2;
-  if (has_uploadurl()) {
+  // required int32 result_code = 2;
+  if (has_result_code()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(2, this->result_code(), output);
+  }
+
+  // optional string errormsg = 3;
+  if (has_errormsg()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->uploadurl().data(), this->uploadurl().length(),
+      this->errormsg().data(), this->errormsg().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
     ::google::protobuf::internal::WireFormatLite::WriteString(
-      2, this->uploadurl(), output);
+      3, this->errormsg(), output);
   }
 
-  // required string downloadurl = 3;
+  // optional string uploadtoken = 4;
+  if (has_uploadtoken()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->uploadtoken().data(), this->uploadtoken().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      4, this->uploadtoken(), output);
+  }
+
+  // optional string downloadurl = 5;
   if (has_downloadurl()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->downloadurl().data(), this->downloadurl().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
     ::google::protobuf::internal::WireFormatLite::WriteString(
-      3, this->downloadurl(), output);
+      5, this->downloadurl(), output);
   }
 
-  // required string netdisckey = 4;
+  // optional string netdisckey = 6;
   if (has_netdisckey()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->netdisckey().data(), this->netdisckey().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
     ::google::protobuf::internal::WireFormatLite::WriteString(
-      4, this->netdisckey(), output);
+      6, this->netdisckey(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -733,39 +870,55 @@ void NetdiskResponse::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* NetdiskResponse::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // required int32 result_code = 1;
-  if (has_result_code()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->result_code(), target);
+  // required .com.caredear.Opcode opcode = 1;
+  if (has_opcode()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      1, this->opcode(), target);
   }
 
-  // required string uploadurl = 2;
-  if (has_uploadurl()) {
+  // required int32 result_code = 2;
+  if (has_result_code()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(2, this->result_code(), target);
+  }
+
+  // optional string errormsg = 3;
+  if (has_errormsg()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->uploadurl().data(), this->uploadurl().length(),
+      this->errormsg().data(), this->errormsg().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        2, this->uploadurl(), target);
+        3, this->errormsg(), target);
   }
 
-  // required string downloadurl = 3;
+  // optional string uploadtoken = 4;
+  if (has_uploadtoken()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->uploadtoken().data(), this->uploadtoken().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        4, this->uploadtoken(), target);
+  }
+
+  // optional string downloadurl = 5;
   if (has_downloadurl()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->downloadurl().data(), this->downloadurl().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        3, this->downloadurl(), target);
+        5, this->downloadurl(), target);
   }
 
-  // required string netdisckey = 4;
+  // optional string netdisckey = 6;
   if (has_netdisckey()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->netdisckey().data(), this->netdisckey().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        4, this->netdisckey(), target);
+        6, this->netdisckey(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -779,28 +932,41 @@ int NetdiskResponse::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required int32 result_code = 1;
+    // required .com.caredear.Opcode opcode = 1;
+    if (has_opcode()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::EnumSize(this->opcode());
+    }
+
+    // required int32 result_code = 2;
     if (has_result_code()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
           this->result_code());
     }
 
-    // required string uploadurl = 2;
-    if (has_uploadurl()) {
+    // optional string errormsg = 3;
+    if (has_errormsg()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
-          this->uploadurl());
+          this->errormsg());
     }
 
-    // required string downloadurl = 3;
+    // optional string uploadtoken = 4;
+    if (has_uploadtoken()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->uploadtoken());
+    }
+
+    // optional string downloadurl = 5;
     if (has_downloadurl()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->downloadurl());
     }
 
-    // required string netdisckey = 4;
+    // optional string netdisckey = 6;
     if (has_netdisckey()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
@@ -834,11 +1000,17 @@ void NetdiskResponse::MergeFrom(const ::google::protobuf::Message& from) {
 void NetdiskResponse::MergeFrom(const NetdiskResponse& from) {
   GOOGLE_CHECK_NE(&from, this);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_opcode()) {
+      set_opcode(from.opcode());
+    }
     if (from.has_result_code()) {
       set_result_code(from.result_code());
     }
-    if (from.has_uploadurl()) {
-      set_uploadurl(from.uploadurl());
+    if (from.has_errormsg()) {
+      set_errormsg(from.errormsg());
+    }
+    if (from.has_uploadtoken()) {
+      set_uploadtoken(from.uploadtoken());
     }
     if (from.has_downloadurl()) {
       set_downloadurl(from.downloadurl());
@@ -863,15 +1035,17 @@ void NetdiskResponse::CopyFrom(const NetdiskResponse& from) {
 }
 
 bool NetdiskResponse::IsInitialized() const {
-  if ((_has_bits_[0] & 0x0000000f) != 0x0000000f) return false;
+  if ((_has_bits_[0] & 0x00000003) != 0x00000003) return false;
 
   return true;
 }
 
 void NetdiskResponse::Swap(NetdiskResponse* other) {
   if (other != this) {
+    std::swap(opcode_, other->opcode_);
     std::swap(result_code_, other->result_code_);
-    std::swap(uploadurl_, other->uploadurl_);
+    std::swap(errormsg_, other->errormsg_);
+    std::swap(uploadtoken_, other->uploadtoken_);
     std::swap(downloadurl_, other->downloadurl_);
     std::swap(netdisckey_, other->netdisckey_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);

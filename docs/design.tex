@@ -4,7 +4,7 @@
 \usepackage{fontspec,xunicode,xltxtra,xecolor,listings,color}
 \usepackage{bchart}
 \usepackage{tikz}
-\usetikzlibrary{arrows,shapes,trees,calc,automata,positioning}
+\usetikzlibrary{arrows,shapes,trees,calc,automata,positioning,decorations}
 \tikzset{
   mybox/.style={
     rectangle,
@@ -58,7 +58,8 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
 
 \begin{tikzpicture}
 % the input from APK
-\node [mybox] (ID1) {\begin{lstlisting}[frame=none,basicstyle=\tiny]
+\node [circle,draw,fill=black!20,thick,inner sep=0pt,minimum size=6mm] (IDApk) {APK};
+\node [mybox,right of = IDApk,xshift=0.2cm,yshift=2cm] (ID1) {\begin{lstlisting}[frame=none,basicstyle=\tiny]
 {
   "user":"130xxxxxxxx",
   "filename":"abc.png",
@@ -67,12 +68,17 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
                      \end{lstlisting}
 };
 
-\node [mybox, right of = ID1, xshift=4cm] (IDWeb) {\begin{lstlisting}
-(Web)
-                       \end{lstlisting}
-};
+\node [mybox, right of = IDApk, xshift=4cm,font=\small] (IDWeb) {Web前端};
 
-\draw [->, thick] (IDWeb) -- (ID1);
+\node [mybox, right of = IDWeb, xshift=4cm,yshift=2cm,font=\small] (IDTauth) {验证服务};
+\node [rectangle,above of = IDTauth,yshift=-0.5cm] () {tauth};
+\node [mybox, right of = IDWeb, xshift=4cm,yshift=-2cm,font=\small] (IDNetdisk) {网盘服务};
+
+\node [circle,draw=blue!50,fill=blue!20,thick,inner sep=0pt,minimum size=6mm,below of = IDWeb,xshift=-2.5cm, yshift=-1.5cm,font=\small] (IDQiniu) {Qiniu服务器};
+%below are arrow lines...
+\draw [->, thick] (IDWeb) -- (IDApk);
+%below are layer
+
 \end{tikzpicture}
 \end{frame}
 
@@ -88,7 +94,39 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
 \begin{frame}
 \frametitle{删除文件}
 
+\begin{tikzpicture}
+\node [circle,draw=blue!50,fill=blue!20,thick,inner sep=0pt,minimum size=6mm] (ID1) {Good};
+\end{tikzpicture}
+
 \end{frame}
+
+%  ######################
+\begin{frame}
+\frametitle{用户网盘文件列举}
+
+注意事项：当用户文件列表数据过大，多于1K时候，
+是否需要通过zip等方式来完成?
+
+\end{frame}
+
+%  ######################
+\begin{frame}
+\frametitle{网盘数据库}
+
+\begin{tikzpicture}
+\node [circle,draw=blue!50,fill=blue!20,thick,inner sep=0pt,minimum size=6mm] (IDdb) {netdisk};
+
+\node [rectangle, below of = IDdb,yshift=-1.5cm] () {\begin{tabular}{|c|}
+\hline
+{USERS} \\
+\hline
+{FILES} \\
+\hline
+                      \end{tabular}};
+\end{tikzpicture}
+
+\end{frame}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Debug and Tips}

@@ -49,6 +49,7 @@ const char *QINIU_SECRET_KEY;
 const char *qiniu_bucket;
 const char *qiniu_domain;
 unsigned int qiniu_expires = 2592000; // 30 dyas by default
+unsigned int qiniu_quota = 10000; // just for debug...
 
 int init_and_config(const char *cfg_file)
 {
@@ -102,6 +103,12 @@ int init_and_config(const char *cfg_file)
                     domain, sizeof(domain));
             qiniu_expires = atoi(domain);
 
+            /* TODO - temp comment below, for quota debug...
+            get_node_via_xpath("/config/netdisk/qiniu/quota", ctx,
+                    domain, sizeof(domain));
+            qiniu_quota = atoi(domain);
+            */
+
             //next, overwrite the domain immediately
             get_node_via_xpath("/config/netdisk/qiniu/domain", ctx,
                     domain, sizeof(domain));
@@ -135,50 +142,6 @@ int init_and_config(const char *cfg_file)
     return ret;
 }
 
-void purely_api(const char *fn)
-{
-    Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
-    char buf[1024];
-    sprintf(buf, "caredear-cloud:%s", fn);
-
-    Qiniu_RS_PutPolicy p;
-    Qiniu_Zero(p);
-    p.scope = buf;
-    printf("the scope:%s\n", p.scope);
-
-    char *f = Qiniu_RS_PutPolicy_Token(&p, NULL);
-    printf("the token:\n%s\n\n", f);
-}
-
-void another_test(const char *filename)
-{
-    Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
-    char buf[1024];
-    sprintf(buf, "caredear-pic:%s", filename);
-
-    Qiniu_RS_PutPolicy p;
-    Qiniu_Zero(p);
-    p.scope = buf;
-    //p.expires = 2451491200;
-
-    printf("the scope:%s\n", p.scope);
-
-    char *f = Qiniu_RS_PutPolicy_Token(&p, NULL);
-    printf("the token:\n%s\n\n", f);
-
-    Qiniu_Error err;
-    Qiniu_Io_PutRet putRet;
-    err = Qiniu_Io_PutFile(&qn, &putRet, f, NULL, filename, NULL);
-
-    printf("the status code = %d\n", err.code);
-    if(err.code != 200)
-    {
-        printf("the msg:%s\n", err.message);
-    }
-
-    exit(0);
-}
-
 int get_md5(const char *filename, char *p_md5)
 {
     int ret = -1;
@@ -206,33 +169,23 @@ int get_md5(const char *filename, char *p_md5)
     return ret;
 }
 
-void test_download_url()
-{
-    //char url[] = "http://caredear-cloud.qiniudn.com/300047\%2F14175708058725878";
-    char url[] = "http://caredear-cloud.qiniudn.com/300047/14175708058725878";
-    Qiniu_RS_GetPolicy getPolicy;
-    getPolicy.expires = 1420162805;
-    char *p = Qiniu_RS_GetPolicy_MakeRequest(&getPolicy, url, NULL);
-
-    printf("the data\n%s\n", p);
-}
-
 int get_download_url(NetdiskRequest *p_obj, NetdiskResponse *p_resp)
 {
+    char domain_str[512]; // FIXME domain should never had much long str...
     Qiniu_RS_GetPolicy get_policy;
     get_policy.expires = qiniu_expires;
-    char domain_str[512]; // a normal http://wwww.xxxx.xxx should not exceed 512 byte
 
     snprintf(domain_str, sizeof(domain_str),
             "%s%s", qiniu_bucket, qiniu_domain);
 
     char *baseurl = Qiniu_RS_MakeBaseUrl(domain_str, p_obj->md5().c_str());
-    LOG("Now, baseurl=%s\n", baseurl);
-
     char *download_url = Qiniu_RS_GetPolicy_MakeRequest(&get_policy, baseurl, NULL);
 
     LOG("download url=%s\n", download_url);
 
+    p_resp->set_downloadurl(download_url);
+
+    Qiniu_Free(download_url);
     Qiniu_Free(baseurl);
 
     return 0;
@@ -240,10 +193,48 @@ int get_download_url(NetdiskRequest *p_obj, NetdiskResponse *p_resp)
 
 
 /**
+ * Wraper for send back data, via protobuf
+ *
+ *@result_code: the CDS_XXX error code
+ *@p_respdata: the raw response buffer(embeded into CDS)
+ *
+ * reutrn 0 for successful, otherwise return -1
+ */
+int sendback_response(int result_code, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
+{
+    unsigned short len;
+
+    p_ndr->set_result_code(result_code);
+
+    if(result_code != CDS_OK)
+    {
+        p_ndr->set_errormsg("unknow error");
+    }
+
+    len = p_ndr->ByteSize();
+    LOG("the response payload len=%d\n", len);
+
+    if(len >= 1024)
+    {
+        ERR("FATAL ERROR, response exceed 1k!, should we continue?\n");
+    }
+
+    // we use 2-byte as leading length
+    *p_resplen = (len + 2);
+
+    ArrayOutputStream aos(p_respdata, *p_resplen);
+    CodedOutputStream cos(&aos);
+
+    // add the leading-len
+    cos.WriteRaw(&len, sizeof(len));
+    return ((p_ndr->SerializeToCodedStream(&cos) == true) ? 0 : -1);
+}
+
+/**
  * Created the upload policy
  *
  */
-int generate_upload_token(NetdiskRequest *p_obj)
+int generate_upload_token(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
 {
     Qiniu_RS_PutPolicy put_policy;
 
@@ -255,36 +246,103 @@ int generate_upload_token(NetdiskRequest *p_obj)
     put_policy.expires = qiniu_expires;
 
     char *uptoken= Qiniu_RS_PutPolicy_Token(&put_policy, NULL);
-
-    LOG("the QINIU SDK created base64 string on policy:%s\n", uptoken);
-
-    LOG("\n\nDOWNLOAD...\n\n");
-    get_download_url(p_obj, NULL);
-#if 0
-    // 
-    // TODO - below code is just testing ...
-    // as upload should be done at apk side....
-
-    // Actually, we need fill response fields...
-    Qiniu_Error err;
-    Qiniu_Io_PutRet putRet;
-    LOG("Uploading to server with key %s\n", p_obj->md5().c_str());
-    err = Qiniu_Io_PutFile(&qn, &putRet, uptoken, p_obj->md5().c_str(),
-            p_obj->filename().c_str(), NULL);
-
-    printf("the status code = %d\n", err.code);
-    if(err.code != 200)
+    if(uptoken == NULL)
     {
-        printf("the msg:%s\n", err.message);
+        ERR("*** got NULL mem pointer");
+        sendback_response(CDS_ERR_NOMEMORY, p_ndr, p_resplen, p_respdata);
+        return CDS_ERR_NOMEMORY;
     }
-#endif
+
+    LOG("upload token:%s\n", uptoken);
+    p_ndr->set_uploadtoken(uptoken);
+
+    // next, compose download url...
+    get_download_url(p_obj, p_ndr);
+
+    p_ndr->set_netdisckey(p_obj->md5().c_str());
+
+    // compose the response data....
+    if(sendback_response(CDS_OK, p_ndr, p_resplen, p_respdata) != 0)
+    {
+        ERR("Warning, failed serialize upload response data\n");
+    }
+
     // DO NOT FORGET release resource...
     Qiniu_Free(uptoken);
     Qiniu_Client_Cleanup(&qn);
 
-    return 0;
+    return CDS_OK;
 }
 
+
+/**
+ *
+ *
+ */
+int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
+{
+    int ret = CDS_OK;
+
+    p_ndr->set_opcode(UPLOADING);
+
+    if(already_existed(nds_sql, p_obj) != 0)
+    {
+        ret = CDS_FILE_ALREADY_EXISTED;
+        if(sendback_response(ret, p_ndr, p_resplen, p_respdata) != 0)
+        {
+            ERR("Warning, error found when compse already existed protobuf!\n");
+        }
+        return ret;
+    }
+
+    ret = generate_upload_token(p_obj, p_ndr, p_resplen, p_respdata);
+
+    return ret;
+}
+
+/**
+ *
+ *
+ */
+int complete_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
+{
+    int ret = CDS_OK;
+
+    return ret;
+}
+
+/**
+ * o Mapp the file to MD5 key in Qiniu
+ * o Try delete to Qiniu
+ * o update our server's DB
+ */
+int do_deletion(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
+{
+    int ret = CDS_OK;
+
+    Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
+
+    Qiniu_Error err = Qiniu_RS_Delete(&qn, qiniu_bucket, p_obj->md5().c_str());
+
+    p_ndr->set_opcode(DELETE);
+
+    if (err.code != 200)
+    {
+        //http status not OK
+        ERR("*** failed delete this file:%s\n", err.message);
+        ret = CDS_GENERIC_ERROR;
+        p_ndr->set_errormsg(err.message);
+    }
+
+    if(sendback_response(ret, p_ndr, p_resplen, p_respdata) != 0)
+    {
+        ERR("Warning, error found when compose deletion response protobuf!\n");
+    }
+
+    Qiniu_Client_Cleanup(&qn);
+
+    return 0;
+}
 
 /**
  * call back function, handle obj is NetdiskMessage(NetdiskRequest/NetdiskResponse)
@@ -304,25 +362,9 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
         ERR("Exceed limit(%d > %d), don't handle this request\n",
                 size, 1024);
         ret = CDS_ERR_REQ_TOOLONG;
-        nd_resp.set_result_code(ret);
-        nd_resp.set_uploadurl("");
-        nd_resp.set_downloadurl("");
-        nd_resp.set_netdisckey("");
-        len = nd_resp.ByteSize();
-        ArrayOutputStream aos(resp, len);
-        CodedOutputStream cos(&aos);
-
-        LOG("sizeof(short)=%ld, value=%d\n",
-                sizeof(len), len);
-        // adding leading length
-        cos.WriteRaw(&len, sizeof(len));
-        if(nd_resp.SerializeToCodedStream(&cos))
+        if(sendback_response(ret, &nd_resp, len_resp, resp) != 0)
         {
-            INFO("composed the TOOLONG error response\n");
-        }
-        else
-        {
-            ERR("***Failed compose the TOOLOG Error Msg\n");
+            ERR("***Failed Serialize the too-long error data\n");
         }
 
         return ret;
@@ -339,49 +381,55 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
     {
         // After go here, all data section got
         // and stored in NetdiskRequest obj.
-#ifdef DEBUG // dump the content
-        LOG("\n==== DUMP the objs... ====\n");
-        LOG("user:%s, filename:%s, MD5=%s\n",
-                reqobj.user().c_str(), reqobj.filename().c_str(),
-                reqobj.md5().c_str());
-        LOG("==== END DUMP ====\n\n");
-#endif
 
-        if(already_existed(&reqobj) != 0)
+        switch(reqobj.opcode())
         {
-            //TODO, response with a already case data.
+            case UPLOADING:
+                LOG("\n=== UPLOADING case===\n");
+                LOG("User:%s, File:%s, size:%d, MD5:%s\n",
+                        reqobj.user().c_str(),
+                        reqobj.filename().c_str(),
+                        reqobj.filesize(),
+                        reqobj.md5().c_str());
+                LOG("==================\n\n");
+
+                ret = do_upload(&reqobj, &nd_resp, len_resp, resp);
+                break;
+
+            case UPLOADED:
+                LOG("\n=== UPLOADED case===\n");
+                LOG("User:%s, File:%s, size:%d, MD5:%s\n",
+                        reqobj.user().c_str(),
+                        reqobj.filename().c_str(),
+                        reqobj.filesize(),
+                        reqobj.md5().c_str());
+                LOG("==================\n\n");
+                ret = complete_upload(&reqobj, &nd_resp, len_resp, resp);
+                break;
+
+            case DELETE:
+                LOG("\n=== DELETE case===\n");
+                LOG("File:%s, size:%d, MD5:%s\n",
+                        reqobj.filename().c_str(),
+                        reqobj.filesize(),
+                        reqobj.md5().c_str());
+                LOG("==================\n\n");
+
+                ret = do_deletion(&reqobj, &nd_resp, len_resp, resp);
+                break;
+
+            case RENAME: // such as user move one file to another plaee
+                break;
+
+            default:
+                break;
         }
 
-        generate_upload_token(&reqobj);
 
-        // Below code are POST code handling..
-        LOG("After some processing, will try report the response..\n");
-
-        nd_resp.set_result_code(CDS_OK);
-        nd_resp.set_uploadurl("http://download.url?token=xxxx");
-        nd_resp.set_downloadurl("download.zip");
-        nd_resp.set_netdisckey("2003/hello");
-        len = nd_resp.ByteSize();
-        ArrayOutputStream as(resp, 1024);
-        CodedOutputStream cs(&as);
-
-        LOG("sizeof(short)=%ld, value=%d\n",
-                sizeof(len), len);
-        // adding leading length
-        cs.WriteRaw(&len, sizeof(len));
-        *len_resp = (len + 2);
-        if(nd_resp.SerializeToCodedStream(&cs))
-        {
-            INFO("composed the TOOLONG error response\n");
-        }
-        else
-        {
-            ERR("***Failed compose the response Msg....\n");
-        }
     }
     else
     {
-        ERR("**Failed parse the obj in protobuf!\n");
+        ERR("**Failed parse the request obj in protobuf!\n");
     }
 
     return ret;
@@ -411,7 +459,6 @@ int main(int argc, char **argv)
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = nds_handler;
 	cfg.ac_lentype = LEN_TYPE_BIN; /* we use binary leading type */
-	LOG("i set ac_lentyp=%d\n", cfg.ac_lentype);
     cds_init(&cfg, argc, argv);
 
     CLEAN_DB_MUTEX();
