@@ -54,6 +54,40 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
 
 %  ######################
 \begin{frame}[fragile]
+\frametitle{架构}
+
+\begin{tikzpicture}
+% the input from APK
+\node [circle,draw,fill=black!20,thick,inner sep=0pt,minimum size=6mm] (IDApk) {APK};
+% proto section
+\node [mybox,right of = IDApk,xshift=5cm, yshift=3cm] (IDProto) {\begin{lstlisting}[frame=none,basicstyle=\tiny]
+message  req{
+  required int id = 0;
+  required string name = 1;
+}
+message  ret{
+  required int code = 0;
+}
+                     \end{lstlisting}
+};
+\node [rectangle, above of = IDProto,yshift=0.2cm, font=\tiny] () {backend/proto\_data/NetdiskMessage.proto};
+
+\node [mybox, right of = IDApk, xshift = 3cm] (IDJava) {Java};
+\node [mybox, right of = IDJava, xshift = 3cm] (IDCpp) {C++};
+
+%below arraows
+\draw [->,dashed, very thick] (IDProto) -- (IDJava);
+\draw [->,dashed, very thick] (IDProto) -- (IDCpp);
+
+\path (IDJava) edge[bend left=20] node[above] {setXXX()} (IDCpp);
+\path (IDCpp) edge[bend left=20] node[below] {getXXX()} (IDJava);
+
+\end{tikzpicture}
+\end{frame}
+
+
+%  ######################
+\begin{frame}[fragile]
 \frametitle{上传文件}
 
 \begin{tikzpicture}
@@ -114,13 +148,31 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
 \frametitle{网盘数据库}
 
 \begin{tikzpicture}
-\node [circle,draw=blue!50,fill=blue!20,thick,inner sep=0pt,minimum size=6mm] (IDdb) {netdisk};
+\node [circle,draw=blue!50,fill=blue!20,thick,inner sep=0pt,minimum size=6mm,font=\scriptsize] (IDdb) {netdisk};
 
-\node [rectangle, below of = IDdb,yshift=-1.5cm] () {\begin{tabular}{|c|}
+\node [rectangle, below of = IDdb,yshift=-1.5cm] (ID1) {\scriptsize \begin{tabular}{|c|}
 \hline
 {USERS} \\
 \hline
 {FILES} \\
+\hline
+                      \end{tabular}};
+% tabls..
+\node [rectangle, right of = ID1,xshift=5.5cm, yshift=3cm] (IDUsers) {\tiny \begin{tabular}{|l|l|l|}
+\hline
+{USER\_NAME}  & {USED\_SIZE} & {USER\_QUOTA} \\
+\hline
+{130xxx} & {32} & {1000}  \\
+{138xxx} & {99} & {1000}  \\
+\hline
+                      \end{tabular}};
+
+
+\node [rectangle, right of = ID1,xshift=5.5cm, yshift=-3cm] (IDFiles) {\tiny \begin{tabular}{|l|l|l|l|}
+\hline
+{HASH\_KEY}  & {SIZE} & {FILENAME} & {OWNER}\\
+\hline
+{FILES}  & {} & {} & {}\\
 \hline
                       \end{tabular}};
 \end{tikzpicture}

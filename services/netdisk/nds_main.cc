@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #ifndef __cplusplus
 #define __USE_XOPEN
@@ -50,6 +52,7 @@ const char *qiniu_bucket;
 const char *qiniu_domain;
 unsigned int qiniu_expires = 2592000; // 30 dyas by default
 unsigned int qiniu_quota = 10000; // just for debug...
+
 
 int init_and_config(const char *cfg_file)
 {
@@ -274,6 +277,91 @@ int generate_upload_token(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_
     return CDS_OK;
 }
 
+/**
+ * Debug cookie flag
+ *
+ */
+int in_debug_mode()
+{
+    int debug = 0;
+
+    if(access("/tmp/nd.debug", F_OK) == 0)
+    {
+        debug = 1;
+    }
+
+    return debug;
+}
+
+/**
+ * Just test code for uploading via C,
+ * should NEVER be triggered in product
+ * release.
+ */
+int simulate_client_upload(NetdiskResponse *p_ndr)
+{
+    // get all file list under a test dir...
+    const char *d = "/tmp/nds/";
+    DIR *dir;
+    struct dirent *ent;
+    char buf[512];
+    char md5[16];
+    char strmd5[34];
+    Qiniu_Error err;
+    Qiniu_Io_PutRet putret;
+
+    Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
+
+    dir = opendir(d);
+    if(!dir)
+    {
+        ERR("** failed open the \'%s\' dir:%d\n",
+                d, errno);
+        return -1;
+    }
+
+    while((ent = readdir(dir)) != NULL)
+    {
+        if(!(ent->d_type & DT_DIR))
+        {
+            snprintf(buf, sizeof(buf), "%s%s",
+                    d, ent->d_name);
+
+            memset(md5, 0x00, sizeof(md5));
+            memset(strmd5, 0x00, sizeof(strmd5));
+            get_md5(buf, md5);
+            for(int i = 0; i < 16; i ++)
+            {
+                char tmp[12];
+                sprintf(tmp, "%02x", (unsigned char)md5[i]);
+                strcat(strmd5, tmp);
+            }
+
+            LOG("The file:%s, md5:%s\n", buf, strmd5);
+            // upload this guy to netdisk...
+#if 1
+            err = Qiniu_Io_PutFile(&qn, &putret, p_ndr->uploadtoken().c_str(),
+                    strmd5, buf, NULL);
+            LOG("the http upload status code:%d\n", err.code);
+            if(err.code != 200)
+            {
+                LOG("the failure msg:%s\n", err.message);
+            }
+            else
+            {
+                LOG("\n\nUpload %s with MD5 %s [OK]\n",
+                        buf, strmd5);
+            }
+#endif
+        }
+    }
+
+    closedir(dir);
+
+    Qiniu_Client_Cleanup(&qn);
+
+    return 0;
+}
 
 /**
  *
@@ -295,18 +383,39 @@ int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, voi
         return ret;
     }
 
+    if(exceed_quota(nds_sql, p_obj) != 0)
+    {
+        // Exceed quota!
+        return ret;
+    }
+
     ret = generate_upload_token(p_obj, p_ndr, p_resplen, p_respdata);
+
+#if 1
+    if(in_debug_mode())
+    {
+        // debug mode, we will upload file by ourself
+        simulate_client_upload(p_ndr);
+    }
+#endif
 
     return ret;
 }
 
 /**
- *
+ * update the DB as we found APK upload the file successfully
  *
  */
 int complete_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
 {
     int ret = CDS_OK;
+    //const char *username = p_obj->user().c_str();
+
+    if(update_user_uploaded_data(nds_sql, p_obj) != 0)
+    {
+        ERR("** failed update the DB\n");
+        // FIXME - how to handle this error?
+    }
 
     return ret;
 }
@@ -333,6 +442,8 @@ int do_deletion(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, v
         ret = CDS_GENERIC_ERROR;
         p_ndr->set_errormsg(err.message);
     }
+
+    // TODO need update the DB!!!
 
     if(sendback_response(ret, p_ndr, p_resplen, p_respdata) != 0)
     {
@@ -419,6 +530,8 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
                 break;
 
             case RENAME: // such as user move one file to another plaee
+                // this is just change DB record, won't modify any stuff
+                // on Qiniu Server
                 break;
 
             default:

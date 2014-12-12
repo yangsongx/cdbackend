@@ -26,6 +26,7 @@ extern int CLEAN_DB_MUTEX();
 extern MYSQL *GET_CMSSQL(struct sql_server_info *server);
 extern void FREE_CMSSQL(MYSQL *m);
 
+extern int exceed_quota(MYSQL *ms, NetdiskRequest *p_obj);
 extern int already_existed(MYSQL *ms, NetdiskRequest *p_obj);
-
+extern int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj);
 #endif

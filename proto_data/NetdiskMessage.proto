@@ -5,6 +5,8 @@ enum Opcode{
     UPLOADED = 1;
     DELETE = 2;
     RENAME = 3;
+    SHARE = 4;
+    LIST = 5;
 }
 
 message NetdiskRequest{

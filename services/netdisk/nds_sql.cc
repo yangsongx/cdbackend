@@ -112,6 +112,63 @@ int create_new_user(MYSQL *ms, NetdiskRequest *p_obj)
 
 /**
  *
+ *return 1 means exceed quota
+ */
+int exceed_quota(MYSQL *ms, NetdiskRequest *p_obj)
+{
+    int exceed = 0;
+    int filesize = p_obj->filesize();
+    const char *username = p_obj->user().c_str();
+    int used;
+    char sqlcmd[128];
+
+    //FIXME, currently, quota limit defined in configxml,
+    // and updated it into DB,
+
+    // When we compare, choose which one? (DB? or configxml?)
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT USED_SIZE FROM %s WHERE USER_NAME=\'%s\';",
+            ND_USER_TBL, username);
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("**Failed get use size:%s, error:%s\n",
+                sqlcmd, mysql_error(ms));
+        return -1; // ???TODO???
+    }
+
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+
+    if(mresult)
+    {
+        row = row = mysql_fetch_row(mresult);
+        if(row != NULL)
+        {
+            used = atoi(row[0]);
+            LOG("used size=%d, file size=%d, quota=%d\n",
+                    used, filesize, qiniu_quota);
+            if((used + filesize) >= qiniu_quota)
+            {
+                // exceed the limit
+                exceed = 1;
+            }
+        }
+        else
+        {
+            ERR("got a blank DB record\n");
+        }
+    }
+
+    return exceed;
+}
+
+/**
+ *
  *return 1 means the user's file already existed in netdisk
  */
 int already_existed(MYSQL *ms, NetdiskRequest *p_obj)
@@ -120,8 +177,8 @@ int already_existed(MYSQL *ms, NetdiskRequest *p_obj)
     char sqlcmd[1024];
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT USERS.USER_NAME FROM %s WHERE USERS.USER_NAME=\'%s\';",
-            ND_USER_TBL, p_obj->user().c_str());
+            "SELECT %s.ID FROM %s WHERE %s.HASH_KEY=\'%s\';",
+            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, p_obj->md5().c_str());
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -166,4 +223,57 @@ int already_existed(MYSQL *ms, NetdiskRequest *p_obj)
     }
 
     return existed;
+}
+
+int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
+{
+    int ret = 0;
+    const char *username = p_obj->user().c_str();
+    const char *md5 = p_obj->md5().c_str();
+    const char *filename = p_obj->filename().c_str();
+    const int filesize = p_obj->filesize();
+
+    char sqlcmd[1024];
+
+    time_t t;
+    struct tm re;
+    char timeformat[24];
+
+    time(&t);
+    strftime(timeformat, sizeof(timeformat), "%Y-%m-%d %H:%M:%S", localtime_r(&t, &re));
+
+    // First , updating USERS table
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE %s SET USED_SIZE=USED_SIZE+%d,MODIFY_TIME=\'%s\' WHERE USER_NAME=\'%s\';",
+            ND_USER_TBL, filesize, timeformat, username);
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        ERR("**failed update USERS:%s, error:%s\n",
+                sqlcmd, mysql_error(ms));
+        ret = -1;
+    }
+
+    UNLOCK_SQL;
+
+    time(&t);
+    strftime(timeformat, sizeof(timeformat), "%Y-%m-%d %H:%M:%S", localtime_r(&t, &re));
+    // Next, updating FILES table
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "INSERT INTO %s (HASH_KEY,SIZE,FILENAME,CREATE_TIME,MODIFY_TIME,OWNER) VALUES "
+            "(\'%s\',%d,\'%s\',\'%s\',\'%s\',\'%s\');",
+            ND_FILE_TBL, md5, filesize, filename, timeformat, timeformat, username);
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        ERR("**failed update FILE:%s, error:%s\n",
+                sqlcmd, mysql_error(ms));
+        ret = -1;
+    }
+
+    UNLOCK_SQL;
+
+    return ret;
 }

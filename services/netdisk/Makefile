@@ -16,8 +16,7 @@ SRC = $(QINIU_SDK)qiniu/auth_mac.cc \
       $(QINIU_SDK)cJSON/cJSON.cc \
       NetdiskMessage.pb.cc \
       nds_main.cc \
-      nds_sql.cc \
-      nds_quota.cc
+      nds_sql.cc
 
 
 #include ../../common/caredear_service_lib/common.mk
