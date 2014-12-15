@@ -7,6 +7,7 @@ enum Opcode{
     RENAME = 3;
     SHARE = 4;
     LIST = 5;
+    DOWNLOADURL = 6;
 }
 
 message NetdiskRequest{
