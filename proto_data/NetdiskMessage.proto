@@ -6,7 +6,7 @@ enum Opcode{
     DELETE = 2;
     RENAME = 3;
     SHARE = 4;
-    LIST = 5;
+    LISTFILE = 5;
     DOWNLOADURL = 6;
 }
 

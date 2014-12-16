@@ -30,6 +30,8 @@ enum {
     CDS_ERR_SQL_NORECORD_FOUND,
     CDS_ERR_NO_RESOURCE,
     CDS_FILE_ALREADY_EXISTED,        /**< 10 - file already existed in netdisk */
+
+    CDS_ERR_EXCEED_QUOTA,
     CDS_GENERIC_ERROR
 };
 

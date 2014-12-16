@@ -203,15 +203,15 @@ int get_download_url(NetdiskRequest *p_obj, NetdiskResponse *p_resp)
  *
  * reutrn 0 for successful, otherwise return -1
  */
-int sendback_response(int result_code, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
+int sendback_response(int result_code, const char *errmsg, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
 {
     unsigned short len;
 
     p_ndr->set_result_code(result_code);
 
-    if(result_code != CDS_OK)
+    if(result_code != CDS_OK && errmsg != NULL)
     {
-        p_ndr->set_errormsg("unknow error");
+        p_ndr->set_errormsg(errmsg);
     }
 
     len = p_ndr->ByteSize();
@@ -252,7 +252,7 @@ int generate_upload_token(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_
     if(uptoken == NULL)
     {
         ERR("*** got NULL mem pointer");
-        sendback_response(CDS_ERR_NOMEMORY, p_ndr, p_resplen, p_respdata);
+        sendback_response(CDS_ERR_NOMEMORY, "no memory", p_ndr, p_resplen, p_respdata);
         return CDS_ERR_NOMEMORY;
     }
 
@@ -265,7 +265,7 @@ int generate_upload_token(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_
     p_ndr->set_netdisckey(p_obj->md5().c_str());
 
     // compose the response data....
-    if(sendback_response(CDS_OK, p_ndr, p_resplen, p_respdata) != 0)
+    if(sendback_response(CDS_OK, NULL, p_ndr, p_resplen, p_respdata) != 0)
     {
         ERR("Warning, failed serialize upload response data\n");
     }
@@ -373,20 +373,24 @@ int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, voi
 
     p_ndr->set_opcode(UPLOADING);
 
-    if(already_existed(nds_sql, p_obj) != 0)
+    ret = preprocess_upload_req(nds_sql, p_obj);
+    switch(ret)
     {
-        ret = CDS_FILE_ALREADY_EXISTED;
-        if(sendback_response(ret, p_ndr, p_resplen, p_respdata) != 0)
-        {
-            ERR("Warning, error found when compse already existed protobuf!\n");
-        }
-        return ret;
+        case CDS_ERR_SQL_EXECUTE_FAILED:
+            break;
+
+        case CDS_FILE_ALREADY_EXISTED:
+            //TODO make a fake already uploaded msg to caller...
+            break;
+
+        default:
+            ; // continue...
     }
 
     if(exceed_quota(nds_sql, p_obj) != 0)
     {
         // Exceed quota!
-        return ret;
+        return CDS_ERR_EXCEED_QUOTA;
     }
 
     ret = generate_upload_token(p_obj, p_ndr, p_resplen, p_respdata);
@@ -409,12 +413,11 @@ int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, voi
 int complete_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
 {
     int ret = CDS_OK;
-    //const char *username = p_obj->user().c_str();
 
-    if(update_user_uploaded_data(nds_sql, p_obj) != 0)
+    ret = update_user_uploaded_data(nds_sql, p_obj);
+    if(ret != CDS_OK)
     {
         ERR("** failed update the DB\n");
-        // FIXME - how to handle this error?
     }
 
     return ret;
@@ -445,7 +448,7 @@ int do_deletion(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, v
 
     // TODO need update the DB!!!
 
-    if(sendback_response(ret, p_ndr, p_resplen, p_respdata) != 0)
+    if(sendback_response(ret, NULL, p_ndr, p_resplen, p_respdata) != 0)
     {
         ERR("Warning, error found when compose deletion response protobuf!\n");
     }
@@ -453,6 +456,16 @@ int do_deletion(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, v
     Qiniu_Client_Cleanup(&qn);
 
     return 0;
+}
+
+int do_sharing(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
+{
+    int ret = CDS_OK;
+    char md5[42]; // MD5SUM is actually 33(including '\0') chars...
+
+    get_netdisk_key(nds_sql, p_obj, md5);
+
+    return ret;
 }
 
 /**
@@ -473,7 +486,7 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
         ERR("Exceed limit(%d > %d), don't handle this request\n",
                 size, 1024);
         ret = CDS_ERR_REQ_TOOLONG;
-        if(sendback_response(ret, &nd_resp, len_resp, resp) != 0)
+        if(sendback_response(ret, "too much long length in req", &nd_resp, len_resp, resp) != 0)
         {
             ERR("***Failed Serialize the too-long error data\n");
         }
@@ -529,9 +542,21 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
                 ret = do_deletion(&reqobj, &nd_resp, len_resp, resp);
                 break;
 
+            case SHARE:
+                LOG("\n=== SHARE case===\n");
+                LOG("Try sharing File:%s\n",
+                        reqobj.filename().c_str());
+                LOG("==================\n\n");
+                ret = do_sharing(&reqobj, &nd_resp, len_resp, resp);
+                break;
+
             case RENAME: // such as user move one file to another plaee
                 // this is just change DB record, won't modify any stuff
                 // on Qiniu Server
+                break;
+
+            case LISTFILE:
+                //TODO, this is a complicated operation
                 break;
 
             default:

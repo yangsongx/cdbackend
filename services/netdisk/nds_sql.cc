@@ -136,7 +136,7 @@ int exceed_quota(MYSQL *ms, NetdiskRequest *p_obj)
         UNLOCK_SQL;
         ERR("**Failed get use size:%s, error:%s\n",
                 sqlcmd, mysql_error(ms));
-        return -1; // ???TODO???
+        return CDS_ERR_SQL_EXECUTE_FAILED;
     }
 
     MYSQL_RES *mresult;
@@ -146,7 +146,7 @@ int exceed_quota(MYSQL *ms, NetdiskRequest *p_obj)
 
     if(mresult)
     {
-        row = row = mysql_fetch_row(mresult);
+        row = mysql_fetch_row(mresult);
         if(row != NULL)
         {
             used = atoi(row[0]);
@@ -169,12 +169,57 @@ int exceed_quota(MYSQL *ms, NetdiskRequest *p_obj)
 
 /**
  *
- *return 1 means the user's file already existed in netdisk
+ *return CDS_XXX  for the request
  */
-int already_existed(MYSQL *ms, NetdiskRequest *p_obj)
+int preprocess_upload_req (MYSQL *ms, NetdiskRequest *p_obj)
 {
-    int existed = 0;
+    int ret = CDS_OK;
     char sqlcmd[1024];
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+
+
+    // First, check if user is a new netdisk users...
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT %s.USER_NAME FROM %s WHERE %s.USER_NAME=\'%s\';",
+            ND_USER_TBL, ND_USER_TBL, ND_USER_TBL, p_obj->user().c_str());
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("** failed find user:%s,error:%s\n",
+                sqlcmd, mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+
+    if(mresult)
+    {
+        row = mysql_fetch_row(mresult);
+        if(row == NULL)
+        {
+            INFO("A new user, insert the record\n");
+            if(create_new_user(ms, p_obj) != 0)
+            {
+                ERR("*** Failed create the \'%s\' user in DB\n",
+                        p_obj->user().c_str());
+
+                return CDS_ERR_SQL_EXECUTE_FAILED;
+            }
+        }
+    }
+    else
+    {
+        ERR("meet a NULL for  mysql_store_result\n");
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+
+    // Here, we already make sure user existed in the DB
+    // so check if file already existed...
 
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT %s.ID FROM %s WHERE %s.HASH_KEY=\'%s\';",
@@ -190,11 +235,8 @@ int already_existed(MYSQL *ms, NetdiskRequest *p_obj)
         // TODO - how should we handle if MySQL
         // disconnected after 8 hours idle?
 
-        return 0; // for SQL error, how to set this?
+        return CDS_ERR_SQL_EXECUTE_FAILED;
     }
-
-    MYSQL_RES *mresult;
-    MYSQL_ROW  row;
 
     mresult = mysql_store_result(ms);
     UNLOCK_SQL;
@@ -204,17 +246,8 @@ int already_existed(MYSQL *ms, NetdiskRequest *p_obj)
         row = mysql_fetch_row(mresult);
         if(row != NULL)
         {
-            // Now , try find if user had file on netdisk or NOT
-            LOG("TODO CODE~~~~~~~~~~~~~~~~~~\n");
-        }
-        else
-        {
-            INFO("A new user, insert the record\n");
-            if(create_new_user(ms, p_obj) != 0)
-            {
-                ERR("*** Failed create the \'%s\' user in DB\n",
-                        p_obj->user().c_str());
-            }
+            // this means file already existed!
+            ret = CDS_FILE_ALREADY_EXISTED;
         }
     }
     else
@@ -222,7 +255,7 @@ int already_existed(MYSQL *ms, NetdiskRequest *p_obj)
         ERR("meet a NULL for mysql_store_result\n");
     }
 
-    return existed;
+    return ret;
 }
 
 int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
@@ -250,9 +283,10 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
     {
+        UNLOCK_SQL;
         ERR("**failed update USERS:%s, error:%s\n",
                 sqlcmd, mysql_error(ms));
-        ret = -1;
+        return CDS_ERR_SQL_EXECUTE_FAILED;
     }
 
     UNLOCK_SQL;
@@ -261,19 +295,65 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
     strftime(timeformat, sizeof(timeformat), "%Y-%m-%d %H:%M:%S", localtime_r(&t, &re));
     // Next, updating FILES table
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "INSERT INTO %s (HASH_KEY,SIZE,FILENAME,CREATE_TIME,MODIFY_TIME,OWNER) VALUES "
+            "INSERT INTO %s (%s.HASH_KEY,%s.SIZE,%s.FILENAME,%s.CREATE_TIME,%s.MODIFY_TIME,%s.OWNER) VALUES "
             "(\'%s\',%d,\'%s\',\'%s\',\'%s\',\'%s\');",
-            ND_FILE_TBL, md5, filesize, filename, timeformat, timeformat, username);
+            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
+            md5, filesize, filename, timeformat, timeformat, username);
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
     {
-        ERR("**failed update FILE:%s, error:%s\n",
+        UNLOCK_SQL;
+        ERR("**failed update FILE tbl:%s, error:%s\n",
                 sqlcmd, mysql_error(ms));
-        ret = -1;
+        return CDS_ERR_SQL_EXECUTE_FAILED;
     }
 
     UNLOCK_SQL;
 
     return ret;
+}
+
+char *get_netdisk_key(MYSQL *ms, NetdiskRequest *p_obj, char *p_result)
+{
+    char sqlcmd[1024];
+
+    p_result[0] = '\0';
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT %s.HASH_KEY FROM %s WHERE %s.OWNER=\'%s\';",
+            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
+            p_obj->user().c_str()
+            );
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("failed find the file's MD5 in DB\n");
+        return p_result;
+    }
+
+    UNLOCK_SQL;
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+
+    mresult = mysql_store_result(ms);
+    if(mresult)
+    {
+        row = mysql_fetch_row(mresult);
+        if(row != NULL)
+        {
+        }
+        else
+        {
+            ERR("Didn't find this file(%s) in DB\n", p_obj->user().c_str());
+        }
+    }
+    else
+    {
+        ERR("got NULL on mysql_store_result...\n");
+    }
+
+    return p_result;
 }

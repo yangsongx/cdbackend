@@ -119,9 +119,10 @@ void protobuf_AddDesc_NetdiskMessage_2eproto() {
     "NetdiskResponse\022$\n\006opcode\030\001 \002(\0162\024.com.ca"
     "redear.Opcode\022\023\n\013result_code\030\002 \002(\005\022\020\n\010er"
     "rormsg\030\003 \001(\t\022\023\n\013uploadtoken\030\004 \001(\t\022\023\n\013dow"
-    "nloadurl\030\005 \001(\t\022\022\n\nnetdisckey\030\006 \001(\t*=\n\006Op"
+    "nloadurl\030\005 \001(\t\022\022\n\nnetdisckey\030\006 \001(\t*V\n\006Op"
     "code\022\r\n\tUPLOADING\020\000\022\014\n\010UPLOADED\020\001\022\n\n\006DEL"
-    "ETE\020\002\022\n\n\006RENAME\020\003", 377);
+    "ETE\020\002\022\n\n\006RENAME\020\003\022\t\n\005SHARE\020\004\022\014\n\010LISTFILE"
+    "\020\005", 402);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "NetdiskMessage.proto", &protobuf_RegisterTypes);
   NetdiskRequest::default_instance_ = new NetdiskRequest();
@@ -147,6 +148,8 @@ bool Opcode_IsValid(int value) {
     case 1:
     case 2:
     case 3:
+    case 4:
+    case 5:
       return true;
     default:
       return false;
@@ -167,6 +170,7 @@ const int NetdiskRequest::kFilesizeFieldNumber;
 NetdiskRequest::NetdiskRequest()
   : ::google::protobuf::Message() {
   SharedCtor();
+  // @@protoc_insertion_point(constructor:com.caredear.NetdiskRequest)
 }
 
 void NetdiskRequest::InitAsDefaultInstance() {
@@ -176,30 +180,33 @@ NetdiskRequest::NetdiskRequest(const NetdiskRequest& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:com.caredear.NetdiskRequest)
 }
 
 void NetdiskRequest::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
-  user_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  user_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   opcode_ = 0;
-  md5_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  filename_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  md5_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  filename_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   filesize_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
 NetdiskRequest::~NetdiskRequest() {
+  // @@protoc_insertion_point(destructor:com.caredear.NetdiskRequest)
   SharedDtor();
 }
 
 void NetdiskRequest::SharedDtor() {
-  if (user_ != &::google::protobuf::internal::kEmptyString) {
+  if (user_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete user_;
   }
-  if (md5_ != &::google::protobuf::internal::kEmptyString) {
+  if (md5_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete md5_;
   }
-  if (filename_ != &::google::protobuf::internal::kEmptyString) {
+  if (filename_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete filename_;
   }
   if (this != default_instance_) {
@@ -228,46 +235,63 @@ NetdiskRequest* NetdiskRequest::New() const {
 }
 
 void NetdiskRequest::Clear() {
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<NetdiskRequest*>(16)->f) - \
+   reinterpret_cast<char*>(16))
+
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
+  } while (0)
+
+  if (_has_bits_[0 / 32] & 31) {
+    ZR_(opcode_, filesize_);
     if (has_user()) {
-      if (user_ != &::google::protobuf::internal::kEmptyString) {
+      if (user_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         user_->clear();
       }
     }
-    opcode_ = 0;
     if (has_md5()) {
-      if (md5_ != &::google::protobuf::internal::kEmptyString) {
+      if (md5_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         md5_->clear();
       }
     }
     if (has_filename()) {
-      if (filename_ != &::google::protobuf::internal::kEmptyString) {
+      if (filename_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         filename_->clear();
       }
     }
-    filesize_ = 0;
   }
+
+#undef OFFSET_OF_FIELD_
+#undef ZR_
+
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool NetdiskRequest::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
+  // @@protoc_insertion_point(parse_start:com.caredear.NetdiskRequest)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required string user = 1;
       case 1: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+        if (tag == 10) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_user()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
             this->user().data(), this->user().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "user");
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(16)) goto parse_opcode;
         break;
@@ -275,8 +299,7 @@ bool NetdiskRequest::MergePartialFromCodedStream(
 
       // required .com.caredear.Opcode opcode = 2;
       case 2: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 16) {
          parse_opcode:
           int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
@@ -288,7 +311,7 @@ bool NetdiskRequest::MergePartialFromCodedStream(
             mutable_unknown_fields()->AddVarint(2, value);
           }
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(26)) goto parse_md5;
         break;
@@ -296,16 +319,16 @@ bool NetdiskRequest::MergePartialFromCodedStream(
 
       // optional string md5 = 3;
       case 3: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+        if (tag == 26) {
          parse_md5:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_md5()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
             this->md5().data(), this->md5().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "md5");
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(34)) goto parse_filename;
         break;
@@ -313,16 +336,16 @@ bool NetdiskRequest::MergePartialFromCodedStream(
 
       // optional string filename = 4;
       case 4: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+        if (tag == 34) {
          parse_filename:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_filename()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
             this->filename().data(), this->filename().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "filename");
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(40)) goto parse_filesize;
         break;
@@ -330,25 +353,25 @@ bool NetdiskRequest::MergePartialFromCodedStream(
 
       // optional int32 filesize = 5;
       case 5: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 40) {
          parse_filesize:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &filesize_)));
           set_has_filesize();
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
-        if (input->ExpectAtEnd()) return true;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
       default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
+          goto success;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -356,18 +379,25 @@ bool NetdiskRequest::MergePartialFromCodedStream(
       }
     }
   }
+success:
+  // @@protoc_insertion_point(parse_success:com.caredear.NetdiskRequest)
   return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:com.caredear.NetdiskRequest)
+  return false;
 #undef DO_
 }
 
 void NetdiskRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:com.caredear.NetdiskRequest)
   // required string user = 1;
   if (has_user()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->user().data(), this->user().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "user");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       1, this->user(), output);
   }
 
@@ -379,19 +409,21 @@ void NetdiskRequest::SerializeWithCachedSizes(
 
   // optional string md5 = 3;
   if (has_md5()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->md5().data(), this->md5().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "md5");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       3, this->md5(), output);
   }
 
   // optional string filename = 4;
   if (has_filename()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->filename().data(), this->filename().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "filename");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       4, this->filename(), output);
   }
 
@@ -404,15 +436,18 @@ void NetdiskRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
+  // @@protoc_insertion_point(serialize_end:com.caredear.NetdiskRequest)
 }
 
 ::google::protobuf::uint8* NetdiskRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:com.caredear.NetdiskRequest)
   // required string user = 1;
   if (has_user()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->user().data(), this->user().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "user");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         1, this->user(), target);
@@ -426,9 +461,10 @@ void NetdiskRequest::SerializeWithCachedSizes(
 
   // optional string md5 = 3;
   if (has_md5()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->md5().data(), this->md5().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "md5");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         3, this->md5(), target);
@@ -436,9 +472,10 @@ void NetdiskRequest::SerializeWithCachedSizes(
 
   // optional string filename = 4;
   if (has_filename()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->filename().data(), this->filename().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "filename");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         4, this->filename(), target);
@@ -453,6 +490,7 @@ void NetdiskRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
+  // @@protoc_insertion_point(serialize_to_array_end:com.caredear.NetdiskRequest)
   return target;
 }
 
@@ -594,6 +632,7 @@ const int NetdiskResponse::kNetdisckeyFieldNumber;
 NetdiskResponse::NetdiskResponse()
   : ::google::protobuf::Message() {
   SharedCtor();
+  // @@protoc_insertion_point(constructor:com.caredear.NetdiskResponse)
 }
 
 void NetdiskResponse::InitAsDefaultInstance() {
@@ -603,34 +642,37 @@ NetdiskResponse::NetdiskResponse(const NetdiskResponse& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:com.caredear.NetdiskResponse)
 }
 
 void NetdiskResponse::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
   opcode_ = 0;
   result_code_ = 0;
-  errormsg_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  uploadtoken_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  downloadurl_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  netdisckey_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  errormsg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  uploadtoken_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  downloadurl_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  netdisckey_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
 NetdiskResponse::~NetdiskResponse() {
+  // @@protoc_insertion_point(destructor:com.caredear.NetdiskResponse)
   SharedDtor();
 }
 
 void NetdiskResponse::SharedDtor() {
-  if (errormsg_ != &::google::protobuf::internal::kEmptyString) {
+  if (errormsg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete errormsg_;
   }
-  if (uploadtoken_ != &::google::protobuf::internal::kEmptyString) {
+  if (uploadtoken_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete uploadtoken_;
   }
-  if (downloadurl_ != &::google::protobuf::internal::kEmptyString) {
+  if (downloadurl_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete downloadurl_;
   }
-  if (netdisckey_ != &::google::protobuf::internal::kEmptyString) {
+  if (netdisckey_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete netdisckey_;
   }
   if (this != default_instance_) {
@@ -659,44 +701,60 @@ NetdiskResponse* NetdiskResponse::New() const {
 }
 
 void NetdiskResponse::Clear() {
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    opcode_ = 0;
-    result_code_ = 0;
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<NetdiskResponse*>(16)->f) - \
+   reinterpret_cast<char*>(16))
+
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
+  } while (0)
+
+  if (_has_bits_[0 / 32] & 63) {
+    ZR_(opcode_, result_code_);
     if (has_errormsg()) {
-      if (errormsg_ != &::google::protobuf::internal::kEmptyString) {
+      if (errormsg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         errormsg_->clear();
       }
     }
     if (has_uploadtoken()) {
-      if (uploadtoken_ != &::google::protobuf::internal::kEmptyString) {
+      if (uploadtoken_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         uploadtoken_->clear();
       }
     }
     if (has_downloadurl()) {
-      if (downloadurl_ != &::google::protobuf::internal::kEmptyString) {
+      if (downloadurl_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         downloadurl_->clear();
       }
     }
     if (has_netdisckey()) {
-      if (netdisckey_ != &::google::protobuf::internal::kEmptyString) {
+      if (netdisckey_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         netdisckey_->clear();
       }
     }
   }
+
+#undef OFFSET_OF_FIELD_
+#undef ZR_
+
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
 bool NetdiskResponse::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
+  // @@protoc_insertion_point(parse_start:com.caredear.NetdiskResponse)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required .com.caredear.Opcode opcode = 1;
       case 1: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 8) {
           int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
@@ -707,7 +765,7 @@ bool NetdiskResponse::MergePartialFromCodedStream(
             mutable_unknown_fields()->AddVarint(1, value);
           }
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(16)) goto parse_result_code;
         break;
@@ -715,15 +773,14 @@ bool NetdiskResponse::MergePartialFromCodedStream(
 
       // required int32 result_code = 2;
       case 2: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+        if (tag == 16) {
          parse_result_code:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &result_code_)));
           set_has_result_code();
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(26)) goto parse_errormsg;
         break;
@@ -731,16 +788,16 @@ bool NetdiskResponse::MergePartialFromCodedStream(
 
       // optional string errormsg = 3;
       case 3: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+        if (tag == 26) {
          parse_errormsg:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_errormsg()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
             this->errormsg().data(), this->errormsg().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "errormsg");
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(34)) goto parse_uploadtoken;
         break;
@@ -748,16 +805,16 @@ bool NetdiskResponse::MergePartialFromCodedStream(
 
       // optional string uploadtoken = 4;
       case 4: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+        if (tag == 34) {
          parse_uploadtoken:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_uploadtoken()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
             this->uploadtoken().data(), this->uploadtoken().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "uploadtoken");
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(42)) goto parse_downloadurl;
         break;
@@ -765,16 +822,16 @@ bool NetdiskResponse::MergePartialFromCodedStream(
 
       // optional string downloadurl = 5;
       case 5: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+        if (tag == 42) {
          parse_downloadurl:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_downloadurl()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
             this->downloadurl().data(), this->downloadurl().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "downloadurl");
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
         if (input->ExpectTag(50)) goto parse_netdisckey;
         break;
@@ -782,26 +839,27 @@ bool NetdiskResponse::MergePartialFromCodedStream(
 
       // optional string netdisckey = 6;
       case 6: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+        if (tag == 50) {
          parse_netdisckey:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_netdisckey()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
             this->netdisckey().data(), this->netdisckey().length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "netdisckey");
         } else {
-          goto handle_uninterpreted;
+          goto handle_unusual;
         }
-        if (input->ExpectAtEnd()) return true;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
       default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
+          goto success;
         }
         DO_(::google::protobuf::internal::WireFormat::SkipField(
               input, tag, mutable_unknown_fields()));
@@ -809,12 +867,18 @@ bool NetdiskResponse::MergePartialFromCodedStream(
       }
     }
   }
+success:
+  // @@protoc_insertion_point(parse_success:com.caredear.NetdiskResponse)
   return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:com.caredear.NetdiskResponse)
+  return false;
 #undef DO_
 }
 
 void NetdiskResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:com.caredear.NetdiskResponse)
   // required .com.caredear.Opcode opcode = 1;
   if (has_opcode()) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
@@ -828,37 +892,41 @@ void NetdiskResponse::SerializeWithCachedSizes(
 
   // optional string errormsg = 3;
   if (has_errormsg()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->errormsg().data(), this->errormsg().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "errormsg");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       3, this->errormsg(), output);
   }
 
   // optional string uploadtoken = 4;
   if (has_uploadtoken()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->uploadtoken().data(), this->uploadtoken().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "uploadtoken");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       4, this->uploadtoken(), output);
   }
 
   // optional string downloadurl = 5;
   if (has_downloadurl()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->downloadurl().data(), this->downloadurl().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "downloadurl");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       5, this->downloadurl(), output);
   }
 
   // optional string netdisckey = 6;
   if (has_netdisckey()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->netdisckey().data(), this->netdisckey().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "netdisckey");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
       6, this->netdisckey(), output);
   }
 
@@ -866,10 +934,12 @@ void NetdiskResponse::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
+  // @@protoc_insertion_point(serialize_end:com.caredear.NetdiskResponse)
 }
 
 ::google::protobuf::uint8* NetdiskResponse::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:com.caredear.NetdiskResponse)
   // required .com.caredear.Opcode opcode = 1;
   if (has_opcode()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
@@ -883,9 +953,10 @@ void NetdiskResponse::SerializeWithCachedSizes(
 
   // optional string errormsg = 3;
   if (has_errormsg()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->errormsg().data(), this->errormsg().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "errormsg");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         3, this->errormsg(), target);
@@ -893,9 +964,10 @@ void NetdiskResponse::SerializeWithCachedSizes(
 
   // optional string uploadtoken = 4;
   if (has_uploadtoken()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->uploadtoken().data(), this->uploadtoken().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "uploadtoken");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         4, this->uploadtoken(), target);
@@ -903,9 +975,10 @@ void NetdiskResponse::SerializeWithCachedSizes(
 
   // optional string downloadurl = 5;
   if (has_downloadurl()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->downloadurl().data(), this->downloadurl().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "downloadurl");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         5, this->downloadurl(), target);
@@ -913,9 +986,10 @@ void NetdiskResponse::SerializeWithCachedSizes(
 
   // optional string netdisckey = 6;
   if (has_netdisckey()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->netdisckey().data(), this->netdisckey().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "netdisckey");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         6, this->netdisckey(), target);
@@ -925,6 +999,7 @@ void NetdiskResponse::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
+  // @@protoc_insertion_point(serialize_to_array_end:com.caredear.NetdiskResponse)
   return target;
 }
 
