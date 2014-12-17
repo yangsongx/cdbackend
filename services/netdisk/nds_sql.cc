@@ -177,8 +177,8 @@ int exceed_quota(MYSQL *ms, NetdiskRequest *p_obj)
 
     // When we compare, choose which one? (DB? or configxml?)
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT USED_SIZE FROM %s WHERE USER_NAME=\'%s\';",
-            ND_USER_TBL, username);
+            "SELECT %s.USED_SIZE FROM %s WHERE %s.USER_NAME=\'%s\';",
+            ND_USER_TBL, ND_USER_TBL, ND_USER_TBL, username);
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -428,40 +428,51 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
     return ret;
 }
 
-char *get_netdisk_key(MYSQL *ms, NetdiskRequest *p_obj, char *p_result)
+/**
+ *
+ *return -1 for failure, 0 for OK.
+ */
+int get_netdisk_key(MYSQL *ms, NetdiskRequest *p_obj, char *p_result)
 {
+    int ret = -1;
     char sqlcmd[1024];
 
     p_result[0] = '\0';
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT %s.MD5 FROM %s WHERE %s.OWNER=\'%s\';",
+            "SELECT %s.MD5 FROM %s WHERE %s.OWNER=\'%s\' AND %s.FILENAME=\'%s\';",
             ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
-            p_obj->user().c_str()
+            p_obj->user().c_str(), ND_FILE_TBL, p_obj->filename().c_str()
             );
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
     {
         UNLOCK_SQL;
-        ERR("failed find the file's MD5 in DB\n");
-        return p_result;
+        ERR("failed execute the md5-finding SQL cmd.\n");
+        return ret;
     }
 
-    UNLOCK_SQL;
     MYSQL_RES *mresult;
     MYSQL_ROW  row;
 
     mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
     if(mresult)
     {
         row = mysql_fetch_row(mresult);
         if(row != NULL)
         {
+            ret = 0;
+            /* FIXME - md5sum is 32-len strings
+               strncpy() won't add '\0' when row[0]==32
+             */
+            strncpy(p_result, row[0], 32);
+            p_result[32] = '\0';
         }
         else
         {
-            ERR("Didn't find this file(%s) in DB\n", p_obj->user().c_str());
+            ERR("Didn't find this file(%s) in DB\n", p_obj->filename().c_str());
         }
     }
     else
@@ -469,5 +480,5 @@ char *get_netdisk_key(MYSQL *ms, NetdiskRequest *p_obj, char *p_result)
         ERR("got NULL on mysql_store_result...\n");
     }
 
-    return p_result;
+    return ret;
 }

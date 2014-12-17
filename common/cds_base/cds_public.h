@@ -32,6 +32,7 @@ enum {
     CDS_FILE_ALREADY_EXISTED,        /**< 10 - file already existed in netdisk */
 
     CDS_ERR_EXCEED_QUOTA,
+    CDS_ERR_FILE_NOTFOUND,
     CDS_GENERIC_ERROR
 };
 

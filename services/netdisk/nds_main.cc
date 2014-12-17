@@ -172,8 +172,15 @@ int get_md5(const char *filename, char *p_md5)
     return ret;
 }
 
-int get_download_url(NetdiskRequest *p_obj, NetdiskResponse *p_resp)
+/**
+ *
+ *@md5 : the md5 checksum in Qiniu netdisk
+ *
+ */
+int get_download_url(const char *md5, NetdiskResponse *p_resp)
 {
+    int ret = -1;
+
     char domain_str[512]; // FIXME domain should never had much long str...
     Qiniu_RS_GetPolicy get_policy;
     get_policy.expires = qiniu_expires;
@@ -181,18 +188,22 @@ int get_download_url(NetdiskRequest *p_obj, NetdiskResponse *p_resp)
     snprintf(domain_str, sizeof(domain_str),
             "%s%s", qiniu_bucket, qiniu_domain);
 
-    char *baseurl = Qiniu_RS_MakeBaseUrl(domain_str, p_obj->md5().c_str());
+    char *baseurl = Qiniu_RS_MakeBaseUrl(domain_str, md5);
     char *download_url = Qiniu_RS_GetPolicy_MakeRequest(&get_policy, baseurl, NULL);
 
-    LOG("download url=%s\n", download_url);
+    if(download_url != NULL)
+    {
+        ret = 0;
+        LOG("download url=%s\n", download_url);
+        p_resp->set_downloadurl(download_url);
+        Qiniu_Free(download_url);
+    }
 
-    p_resp->set_downloadurl(download_url);
-
-    Qiniu_Free(download_url);
     Qiniu_Free(baseurl);
 
-    return 0;
+    return ret;
 }
+
 
 
 /**
@@ -260,14 +271,6 @@ int generate_upload_token(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_
     LOG("upload token:%s\n", uptoken);
     p_ndr->set_uploadtoken(uptoken);
 
-
-#if 0 // don't need download..
-
-    // next, compose download url...
-    get_download_url(p_obj, p_ndr);
-
-    p_ndr->set_netdisckey(p_obj->md5().c_str());
-#endif
     // compose the response data....
     if(sendback_response(CDS_OK, NULL, p_ndr, p_resplen, p_respdata) != 0)
     {
@@ -385,7 +388,11 @@ int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, voi
             break;
 
         case CDS_FILE_ALREADY_EXISTED:
-            return sendback_response(ret, "already existed", p_ndr, p_resplen, p_respdata);
+            if(sendback_response(ret, "already existed", p_ndr, p_resplen, p_respdata) != 0)
+            {
+                ERR("Warning, failed serialize already existed data\n");
+            }
+            return ret;
 
         default:
             ; // continue...
@@ -395,6 +402,11 @@ int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, voi
     {
         INFO("User exceed the quota!");
         // Exceed quota!
+        if(sendback_response(CDS_ERR_EXCEED_QUOTA, "exceed quota", p_ndr, p_resplen, p_respdata) != 0)
+        {
+            ERR("Warning, failed serialize exceed quota data\n");
+        }
+
         return CDS_ERR_EXCEED_QUOTA;
     }
 
@@ -444,7 +456,18 @@ int do_deletion(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, v
 {
     int ret = CDS_OK;
 
+    p_ndr->set_opcode(DELETE);
+
+    //TODO CODE
+
+#if 0
     Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
+    /**
+     * TODO and FIXME
+     *
+     * We should NEVER delete from Qiniu as the first step
+     * as this is acting like Linux's unlink() behavior!
+     */
 
     Qiniu_Error err = Qiniu_RS_Delete(&qn, qiniu_bucket, p_obj->md5().c_str());
 
@@ -466,8 +489,50 @@ int do_deletion(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, v
     }
 
     Qiniu_Client_Cleanup(&qn);
+#endif
 
     return 0;
+}
+
+/**
+ * handler for user want to download a netdisk file...
+ *
+ */
+int do_download(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
+{
+    int ret = CDS_OK;
+    char md5[34];
+
+    p_ndr->set_opcode(DOWNLOADURL);
+
+    if(get_netdisk_key(nds_sql, p_obj, md5) != 0)
+    {
+        ret = CDS_ERR_FILE_NOTFOUND;
+        if(sendback_response(ret, "can't find file md5", p_ndr, p_resplen, p_respdata) != 0)
+        {
+            ERR("Warning, failed serialize download file not found error data\n");
+        }
+
+        return ret;
+    }
+
+    if(get_download_url(md5, p_ndr) != 0)
+    {
+        ret = CDS_ERR_NO_RESOURCE;
+        if(sendback_response(ret, "failed compose downloadurl", p_ndr, p_resplen, p_respdata) != 0)
+        {
+            ERR("Warning, failed serialize failure in composing downloadurl data\n");
+        }
+
+        return ret;
+    }
+
+    if(sendback_response(ret, NULL, p_ndr, p_resplen, p_respdata) != 0)
+    {
+        ERR("Warning, failed serialize download response data\n");
+    }
+
+    return ret;
 }
 
 int do_sharing(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
@@ -475,7 +540,12 @@ int do_sharing(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, vo
     int ret = CDS_OK;
     char md5[42]; // MD5SUM is actually 33(including '\0') chars...
 
-    get_netdisk_key(nds_sql, p_obj, md5);
+    p_ndr->set_opcode(SHARE);
+
+    if(get_netdisk_key(nds_sql, p_obj, md5) != 0)
+    {
+        ret = CDS_ERR_SQL_EXECUTE_FAILED;
+    }
 
     return ret;
 }
@@ -541,6 +611,14 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
                         reqobj.md5().c_str());
                 LOG("==================\n\n");
                 ret = complete_upload(&reqobj, &nd_resp, len_resp, resp);
+                break;
+
+            case DOWNLOADURL:
+                LOG("\n=== DOWNLOAD case===\n");
+                LOG("User:%s, File:%s\n",
+                        reqobj.user().c_str(), reqobj.filename().c_str());
+                LOG("==================\n\n");
+                ret = do_download(&reqobj, &nd_resp, len_resp, resp);
                 break;
 
             case DELETE:

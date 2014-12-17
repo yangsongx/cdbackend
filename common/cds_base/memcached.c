@@ -1092,6 +1092,10 @@ char *convert_err_to_str(int errcode)
         GOTO_STRING(CDS_ERR_SQL_EXECUTE_FAILED);
         GOTO_STRING(CDS_ERR_SQL_NORECORD_FOUND);
         GOTO_STRING(CDS_ERR_NO_RESOURCE);
+        GOTO_STRING(CDS_FILE_ALREADY_EXISTED);
+        GOTO_STRING(CDS_ERR_EXCEED_QUOTA);
+
+        GOTO_STRING(CDS_GENERIC_ERROR);
     }
 
     /* come here if no match found above */
