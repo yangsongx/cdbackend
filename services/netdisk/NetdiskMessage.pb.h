@@ -44,11 +44,12 @@ enum Opcode {
   DELETE = 2,
   RENAME = 3,
   SHARE = 4,
-  LISTFILE = 5
+  LISTFILE = 5,
+  DOWNLOADURL = 6
 };
 bool Opcode_IsValid(int value);
 const Opcode Opcode_MIN = UPLOADING;
-const Opcode Opcode_MAX = LISTFILE;
+const Opcode Opcode_MAX = DOWNLOADURL;
 const int Opcode_ARRAYSIZE = Opcode_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* Opcode_descriptor();
@@ -166,6 +167,66 @@ class NetdiskRequest : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 filesize() const;
   inline void set_filesize(::google::protobuf::int32 value);
 
+  // optional string filetype = 6;
+  inline bool has_filetype() const;
+  inline void clear_filetype();
+  static const int kFiletypeFieldNumber = 6;
+  inline const ::std::string& filetype() const;
+  inline void set_filetype(const ::std::string& value);
+  inline void set_filetype(const char* value);
+  inline void set_filetype(const char* value, size_t size);
+  inline ::std::string* mutable_filetype();
+  inline ::std::string* release_filetype();
+  inline void set_allocated_filetype(::std::string* filetype);
+
+  // optional string filecollection = 7;
+  inline bool has_filecollection() const;
+  inline void clear_filecollection();
+  static const int kFilecollectionFieldNumber = 7;
+  inline const ::std::string& filecollection() const;
+  inline void set_filecollection(const ::std::string& value);
+  inline void set_filecollection(const char* value);
+  inline void set_filecollection(const char* value, size_t size);
+  inline ::std::string* mutable_filecollection();
+  inline ::std::string* release_filecollection();
+  inline void set_allocated_filecollection(::std::string* filecollection);
+
+  // optional string filepermission = 8;
+  inline bool has_filepermission() const;
+  inline void clear_filepermission();
+  static const int kFilepermissionFieldNumber = 8;
+  inline const ::std::string& filepermission() const;
+  inline void set_filepermission(const ::std::string& value);
+  inline void set_filepermission(const char* value);
+  inline void set_filepermission(const char* value, size_t size);
+  inline ::std::string* mutable_filepermission();
+  inline ::std::string* release_filepermission();
+  inline void set_allocated_filepermission(::std::string* filepermission);
+
+  // optional string fileowner = 9;
+  inline bool has_fileowner() const;
+  inline void clear_fileowner();
+  static const int kFileownerFieldNumber = 9;
+  inline const ::std::string& fileowner() const;
+  inline void set_fileowner(const ::std::string& value);
+  inline void set_fileowner(const char* value);
+  inline void set_fileowner(const char* value, size_t size);
+  inline ::std::string* mutable_fileowner();
+  inline ::std::string* release_fileowner();
+  inline void set_allocated_fileowner(::std::string* fileowner);
+
+  // optional string fileuploader = 10;
+  inline bool has_fileuploader() const;
+  inline void clear_fileuploader();
+  static const int kFileuploaderFieldNumber = 10;
+  inline const ::std::string& fileuploader() const;
+  inline void set_fileuploader(const ::std::string& value);
+  inline void set_fileuploader(const char* value);
+  inline void set_fileuploader(const char* value, size_t size);
+  inline ::std::string* mutable_fileuploader();
+  inline ::std::string* release_fileuploader();
+  inline void set_allocated_fileuploader(::std::string* fileuploader);
+
   // @@protoc_insertion_point(class_scope:com.caredear.NetdiskRequest)
  private:
   inline void set_has_user();
@@ -178,6 +239,16 @@ class NetdiskRequest : public ::google::protobuf::Message {
   inline void clear_has_filename();
   inline void set_has_filesize();
   inline void clear_has_filesize();
+  inline void set_has_filetype();
+  inline void clear_has_filetype();
+  inline void set_has_filecollection();
+  inline void clear_has_filecollection();
+  inline void set_has_filepermission();
+  inline void clear_has_filepermission();
+  inline void set_has_fileowner();
+  inline void clear_has_fileowner();
+  inline void set_has_fileuploader();
+  inline void clear_has_fileuploader();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -188,6 +259,11 @@ class NetdiskRequest : public ::google::protobuf::Message {
   int opcode_;
   ::google::protobuf::int32 filesize_;
   ::std::string* filename_;
+  ::std::string* filetype_;
+  ::std::string* filecollection_;
+  ::std::string* filepermission_;
+  ::std::string* fileowner_;
+  ::std::string* fileuploader_;
   friend void  protobuf_AddDesc_NetdiskMessage_2eproto();
   friend void protobuf_AssignDesc_NetdiskMessage_2eproto();
   friend void protobuf_ShutdownFile_NetdiskMessage_2eproto();
@@ -626,6 +702,386 @@ inline void NetdiskRequest::set_filesize(::google::protobuf::int32 value) {
   set_has_filesize();
   filesize_ = value;
   // @@protoc_insertion_point(field_set:com.caredear.NetdiskRequest.filesize)
+}
+
+// optional string filetype = 6;
+inline bool NetdiskRequest::has_filetype() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void NetdiskRequest::set_has_filetype() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void NetdiskRequest::clear_has_filetype() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void NetdiskRequest::clear_filetype() {
+  if (filetype_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filetype_->clear();
+  }
+  clear_has_filetype();
+}
+inline const ::std::string& NetdiskRequest::filetype() const {
+  // @@protoc_insertion_point(field_get:com.caredear.NetdiskRequest.filetype)
+  return *filetype_;
+}
+inline void NetdiskRequest::set_filetype(const ::std::string& value) {
+  set_has_filetype();
+  if (filetype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filetype_ = new ::std::string;
+  }
+  filetype_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.NetdiskRequest.filetype)
+}
+inline void NetdiskRequest::set_filetype(const char* value) {
+  set_has_filetype();
+  if (filetype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filetype_ = new ::std::string;
+  }
+  filetype_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.NetdiskRequest.filetype)
+}
+inline void NetdiskRequest::set_filetype(const char* value, size_t size) {
+  set_has_filetype();
+  if (filetype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filetype_ = new ::std::string;
+  }
+  filetype_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.NetdiskRequest.filetype)
+}
+inline ::std::string* NetdiskRequest::mutable_filetype() {
+  set_has_filetype();
+  if (filetype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filetype_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.NetdiskRequest.filetype)
+  return filetype_;
+}
+inline ::std::string* NetdiskRequest::release_filetype() {
+  clear_has_filetype();
+  if (filetype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = filetype_;
+    filetype_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void NetdiskRequest::set_allocated_filetype(::std::string* filetype) {
+  if (filetype_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete filetype_;
+  }
+  if (filetype) {
+    set_has_filetype();
+    filetype_ = filetype;
+  } else {
+    clear_has_filetype();
+    filetype_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.NetdiskRequest.filetype)
+}
+
+// optional string filecollection = 7;
+inline bool NetdiskRequest::has_filecollection() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void NetdiskRequest::set_has_filecollection() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void NetdiskRequest::clear_has_filecollection() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void NetdiskRequest::clear_filecollection() {
+  if (filecollection_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filecollection_->clear();
+  }
+  clear_has_filecollection();
+}
+inline const ::std::string& NetdiskRequest::filecollection() const {
+  // @@protoc_insertion_point(field_get:com.caredear.NetdiskRequest.filecollection)
+  return *filecollection_;
+}
+inline void NetdiskRequest::set_filecollection(const ::std::string& value) {
+  set_has_filecollection();
+  if (filecollection_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filecollection_ = new ::std::string;
+  }
+  filecollection_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.NetdiskRequest.filecollection)
+}
+inline void NetdiskRequest::set_filecollection(const char* value) {
+  set_has_filecollection();
+  if (filecollection_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filecollection_ = new ::std::string;
+  }
+  filecollection_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.NetdiskRequest.filecollection)
+}
+inline void NetdiskRequest::set_filecollection(const char* value, size_t size) {
+  set_has_filecollection();
+  if (filecollection_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filecollection_ = new ::std::string;
+  }
+  filecollection_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.NetdiskRequest.filecollection)
+}
+inline ::std::string* NetdiskRequest::mutable_filecollection() {
+  set_has_filecollection();
+  if (filecollection_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filecollection_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.NetdiskRequest.filecollection)
+  return filecollection_;
+}
+inline ::std::string* NetdiskRequest::release_filecollection() {
+  clear_has_filecollection();
+  if (filecollection_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = filecollection_;
+    filecollection_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void NetdiskRequest::set_allocated_filecollection(::std::string* filecollection) {
+  if (filecollection_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete filecollection_;
+  }
+  if (filecollection) {
+    set_has_filecollection();
+    filecollection_ = filecollection;
+  } else {
+    clear_has_filecollection();
+    filecollection_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.NetdiskRequest.filecollection)
+}
+
+// optional string filepermission = 8;
+inline bool NetdiskRequest::has_filepermission() const {
+  return (_has_bits_[0] & 0x00000080u) != 0;
+}
+inline void NetdiskRequest::set_has_filepermission() {
+  _has_bits_[0] |= 0x00000080u;
+}
+inline void NetdiskRequest::clear_has_filepermission() {
+  _has_bits_[0] &= ~0x00000080u;
+}
+inline void NetdiskRequest::clear_filepermission() {
+  if (filepermission_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filepermission_->clear();
+  }
+  clear_has_filepermission();
+}
+inline const ::std::string& NetdiskRequest::filepermission() const {
+  // @@protoc_insertion_point(field_get:com.caredear.NetdiskRequest.filepermission)
+  return *filepermission_;
+}
+inline void NetdiskRequest::set_filepermission(const ::std::string& value) {
+  set_has_filepermission();
+  if (filepermission_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filepermission_ = new ::std::string;
+  }
+  filepermission_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.NetdiskRequest.filepermission)
+}
+inline void NetdiskRequest::set_filepermission(const char* value) {
+  set_has_filepermission();
+  if (filepermission_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filepermission_ = new ::std::string;
+  }
+  filepermission_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.NetdiskRequest.filepermission)
+}
+inline void NetdiskRequest::set_filepermission(const char* value, size_t size) {
+  set_has_filepermission();
+  if (filepermission_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filepermission_ = new ::std::string;
+  }
+  filepermission_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.NetdiskRequest.filepermission)
+}
+inline ::std::string* NetdiskRequest::mutable_filepermission() {
+  set_has_filepermission();
+  if (filepermission_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    filepermission_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.NetdiskRequest.filepermission)
+  return filepermission_;
+}
+inline ::std::string* NetdiskRequest::release_filepermission() {
+  clear_has_filepermission();
+  if (filepermission_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = filepermission_;
+    filepermission_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void NetdiskRequest::set_allocated_filepermission(::std::string* filepermission) {
+  if (filepermission_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete filepermission_;
+  }
+  if (filepermission) {
+    set_has_filepermission();
+    filepermission_ = filepermission;
+  } else {
+    clear_has_filepermission();
+    filepermission_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.NetdiskRequest.filepermission)
+}
+
+// optional string fileowner = 9;
+inline bool NetdiskRequest::has_fileowner() const {
+  return (_has_bits_[0] & 0x00000100u) != 0;
+}
+inline void NetdiskRequest::set_has_fileowner() {
+  _has_bits_[0] |= 0x00000100u;
+}
+inline void NetdiskRequest::clear_has_fileowner() {
+  _has_bits_[0] &= ~0x00000100u;
+}
+inline void NetdiskRequest::clear_fileowner() {
+  if (fileowner_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    fileowner_->clear();
+  }
+  clear_has_fileowner();
+}
+inline const ::std::string& NetdiskRequest::fileowner() const {
+  // @@protoc_insertion_point(field_get:com.caredear.NetdiskRequest.fileowner)
+  return *fileowner_;
+}
+inline void NetdiskRequest::set_fileowner(const ::std::string& value) {
+  set_has_fileowner();
+  if (fileowner_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    fileowner_ = new ::std::string;
+  }
+  fileowner_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.NetdiskRequest.fileowner)
+}
+inline void NetdiskRequest::set_fileowner(const char* value) {
+  set_has_fileowner();
+  if (fileowner_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    fileowner_ = new ::std::string;
+  }
+  fileowner_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.NetdiskRequest.fileowner)
+}
+inline void NetdiskRequest::set_fileowner(const char* value, size_t size) {
+  set_has_fileowner();
+  if (fileowner_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    fileowner_ = new ::std::string;
+  }
+  fileowner_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.NetdiskRequest.fileowner)
+}
+inline ::std::string* NetdiskRequest::mutable_fileowner() {
+  set_has_fileowner();
+  if (fileowner_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    fileowner_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.NetdiskRequest.fileowner)
+  return fileowner_;
+}
+inline ::std::string* NetdiskRequest::release_fileowner() {
+  clear_has_fileowner();
+  if (fileowner_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = fileowner_;
+    fileowner_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void NetdiskRequest::set_allocated_fileowner(::std::string* fileowner) {
+  if (fileowner_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete fileowner_;
+  }
+  if (fileowner) {
+    set_has_fileowner();
+    fileowner_ = fileowner;
+  } else {
+    clear_has_fileowner();
+    fileowner_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.NetdiskRequest.fileowner)
+}
+
+// optional string fileuploader = 10;
+inline bool NetdiskRequest::has_fileuploader() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+inline void NetdiskRequest::set_has_fileuploader() {
+  _has_bits_[0] |= 0x00000200u;
+}
+inline void NetdiskRequest::clear_has_fileuploader() {
+  _has_bits_[0] &= ~0x00000200u;
+}
+inline void NetdiskRequest::clear_fileuploader() {
+  if (fileuploader_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    fileuploader_->clear();
+  }
+  clear_has_fileuploader();
+}
+inline const ::std::string& NetdiskRequest::fileuploader() const {
+  // @@protoc_insertion_point(field_get:com.caredear.NetdiskRequest.fileuploader)
+  return *fileuploader_;
+}
+inline void NetdiskRequest::set_fileuploader(const ::std::string& value) {
+  set_has_fileuploader();
+  if (fileuploader_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    fileuploader_ = new ::std::string;
+  }
+  fileuploader_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.NetdiskRequest.fileuploader)
+}
+inline void NetdiskRequest::set_fileuploader(const char* value) {
+  set_has_fileuploader();
+  if (fileuploader_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    fileuploader_ = new ::std::string;
+  }
+  fileuploader_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.NetdiskRequest.fileuploader)
+}
+inline void NetdiskRequest::set_fileuploader(const char* value, size_t size) {
+  set_has_fileuploader();
+  if (fileuploader_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    fileuploader_ = new ::std::string;
+  }
+  fileuploader_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.NetdiskRequest.fileuploader)
+}
+inline ::std::string* NetdiskRequest::mutable_fileuploader() {
+  set_has_fileuploader();
+  if (fileuploader_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    fileuploader_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.NetdiskRequest.fileuploader)
+  return fileuploader_;
+}
+inline ::std::string* NetdiskRequest::release_fileuploader() {
+  clear_has_fileuploader();
+  if (fileuploader_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = fileuploader_;
+    fileuploader_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void NetdiskRequest::set_allocated_fileuploader(::std::string* fileuploader) {
+  if (fileuploader_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete fileuploader_;
+  }
+  if (fileuploader) {
+    set_has_fileuploader();
+    fileuploader_ = fileuploader;
+  } else {
+    clear_has_fileuploader();
+    fileuploader_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.NetdiskRequest.fileuploader)
 }
 
 // -------------------------------------------------------------------

@@ -17,6 +17,14 @@
 
 using namespace com::caredear;
 
+// the file type mapped to DB
+enum FILE_TYPE {
+    FT_IMAGE = 0,
+    FT_MUSIC = 1,
+    FT_VIDEO,
+    FT_DOC
+};
+
 extern unsigned int qiniu_quota;
 extern struct sql_server_info sql_cfg;
 

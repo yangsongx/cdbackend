@@ -209,6 +209,7 @@ int sendback_response(int result_code, const char *errmsg, NetdiskResponse *p_nd
 
     p_ndr->set_result_code(result_code);
 
+    /* the error message is only valid for error case */
     if(result_code != CDS_OK && errmsg != NULL)
     {
         p_ndr->set_errormsg(errmsg);
@@ -259,11 +260,14 @@ int generate_upload_token(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_
     LOG("upload token:%s\n", uptoken);
     p_ndr->set_uploadtoken(uptoken);
 
+
+#if 0 // don't need download..
+
     // next, compose download url...
     get_download_url(p_obj, p_ndr);
 
     p_ndr->set_netdisckey(p_obj->md5().c_str());
-
+#endif
     // compose the response data....
     if(sendback_response(CDS_OK, NULL, p_ndr, p_resplen, p_respdata) != 0)
     {
@@ -389,13 +393,14 @@ int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, voi
 
     if(exceed_quota(nds_sql, p_obj) != 0)
     {
+        INFO("User exceed the quota!");
         // Exceed quota!
         return CDS_ERR_EXCEED_QUOTA;
     }
 
     ret = generate_upload_token(p_obj, p_ndr, p_resplen, p_respdata);
 
-#if 1
+#if 0
     if(in_debug_mode())
     {
         // debug mode, we will upload file by ourself
@@ -414,10 +419,17 @@ int complete_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resple
 {
     int ret = CDS_OK;
 
+    p_ndr->set_opcode(UPLOADED);
     ret = update_user_uploaded_data(nds_sql, p_obj);
     if(ret != CDS_OK)
     {
         ERR("** failed update the DB\n");
+    }
+
+    // Actually, we need few UPLOADED action result here...
+    if(sendback_response(ret, NULL, p_ndr, p_resplen, p_respdata) != 0)
+    {
+        ERR("Warning, failed serialize the update DB response\n");
     }
 
     return ret;

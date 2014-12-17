@@ -25,6 +25,52 @@ struct sql_server_info sql_cfg = {
 };
 
 /**
+ *
+ *@filename : try mapp via file suffix
+ *
+ *return a FT_XXX type
+ */
+int mapping_file_type(const char *filename)
+{
+    int type = FT_DOC;
+    int len = strlen(filename);
+    char *suffix;
+
+    if(filename[len - 1] == '.')
+    {
+        // file ending with dot(i.e, 'xxx.')
+        return type;
+    }
+
+    while(filename[--len] != '.' && len > 0) ;
+
+    if(len != 0)
+    {
+        suffix = (char *) &filename[len + 1]; // + 1 to surpass '.' char
+        LOG("%s ===> %s\n", filename, suffix);
+        if(!strncmp(suffix, "jpg", 3) || !strncmp(suffix, "jpeg", 4)
+          || !strncmp(suffix, "png", 3) || !strncmp(suffix, "bmp", 3)
+          || !strncmp(suffix, "gif", 3))
+        {
+            type = FT_IMAGE;
+        }
+        else if(!strncmp(suffix, "3gp", 3) || !strncmp(suffix, "mp3", 3)
+                || !strncmp(suffix, "wma", 3))
+        {
+            type = FT_MUSIC;
+        }
+        else if(!strncmp(suffix, "mp4", 3) || !strncmp(suffix, "3gp", 3))
+        {
+            type = FT_VIDEO;
+        }
+
+        // all others be considered as doc
+    }
+
+    return type;
+}
+
+/**
  * A wrapper for MUTEX protection
  */
 int INIT_DB_MUTEX()
@@ -261,6 +307,7 @@ int preprocess_upload_req (MYSQL *ms, NetdiskRequest *p_obj)
 int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
 {
     int ret = 0;
+    int type = 0;
     const char *username = p_obj->user().c_str();
     const char *md5 = p_obj->md5().c_str();
     const char *filename = p_obj->filename().c_str();
@@ -291,14 +338,26 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
 
     UNLOCK_SQL;
 
+
+    type = mapping_file_type(filename);
     time(&t);
     strftime(timeformat, sizeof(timeformat), "%Y-%m-%d %H:%M:%S", localtime_r(&t, &re));
+
+
     // Next, updating FILES table
+#if 1 // TODO, we probably need remove the TYPE constraint in DB, so here just don't set file type...
     snprintf(sqlcmd, sizeof(sqlcmd),
             "INSERT INTO %s (%s.HASH_KEY,%s.SIZE,%s.FILENAME,%s.CREATE_TIME,%s.MODIFY_TIME,%s.OWNER) VALUES "
             "(\'%s\',%d,\'%s\',\'%s\',\'%s\',\'%s\');",
             ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
             md5, filesize, filename, timeformat, timeformat, username);
+#else
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "INSERT INTO %s (%s.HASH_KEY,%s.SIZE,%s.FILENAME,%s.CREATE_TIME,%s.MODIFY_TIME,%s.TYPE,%s.OWNER) VALUES "
+            "(\'%s\',%d,\'%s\',\'%s\',\'%s\',%d,\'%s\');",
+            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
+            md5, filesize, filename, timeformat, timeformat, type, username);
+#endif
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
