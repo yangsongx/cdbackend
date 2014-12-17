@@ -24,6 +24,10 @@ struct sql_server_info sql_cfg = {
     ""
 };
 
+// declearations...
+extern int update_existed_file_db(MYSQL *ms, NetdiskRequest *p_obj);
+extern int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj);
+
 /**
  *
  *@filename : try mapp via file suffix
@@ -268,7 +272,7 @@ int preprocess_upload_req (MYSQL *ms, NetdiskRequest *p_obj)
     // so check if file already existed...
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT %s.ID FROM %s WHERE %s.HASH_KEY=\'%s\';",
+            "SELECT %s.ID FROM %s WHERE %s.MD5=\'%s\';",
             ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, p_obj->md5().c_str());
 
     LOCK_SQL;
@@ -293,7 +297,14 @@ int preprocess_upload_req (MYSQL *ms, NetdiskRequest *p_obj)
         if(row != NULL)
         {
             // this means file already existed!
+            LOG("file \'%s\' already existed\n",  p_obj->filename().c_str());
             ret = CDS_FILE_ALREADY_EXISTED;
+
+            // don't forget add this file into DB as well,
+            // as in this case, there won't UPLOADED req later
+
+            //TODO code
+            update_existed_file_db(ms, p_obj);
         }
     }
     else
@@ -302,6 +313,47 @@ int preprocess_upload_req (MYSQL *ms, NetdiskRequest *p_obj)
     }
 
     return ret;
+}
+
+int update_existed_file_db(MYSQL *ms, NetdiskRequest *p_obj)
+{
+    char sqlcmd[1024];
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT %s.ID FROM %s WHERE %s.MD5=\'%s\' AND %s.FILENAME=\'%s\';",
+            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, p_obj->md5().c_str(),
+            ND_FILE_TBL, p_obj->filename().c_str());
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("** failed find user:%s,error:%s\n",
+                sqlcmd, mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+
+    if(mresult)
+    {
+        row = mysql_fetch_row(mresult);
+        if(row == NULL)
+        {
+            // a new record, insert it
+            update_user_uploaded_data(ms, p_obj);
+        }
+    }
+    else
+    {
+        ERR("meet a NULL for  mysql_store_result\n");
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    return 0;
 }
 
 int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
@@ -318,6 +370,7 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
     time_t t;
     struct tm re;
     char timeformat[24];
+    MYSQL_RES *mresult;
 
     time(&t);
     strftime(timeformat, sizeof(timeformat), "%Y-%m-%d %H:%M:%S", localtime_r(&t, &re));
@@ -336,6 +389,7 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
         return CDS_ERR_SQL_EXECUTE_FAILED;
     }
 
+    mresult = mysql_store_result(ms);
     UNLOCK_SQL;
 
 
@@ -345,7 +399,7 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
 
 
     // Next, updating FILES table
-#if 1 // TODO, we probably need remove the TYPE constraint in DB, so here just don't set file type...
+#if 0 // TODO, we probably need remove the TYPE constraint in DB, so here just don't set file type...
     snprintf(sqlcmd, sizeof(sqlcmd),
             "INSERT INTO %s (%s.HASH_KEY,%s.SIZE,%s.FILENAME,%s.CREATE_TIME,%s.MODIFY_TIME,%s.OWNER) VALUES "
             "(\'%s\',%d,\'%s\',\'%s\',\'%s\',\'%s\');",
@@ -353,7 +407,7 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
             md5, filesize, filename, timeformat, timeformat, username);
 #else
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "INSERT INTO %s (%s.HASH_KEY,%s.SIZE,%s.FILENAME,%s.CREATE_TIME,%s.MODIFY_TIME,%s.TYPE,%s.OWNER) VALUES "
+            "INSERT INTO %s (%s.MD5,%s.SIZE,%s.FILENAME,%s.CREATE_TIME,%s.MODIFY_TIME,%s.TYPE,%s.OWNER) VALUES "
             "(\'%s\',%d,\'%s\',\'%s\',\'%s\',%d,\'%s\');",
             ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
             md5, filesize, filename, timeformat, timeformat, type, username);
@@ -368,6 +422,7 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
         return CDS_ERR_SQL_EXECUTE_FAILED;
     }
 
+    mresult = mysql_store_result(ms);
     UNLOCK_SQL;
 
     return ret;
@@ -380,7 +435,7 @@ char *get_netdisk_key(MYSQL *ms, NetdiskRequest *p_obj, char *p_result)
     p_result[0] = '\0';
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT %s.HASH_KEY FROM %s WHERE %s.OWNER=\'%s\';",
+            "SELECT %s.MD5 FROM %s WHERE %s.OWNER=\'%s\';",
             ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
             p_obj->user().c_str()
             );

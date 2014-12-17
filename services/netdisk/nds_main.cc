@@ -368,7 +368,8 @@ int simulate_client_upload(NetdiskResponse *p_ndr)
 }
 
 /**
- *
+ * handler for user try uploading a file to netdisk. This function will just return
+ * upload token to caller.
  *
  */
 int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
@@ -384,8 +385,7 @@ int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, voi
             break;
 
         case CDS_FILE_ALREADY_EXISTED:
-            //TODO make a fake already uploaded msg to caller...
-            break;
+            return sendback_response(ret, "already existed", p_ndr, p_resplen, p_respdata);
 
         default:
             ; // continue...

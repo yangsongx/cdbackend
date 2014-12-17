@@ -20,7 +20,7 @@ SRC = $(QINIU_SDK)qiniu/auth_mac.cc \
 
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = $(COMMON_CFLAGS) -I../../common/caredear_service_lib/ -I $(QINIU_SDK) -I /usr/include/libxml2/ `mysql_config --cflags` -fpermissive
+CXXFLAGS = $(COMMON_CFLAGS) -I../../common/cds_base/ -I $(QINIU_SDK) -I /usr/include/libxml2/ `mysql_config --cflags` -fpermissive
 
 # Release should use -O2
 
@@ -30,7 +30,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L ../../common/caredear_service_lib/ -L $(QINIU_SDK) -lcds -pthread -levent -lcurl -lssl -lcrypto -lxml2 -lprotobuf `mysql_config --libs`
+LDFLAGS = -L ../../common/cds_base/ -L $(QINIU_SDK) -lcds -pthread -levent -lcurl -lssl -lcrypto -lxml2 -lprotobuf `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.

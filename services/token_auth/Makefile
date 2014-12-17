@@ -1,7 +1,7 @@
 # Makefile for build token and test client code
 #
 CONFIG_SINGLE_APPTOKEN=true
-
+CDSBASE = ../../common/cds_base/
 CC = gcc
 
 SRC = token_main.c \
@@ -10,14 +10,14 @@ SRC = token_main.c \
 CLIENT_TOKEN_SRC = client_token.c
 
 
-include ../../common/caredear_service_lib/common.mk
-CFLAGS = $(COMMON_CFLAGS) -I../../common/caredear_service_lib/ `mysql_config --cflags` -I /usr/include/libxml2/
+include ../../common/cds_base/common.mk
+CFLAGS = $(COMMON_CFLAGS) -I../../common/cds_base/ `mysql_config --cflags` -I /usr/include/libxml2/
 
 ifeq ($(CONFIG_SINGLE_APPTOKEN),true)
 CFLAGS += -DCONFIG_SINGLE_APPTOKEN
 endif
 
-LDFLAGS = -L ../../common/caredear_service_lib/ -lcds -pthread -levent -lcrypto -lxml2 `mysql_config --libs`
+LDFLAGS = -L ../../common/cds_base/ -lcds -pthread -levent -lcrypto -lxml2 `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
@@ -42,7 +42,7 @@ ct:$(CLIENT_TOKEN_OBJS)
 .PHONY:install
 install:
 	mkdir -p $(DESTDIR)/etc/
-	cp cds_cfg.xml $(DESTDIR)/etc/
+	cp ${CDSBASE}cds_cfg.xml $(DESTDIR)/etc/
 	mkdir -p $(DESTDIR)/usr/bin/
 	cp tauth $(DESTDIR)/usr/bin/
 
