@@ -458,40 +458,16 @@ int do_deletion(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, v
 
     p_ndr->set_opcode(DELETE);
 
-    //TODO CODE
+    ret = remove_file_from_db(nds_sql, p_obj);
 
-#if 0
-    Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
-    /**
-     * TODO and FIXME
-     *
-     * We should NEVER delete from Qiniu as the first step
-     * as this is acting like Linux's unlink() behavior!
-     */
-
-    Qiniu_Error err = Qiniu_RS_Delete(&qn, qiniu_bucket, p_obj->md5().c_str());
-
-    p_ndr->set_opcode(DELETE);
-
-    if (err.code != 200)
-    {
-        //http status not OK
-        ERR("*** failed delete this file:%s\n", err.message);
-        ret = CDS_GENERIC_ERROR;
-        p_ndr->set_errormsg(err.message);
-    }
-
-    // TODO need update the DB!!!
+    LOG("a22301->%d\n", ret);
 
     if(sendback_response(ret, NULL, p_ndr, p_resplen, p_respdata) != 0)
     {
-        ERR("Warning, error found when compose deletion response protobuf!\n");
+        ERR("Warning, failed serialize response for deletion req\n");
     }
 
-    Qiniu_Client_Cleanup(&qn);
-#endif
-
-    return 0;
+    return ret;
 }
 
 /**
@@ -546,6 +522,16 @@ int do_sharing(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, vo
     {
         ret = CDS_ERR_SQL_EXECUTE_FAILED;
     }
+
+    return ret;
+}
+
+int do_rename(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
+{
+    int ret = CDS_OK;
+
+
+    //TODO code
 
     return ret;
 }
@@ -623,10 +609,8 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
 
             case DELETE:
                 LOG("\n=== DELETE case===\n");
-                LOG("File:%s, size:%d, MD5:%s\n",
-                        reqobj.filename().c_str(),
-                        reqobj.filesize(),
-                        reqobj.md5().c_str());
+                LOG("User:%s, File:%s\n",
+                        reqobj.user().c_str(), reqobj.filename().c_str());
                 LOG("==================\n\n");
 
                 ret = do_deletion(&reqobj, &nd_resp, len_resp, resp);
@@ -637,16 +621,25 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
                 LOG("Try sharing File:%s\n",
                         reqobj.filename().c_str());
                 LOG("==================\n\n");
+
                 ret = do_sharing(&reqobj, &nd_resp, len_resp, resp);
                 break;
 
             case RENAME: // such as user move one file to another plaee
                 // this is just change DB record, won't modify any stuff
                 // on Qiniu Server
+                LOG("\n=== RENAME case===\n");
+                LOG("Try renaming %s --> %s\n",
+                        reqobj.filename().c_str(), reqobj.newfile().c_str());
+                LOG("==================\n\n");
+
+                ret = do_rename(&reqobj, &nd_resp, len_resp, resp);
                 break;
 
             case LISTFILE:
+                //
                 //TODO, this is a complicated operation
+                //
                 break;
 
             default:

@@ -6,6 +6,10 @@
 #include <my_global.h>
 #include <mysql.h>
 
+#include <qiniu/base.h>
+#include <qiniu/io.h>
+#include <qiniu/rs.h>
+
 #include "cds_public.h"
 #include "nds_def.h"
 
@@ -27,6 +31,36 @@ struct sql_server_info sql_cfg = {
 // declearations...
 extern int update_existed_file_db(MYSQL *ms, NetdiskRequest *p_obj);
 extern int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj);
+
+extern const char *qiniu_bucket; // defined at nds_main.cc
+
+/**
+ * Util to delete Qiniu's file
+ *
+ *@diskkey : the qiniu disk key(MD5SUM for this case)
+ *
+ */
+int rm_qiniu_disk_file(const char *diskkey)
+{
+    Qiniu_Client theqn;
+    Qiniu_Client_InitMacAuth(&theqn, 1024, NULL);
+
+    Qiniu_Error err = Qiniu_RS_Delete(&theqn, qiniu_bucket, diskkey);
+
+    if (err.code != 200)
+    {
+        //http status not OK
+        ERR("*** failed delete this file:%s\n", err.message);
+    }
+    else
+    {
+        INFO("[From QiNiu] (%s) key deleted there.\n", diskkey);
+    }
+
+    Qiniu_Client_Cleanup(&theqn);
+
+    return 0;
+}
 
 /**
  *
@@ -72,6 +106,51 @@ int mapping_file_type(const char *filename)
     }
 
     return type;
+}
+
+/**
+ *
+ * OK for return 0, and p_md5 stored the corresponding file's MD5
+ */
+int mapping_file_md5(MYSQL *ms, NetdiskRequest *p_obj, char *p_md5, int len_md5)
+{
+    int ret = -1;
+    char sqlcmd[256];
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT %s.MD5 FROM %s WHERE %s.FILENAME=\'%s\' AND %s.OWNER=\'%s\';",
+            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, p_obj->filename().c_str(),
+            ND_FILE_TBL, p_obj->user().c_str());
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("***failed find corresponding MD5:%s\n", mysql_error(ms));
+        return -1;
+    }
+
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+
+    if(mresult)
+    {
+        row = mysql_fetch_row(mresult);
+        if(row != NULL)
+        {
+            ret = 0;
+            strncpy(p_md5, row[0], len_md5);
+            LOG("\'%s\' ==> MD5:%s\n", p_obj->filename().c_str(), p_md5);
+        }
+        else
+        {
+            ret = CDS_ERR_FILE_NOTFOUND;
+        }
+    }
+
+    return ret;
 }
 
 /**
@@ -399,19 +478,11 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
 
 
     // Next, updating FILES table
-#if 0 // TODO, we probably need remove the TYPE constraint in DB, so here just don't set file type...
-    snprintf(sqlcmd, sizeof(sqlcmd),
-            "INSERT INTO %s (%s.HASH_KEY,%s.SIZE,%s.FILENAME,%s.CREATE_TIME,%s.MODIFY_TIME,%s.OWNER) VALUES "
-            "(\'%s\',%d,\'%s\',\'%s\',\'%s\',\'%s\');",
-            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
-            md5, filesize, filename, timeformat, timeformat, username);
-#else
     snprintf(sqlcmd, sizeof(sqlcmd),
             "INSERT INTO %s (%s.MD5,%s.SIZE,%s.FILENAME,%s.CREATE_TIME,%s.MODIFY_TIME,%s.TYPE,%s.OWNER) VALUES "
             "(\'%s\',%d,\'%s\',\'%s\',\'%s\',%d,\'%s\');",
             ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
             md5, filesize, filename, timeformat, timeformat, type, username);
-#endif
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -426,6 +497,88 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
     UNLOCK_SQL;
 
     return ret;
+}
+
+/**
+ * This is delete user file from DB, we implemented this
+ * like Unix's unlink behavior.
+ *
+ * return CDS_OK(0) for successful case
+ */
+int remove_file_from_db(MYSQL *ms, NetdiskRequest *p_obj)
+{
+    int ret = CDS_OK;
+    char sqlcmd[1024];
+    int filecount = 0;
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+    char md5[34]; // 34 is enough for store MD5SUM...
+
+    ret = mapping_file_md5(ms, p_obj, md5, sizeof(md5));
+    if(ret != CDS_OK)
+    {
+        return ret;
+    }
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "DELETE FROM %s WHERE %s.MD5=\'%s\' AND %s.OWNER=\'%s\';",
+            ND_FILE_TBL, ND_FILE_TBL, md5,
+            ND_FILE_TBL,p_obj->user().c_str());
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("*** failed delete db with specified md5/user,error:%s\n", mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+
+    if(!mresult)
+    {
+        ERR("meet a NULL for  mysql_store_result\n");
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    // next ,check if we need really delete the physical file...
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT count(ID) FROM %s WHERE %s.MD5=\'%s\';",
+            ND_FILE_TBL, ND_FILE_TBL, md5);
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("*** failed search file with specified md5,error:%s\n", mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+
+    if(mresult)
+    {
+        row = mysql_fetch_row(mresult);
+        if(row != NULL)
+        {
+            filecount = atoi(row[0]);
+            LOG("still %d files with the same MD5\n", filecount);
+            if(filecount == 0)
+            {
+                // need really remote the file...
+                rm_qiniu_disk_file(md5);
+            }
+        }
+    }
+    else
+    {
+        ERR("meet a NULL for  mysql_store_result\n");
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    return CDS_OK;
 }
 
 /**

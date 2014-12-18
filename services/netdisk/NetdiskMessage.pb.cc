@@ -39,16 +39,15 @@ void protobuf_AssignDesc_NetdiskMessage_2eproto() {
       "NetdiskMessage.proto");
   GOOGLE_CHECK(file != NULL);
   NetdiskRequest_descriptor_ = file->message_type(0);
-  static const int NetdiskRequest_offsets_[10] = {
+  static const int NetdiskRequest_offsets_[9] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, user_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, opcode_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, md5_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, filename_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, filesize_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, filetype_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, newfile_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, filecollection_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, filepermission_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, fileowner_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(NetdiskRequest, fileuploader_),
   };
   NetdiskRequest_reflection_ =
@@ -117,20 +116,19 @@ void protobuf_AddDesc_NetdiskMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\024NetdiskMessage.proto\022\014com.caredear\"\340\001\n"
+    "\n\024NetdiskMessage.proto\022\014com.caredear\"\314\001\n"
     "\016NetdiskRequest\022\014\n\004user\030\001 \002(\t\022$\n\006opcode\030"
     "\002 \002(\0162\024.com.caredear.Opcode\022\013\n\003md5\030\003 \001(\t"
-    "\022\020\n\010filename\030\004 \001(\t\022\020\n\010filesize\030\005 \001(\005\022\020\n\010"
-    "filetype\030\006 \001(\t\022\026\n\016filecollection\030\007 \001(\t\022\026"
-    "\n\016filepermission\030\010 \001(\t\022\021\n\tfileowner\030\t \001("
-    "\t\022\024\n\014fileuploader\030\n \001(\t\"\234\001\n\017NetdiskRespo"
-    "nse\022$\n\006opcode\030\001 \002(\0162\024.com.caredear.Opcod"
-    "e\022\023\n\013result_code\030\002 \002(\005\022\020\n\010errormsg\030\003 \001(\t"
-    "\022\023\n\013uploadtoken\030\004 \001(\t\022\023\n\013downloadurl\030\005 \001"
-    "(\t\022\022\n\nnetdisckey\030\006 \001(\t*g\n\006Opcode\022\r\n\tUPLO"
-    "ADING\020\000\022\014\n\010UPLOADED\020\001\022\n\n\006DELETE\020\002\022\n\n\006REN"
-    "AME\020\003\022\t\n\005SHARE\020\004\022\014\n\010LISTFILE\020\005\022\017\n\013DOWNLO"
-    "ADURL\020\006", 527);
+    "\022\020\n\010filename\030\004 \001(\t\022\020\n\010filesize\030\005 \001(\005\022\017\n\007"
+    "newfile\030\006 \001(\t\022\026\n\016filecollection\030\007 \001(\t\022\026\n"
+    "\016filepermission\030\010 \001(\t\022\024\n\014fileuploader\030\t "
+    "\001(\t\"\234\001\n\017NetdiskResponse\022$\n\006opcode\030\001 \002(\0162"
+    "\024.com.caredear.Opcode\022\023\n\013result_code\030\002 \002"
+    "(\005\022\020\n\010errormsg\030\003 \001(\t\022\023\n\013uploadtoken\030\004 \001("
+    "\t\022\023\n\013downloadurl\030\005 \001(\t\022\022\n\nnetdisckey\030\006 \001"
+    "(\t*g\n\006Opcode\022\r\n\tUPLOADING\020\000\022\014\n\010UPLOADED\020"
+    "\001\022\n\n\006DELETE\020\002\022\n\n\006RENAME\020\003\022\t\n\005SHARE\020\004\022\014\n\010"
+    "LISTFILE\020\005\022\017\n\013DOWNLOADURL\020\006", 507);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "NetdiskMessage.proto", &protobuf_RegisterTypes);
   NetdiskRequest::default_instance_ = new NetdiskRequest();
@@ -174,10 +172,9 @@ const int NetdiskRequest::kOpcodeFieldNumber;
 const int NetdiskRequest::kMd5FieldNumber;
 const int NetdiskRequest::kFilenameFieldNumber;
 const int NetdiskRequest::kFilesizeFieldNumber;
-const int NetdiskRequest::kFiletypeFieldNumber;
+const int NetdiskRequest::kNewfileFieldNumber;
 const int NetdiskRequest::kFilecollectionFieldNumber;
 const int NetdiskRequest::kFilepermissionFieldNumber;
-const int NetdiskRequest::kFileownerFieldNumber;
 const int NetdiskRequest::kFileuploaderFieldNumber;
 #endif  // !_MSC_VER
 
@@ -205,10 +202,9 @@ void NetdiskRequest::SharedCtor() {
   md5_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   filename_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   filesize_ = 0;
-  filetype_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  newfile_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   filecollection_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   filepermission_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  fileowner_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   fileuploader_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
@@ -228,17 +224,14 @@ void NetdiskRequest::SharedDtor() {
   if (filename_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete filename_;
   }
-  if (filetype_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    delete filetype_;
+  if (newfile_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete newfile_;
   }
   if (filecollection_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete filecollection_;
   }
   if (filepermission_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete filepermission_;
-  }
-  if (fileowner_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    delete fileowner_;
   }
   if (fileuploader_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete fileuploader_;
@@ -296,9 +289,9 @@ void NetdiskRequest::Clear() {
         filename_->clear();
       }
     }
-    if (has_filetype()) {
-      if (filetype_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-        filetype_->clear();
+    if (has_newfile()) {
+      if (newfile_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        newfile_->clear();
       }
     }
     if (has_filecollection()) {
@@ -312,16 +305,9 @@ void NetdiskRequest::Clear() {
       }
     }
   }
-  if (_has_bits_[8 / 32] & 768) {
-    if (has_fileowner()) {
-      if (fileowner_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-        fileowner_->clear();
-      }
-    }
-    if (has_fileuploader()) {
-      if (fileuploader_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-        fileuploader_->clear();
-      }
+  if (has_fileuploader()) {
+    if (fileuploader_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+      fileuploader_->clear();
     }
   }
 
@@ -423,20 +409,20 @@ bool NetdiskRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(50)) goto parse_filetype;
+        if (input->ExpectTag(50)) goto parse_newfile;
         break;
       }
 
-      // optional string filetype = 6;
+      // optional string newfile = 6;
       case 6: {
         if (tag == 50) {
-         parse_filetype:
+         parse_newfile:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_filetype()));
+                input, this->mutable_newfile()));
           ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-            this->filetype().data(), this->filetype().length(),
+            this->newfile().data(), this->newfile().length(),
             ::google::protobuf::internal::WireFormat::PARSE,
-            "filetype");
+            "newfile");
         } else {
           goto handle_unusual;
         }
@@ -474,30 +460,13 @@ bool NetdiskRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(74)) goto parse_fileowner;
+        if (input->ExpectTag(74)) goto parse_fileuploader;
         break;
       }
 
-      // optional string fileowner = 9;
+      // optional string fileuploader = 9;
       case 9: {
         if (tag == 74) {
-         parse_fileowner:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_fileowner()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-            this->fileowner().data(), this->fileowner().length(),
-            ::google::protobuf::internal::WireFormat::PARSE,
-            "fileowner");
-        } else {
-          goto handle_unusual;
-        }
-        if (input->ExpectTag(82)) goto parse_fileuploader;
-        break;
-      }
-
-      // optional string fileuploader = 10;
-      case 10: {
-        if (tag == 82) {
          parse_fileuploader:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_fileuploader()));
@@ -578,14 +547,14 @@ void NetdiskRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(5, this->filesize(), output);
   }
 
-  // optional string filetype = 6;
-  if (has_filetype()) {
+  // optional string newfile = 6;
+  if (has_newfile()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->filetype().data(), this->filetype().length(),
+      this->newfile().data(), this->newfile().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "filetype");
+      "newfile");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      6, this->filetype(), output);
+      6, this->newfile(), output);
   }
 
   // optional string filecollection = 7;
@@ -608,24 +577,14 @@ void NetdiskRequest::SerializeWithCachedSizes(
       8, this->filepermission(), output);
   }
 
-  // optional string fileowner = 9;
-  if (has_fileowner()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->fileowner().data(), this->fileowner().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "fileowner");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      9, this->fileowner(), output);
-  }
-
-  // optional string fileuploader = 10;
+  // optional string fileuploader = 9;
   if (has_fileuploader()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->fileuploader().data(), this->fileuploader().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
       "fileuploader");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      10, this->fileuploader(), output);
+      9, this->fileuploader(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -682,15 +641,15 @@ void NetdiskRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(5, this->filesize(), target);
   }
 
-  // optional string filetype = 6;
-  if (has_filetype()) {
+  // optional string newfile = 6;
+  if (has_newfile()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->filetype().data(), this->filetype().length(),
+      this->newfile().data(), this->newfile().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "filetype");
+      "newfile");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        6, this->filetype(), target);
+        6, this->newfile(), target);
   }
 
   // optional string filecollection = 7;
@@ -715,18 +674,7 @@ void NetdiskRequest::SerializeWithCachedSizes(
         8, this->filepermission(), target);
   }
 
-  // optional string fileowner = 9;
-  if (has_fileowner()) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->fileowner().data(), this->fileowner().length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "fileowner");
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        9, this->fileowner(), target);
-  }
-
-  // optional string fileuploader = 10;
+  // optional string fileuploader = 9;
   if (has_fileuploader()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->fileuploader().data(), this->fileuploader().length(),
@@ -734,7 +682,7 @@ void NetdiskRequest::SerializeWithCachedSizes(
       "fileuploader");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        10, this->fileuploader(), target);
+        9, this->fileuploader(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -783,11 +731,11 @@ int NetdiskRequest::ByteSize() const {
           this->filesize());
     }
 
-    // optional string filetype = 6;
-    if (has_filetype()) {
+    // optional string newfile = 6;
+    if (has_newfile()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
-          this->filetype());
+          this->newfile());
     }
 
     // optional string filecollection = 7;
@@ -806,14 +754,7 @@ int NetdiskRequest::ByteSize() const {
 
   }
   if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
-    // optional string fileowner = 9;
-    if (has_fileowner()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::StringSize(
-          this->fileowner());
-    }
-
-    // optional string fileuploader = 10;
+    // optional string fileuploader = 9;
     if (has_fileuploader()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
@@ -862,8 +803,8 @@ void NetdiskRequest::MergeFrom(const NetdiskRequest& from) {
     if (from.has_filesize()) {
       set_filesize(from.filesize());
     }
-    if (from.has_filetype()) {
-      set_filetype(from.filetype());
+    if (from.has_newfile()) {
+      set_newfile(from.newfile());
     }
     if (from.has_filecollection()) {
       set_filecollection(from.filecollection());
@@ -873,9 +814,6 @@ void NetdiskRequest::MergeFrom(const NetdiskRequest& from) {
     }
   }
   if (from._has_bits_[8 / 32] & (0xffu << (8 % 32))) {
-    if (from.has_fileowner()) {
-      set_fileowner(from.fileowner());
-    }
     if (from.has_fileuploader()) {
       set_fileuploader(from.fileuploader());
     }
@@ -908,10 +846,9 @@ void NetdiskRequest::Swap(NetdiskRequest* other) {
     std::swap(md5_, other->md5_);
     std::swap(filename_, other->filename_);
     std::swap(filesize_, other->filesize_);
-    std::swap(filetype_, other->filetype_);
+    std::swap(newfile_, other->newfile_);
     std::swap(filecollection_, other->filecollection_);
     std::swap(filepermission_, other->filepermission_);
-    std::swap(fileowner_, other->fileowner_);
     std::swap(fileuploader_, other->fileuploader_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);

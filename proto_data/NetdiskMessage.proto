@@ -17,11 +17,10 @@ message NetdiskRequest{
     optional string md5 = 3;       // upload case fields...
     optional string filename = 4;
     optional int32  filesize = 5;
-    optional string filetype = 6;
+    optional string newfile = 6;  // only for RENAME case...
     optional string filecollection = 7;
     optional string filepermission = 8;
-    optional string fileowner = 9;
-    optional string fileuploader = 10;
+    optional string fileuploader = 9;
 }
 
 message NetdiskResponse{
