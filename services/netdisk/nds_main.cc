@@ -518,7 +518,7 @@ int do_sharing(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, vo
 
     p_ndr->set_opcode(SHARE);
 
-    if(get_netdisk_key(nds_sql, p_obj, md5) != 0)
+    if(share_file(nds_sql, p_obj, md5) != 0)
     {
         ret = CDS_ERR_SQL_EXECUTE_FAILED;
     }

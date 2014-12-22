@@ -635,3 +635,87 @@ int get_netdisk_key(MYSQL *ms, NetdiskRequest *p_obj, char *p_result)
 
     return ret;
 }
+/**
+ *
+ *return -1 for failure, 0 for OK.
+ */
+int share_file(MYSQL *ms, NetdiskRequest *p_obj, char *p_result)
+{
+    int ret = -1;
+    char sqlcmd[1024];
+
+    p_result[0] = '\0';
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT %s.MD5 %s.SIZE %s.FILENAME %s.TYPE FROM %s WHERE %s.MD5=\'%s\';",
+            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,ND_FILE_TBL,ND_FILE_TBL,ND_FILE_TBL,
+            p_obj->md5().c_str()
+            );
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("failed execute the md5-finding SQL cmd.\n");
+        return ret;
+    }
+
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+    if(mresult)
+    {
+        row = mysql_fetch_row(mresult);
+        if(row != NULL)
+        {
+            
+            /* FIXME - md5sum is 32-len strings
+               strncpy() won't add '\0' when row[0]==32
+             */
+            if (0==copy_shared_file(ms,row,p_obj))
+            {
+                ret = 0;
+            }
+            strncpy(p_result, row[0], 32);
+            p_result[32] = '\0';
+        }
+        else
+        {
+            ERR("Didn't find this md5(%s) in DB\n", p_obj->md5().c_str());
+        }
+    }
+    else
+    {
+        ERR("got NULL on mysql_store_result...\n");
+    }
+
+    return ret;
+}
+
+int copy_shared_file(MYSQL *ms,  MYSQL_ROW  row, NetdiskRequest *p_obj)
+{
+    int ret = 0;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "INSERT INTO %s (%s.MD5,%s.SIZE,%s.FILENAME,%s.TYPE, %s.OWNER) "
+            "VALUES (\'%s\',%d,\'%s\',\'%s\',\'%s\');",
+            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
+            row[0][0],row[0][1],row[0][2],row[0][3], p_obj->user().c_str());
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("**failed update FILE tbl:%s, error:%s\n",
+                sqlcmd, mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+    MYSQL_RES *mresult;
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+
+    return ret;    
+}
