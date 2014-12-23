@@ -6,6 +6,22 @@
         <goldenkey>nanjing21k</goldenkey>
     </tokenserver>
 
+    <!-- all keep alive ping settings... -->
+    <keepalive>
+
+        <!-- tell keepalive where to ping the netdisk service(nds) -->
+        <netdisk>
+            <ip></ip>
+            <port></port>
+            <!-- in minutes Unit -->
+            <interval></interval>
+        </netdisk>
+
+        <tokenauth>
+        </tokenauth>
+
+    </keepalive>
+
     <sqlserver>
         <ip>www.mysqlmaster.com</ip>
         <!-- 0 for default port-->

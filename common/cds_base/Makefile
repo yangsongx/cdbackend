@@ -50,7 +50,7 @@ endif
 SO_LDFLAGS = -shared -fPIC
 
 .PHONY: all
-all: cds cs ca testcode token circle
+all: cds cs ca testcode token circle nds
 
 cds:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
@@ -85,6 +85,9 @@ token:
 circle:
 	cd ../../services/circle_mgr/ && $(MAKE)
 
+nds:
+	cd ../../services/netdisk/ && $(MAKE)
+
 testcode:
 	cd test/ && $(MAKE)
 
@@ -94,5 +97,6 @@ clean:
 	rm -f cds libcds.so libcds.a test/cdemo
 	find . -name '*.o' -exec rm -rf {} ";"
 	find ../../services/token_auth/ -name '*.o' -exec rm -rf {} ";"
+	find ../../services/netdisk/ -name '*.o' -exec rm -rf {} ";"
 	find ../../services/circle_mgr/ -name '*.o' -exec rm -rf {} ";"
 

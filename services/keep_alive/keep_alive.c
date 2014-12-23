@@ -17,7 +17,10 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#include "cds_public.h"
+#define LOG printf
+#define ERR printf
+#define INFO printf
+#define KPI printf
 
 /* default IP / port, if not confi info spcified */
 #define KA_DEFIP    "127.0.0.1"
@@ -52,7 +55,7 @@ static char ka_ip[32] = KA_DEFIP;
 static int  ka_port = KA_DEFPORT;
 static int  ka_maxmail = KA_MAXMAIL;
 static int  ka_health_sum = KA_DEF_HEALTH_SUM;
-static int  ka_interval = 10; /* in minute unit */
+static int  ka_interval = 240; /* in minute unit */
 
 static char ka_ping_payload[] = "00DD13911111111#com.caredear.pcare_parent#1403578305#3QXJFlSXghueTIrDivljeBisw3Ly7SFKaPJTMPKAjJHxIoa/RwkN6tzl2pRfclX2ETCPGAf9BBlLNnKH5my92ObtEXy9gRAPARCIlDMqgd3k6BlwjG6n2txZbZ/y82Feve9kipaGWN6eHA4do7D5h/MFv9EsV/et6o3GxAhIII0=";
 

@@ -109,10 +109,11 @@ int mapping_file_type(const char *filename)
 }
 
 /**
+ * Getting a files' md5 and size in DB(if available)
  *
- * OK for return 0, and p_md5 stored the corresponding file's MD5
+ * OK for return 0, and p_md5/p_size stored the corresponding file's MD5/size
  */
-int mapping_file_md5(MYSQL *ms, NetdiskRequest *p_obj, char *p_md5, int len_md5)
+int mapping_file_md5_and_size(MYSQL *ms, NetdiskRequest *p_obj, char *p_md5, int len_md5, int *p_size )
 {
     int ret = -1;
     char sqlcmd[256];
@@ -120,8 +121,8 @@ int mapping_file_md5(MYSQL *ms, NetdiskRequest *p_obj, char *p_md5, int len_md5)
     MYSQL_ROW  row;
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT %s.MD5 FROM %s WHERE %s.FILENAME=\'%s\' AND %s.OWNER=\'%s\';",
-            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, p_obj->filename().c_str(),
+            "SELECT %s.MD5 %s.SIZE FROM %s WHERE %s.FILENAME=\'%s\' AND %s.OWNER=\'%s\';",
+            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, p_obj->filename().c_str(),
             ND_FILE_TBL, p_obj->user().c_str());
 
     LOCK_SQL;
@@ -141,8 +142,18 @@ int mapping_file_md5(MYSQL *ms, NetdiskRequest *p_obj, char *p_md5, int len_md5)
         if(row != NULL)
         {
             ret = 0;
-            strncpy(p_md5, row[0], len_md5);
-            LOG("\'%s\' ==> MD5:%s\n", p_obj->filename().c_str(), p_md5);
+            if(p_md5 != NULL)
+            {
+                strncpy(p_md5, row[0], len_md5);
+                LOG("\'%s\' ==> MD5:%s\n", p_obj->filename().c_str(), p_md5);
+            }
+
+            if(p_size != NULL && row[1] != NULL)
+            {
+                *p_size = atoi(row[1]);
+                LOG("\'%s\' ==> size:%d\n", p_obj->filename().c_str(), *p_size);
+            }
+
         }
         else
         {
@@ -151,6 +162,43 @@ int mapping_file_md5(MYSQL *ms, NetdiskRequest *p_obj, char *p_md5, int len_md5)
     }
 
     return ret;
+}
+
+int reduce_used_size(MYSQL *ms, NetdiskRequest *p_obj, int size)
+{
+    char sqlcmd[1024];
+
+    if(size == 0)
+    {
+        return 0;
+    }
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE %s SET %s.USED_SIZE=%s.USED_SIZE-%d WHERE %s.USER_NAME=\'%s\';",
+            ND_USER_TBL, ND_USER_TBL, ND_USER_TBL,
+            size, ND_USER_TBL, p_obj->user().c_str());
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        ERR("**failed reduce the USED_SIZE:%s\n", mysql_error(ms));
+        return -1;
+    }
+
+    MYSQL_RES *mresult;
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+    if(!mresult)
+    {
+        ERR("** got a NULL for mysql_store_result()\n");
+        return -1;
+    }
+    else
+    {
+        LOG("Successfully reduce the used size by %d\n", size);
+    }
+
+    return 0;
 }
 
 /**
@@ -513,8 +561,9 @@ int remove_file_from_db(MYSQL *ms, NetdiskRequest *p_obj)
     MYSQL_RES *mresult;
     MYSQL_ROW  row;
     char md5[34]; // 34 is enough for store MD5SUM...
+    int  filesize = 0;
 
-    ret = mapping_file_md5(ms, p_obj, md5, sizeof(md5));
+    ret = mapping_file_md5_and_size(ms, p_obj, md5, sizeof(md5), &filesize);
     if(ret != CDS_OK)
     {
         return ret;
@@ -541,6 +590,10 @@ int remove_file_from_db(MYSQL *ms, NetdiskRequest *p_obj)
         ERR("meet a NULL for  mysql_store_result\n");
         return CDS_ERR_SQL_EXECUTE_FAILED;
     }
+
+    // FIXME - don't check the return value, as we can't 
+    // any thing even we know sth wrong when reduce the file.
+    reduce_used_size(ms, p_obj, filesize);
 
     // next ,check if we need really delete the physical file...
     snprintf(sqlcmd, sizeof(sqlcmd),

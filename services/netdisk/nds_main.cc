@@ -51,7 +51,7 @@ const char *QINIU_SECRET_KEY;
 const char *qiniu_bucket;
 const char *qiniu_domain;
 unsigned int qiniu_expires = 2592000; // 30 dyas by default
-unsigned int qiniu_quota = 10000; // just for debug...
+unsigned int qiniu_quota = 10000; // set 10000 here just for debug..., correct should go into config...
 
 
 int init_and_config(const char *cfg_file)
@@ -106,11 +106,9 @@ int init_and_config(const char *cfg_file)
                     domain, sizeof(domain));
             qiniu_expires = atoi(domain);
 
-            /* TODO - temp comment below, for quota debug...
             get_node_via_xpath("/config/netdisk/qiniu/quota", ctx,
                     domain, sizeof(domain));
             qiniu_quota = atoi(domain);
-            */
 
             //next, overwrite the domain immediately
             get_node_via_xpath("/config/netdisk/qiniu/domain", ctx,
@@ -459,8 +457,6 @@ int do_deletion(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, v
     p_ndr->set_opcode(DELETE);
 
     ret = remove_file_from_db(nds_sql, p_obj);
-
-    LOG("a22301->%d\n", ret);
 
     if(sendback_response(ret, NULL, p_ndr, p_resplen, p_respdata) != 0)
     {
