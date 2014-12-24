@@ -1,8 +1,8 @@
 /**
  * Common Definition for Circle Management Service(CMS)
  */
-#ifndef _CMS_DEF_H
-#define _CMS_DEF_H
+#ifndef _NUS_DEF_H
+#define _NUS_DEF_H
 
 
 #include <my_global.h>
@@ -13,25 +13,25 @@
 #undef max
 #endif
 
+#include "cds_public.h"
 #include "NewUserMessage.pb.h"
 
 using namespace com::caredear;
 
-// the file type mapped to DB
-enum FILE_TYPE {
-    FT_IMAGE = 0,
-    FT_MUSIC = 1,
-    FT_VIDEO,
-    FT_DOC
-};
 
-extern unsigned int qiniu_quota;
-extern struct sql_server_info sql_cfg;
+struct nus_config
+{
+    struct sql_server_info sql_cfg;
+    char memcach_ip[32];
+    int  memcach_port;
+};
 
 extern int INIT_DB_MUTEX();
 extern int CLEAN_DB_MUTEX();
 
-extern MYSQL *GET_CMSSQL(struct sql_server_info *server);
-extern void FREE_CMSSQL(MYSQL *m);
+extern MYSQL *GET_NUSSQL(struct sql_server_info *server);
+extern void FREE_NUSSQL(MYSQL *m);
+
+extern int set_memcache(struct nus_config *p_cfg, const char *key, const char *value);
 
 #endif

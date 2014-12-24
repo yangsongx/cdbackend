@@ -42,6 +42,7 @@ enum {
 };
 
 typedef int (*cb_func)(int size, void *req, int *len, void *resp);
+typedef int (*ping_func)(int size, void *req, int *len, void *resp);
 /**
  * Config that pass to service framework, this aims to be
  * a config with large data block, not like getopt()'s option
@@ -51,6 +52,7 @@ struct addition_config
 {
     const char *ac_cfgfile;  /**< we plan use XML as the cfg file */
     cb_func     ac_handler;  /**< Caller provided the handler file */
+    ping_func   ping_handler; /**< Handler for PING alive request */
 	int         ac_lentype;  /**< LEN_TYPE_BIN/LEN_TYPE_ASCII */
 };
 

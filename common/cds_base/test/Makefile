@@ -13,19 +13,14 @@ DEMO_SRC = server_demo.c
 DEMO_LDFLAGS = -L ../ -lcds -pthread -levent -lcrypto -lxml2
 DEMO_OBJS = $(DEMO_SRC:.c=.o)
 
-KEEP_ALIVE_SRC = keep_alive.c
-KEEP_ALIVE_OBJS = $(KEEP_ALIVE_SRC:.c=.o)
 
-all:cdemo sdemo keep_alive
+all:cdemo sdemo
 
 sdemo:$(DEMO_OBJS)
 	$(CC) -o $@ $^ $(DEMO_LDFLAGS)
 
 cdemo:$(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^
-
-keep_alive:$(KEEP_ALIVE_OBJS)
-	$(CC) -o $@ $^
 
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@

@@ -24,9 +24,6 @@
 
 #include <openssl/hmac.h>
 #include <openssl/md5.h>
-#include <qiniu/base.h>
-#include <qiniu/io.h>
-#include <qiniu/rs.h>
 
 
 #include "cds_public.h"
@@ -42,31 +39,17 @@ using namespace std;
 using namespace google::protobuf::io;
 using namespace com::caredear;
 
-static MYSQL *nds_sql = NULL;
+static MYSQL *nus_sql = NULL;
 
 /* QINIU SDK KEYS... */
-Qiniu_Client qn;
-const char *QINIU_ACCESS_KEY;
-const char *QINIU_SECRET_KEY;
-const char *qiniu_bucket;
-const char *qiniu_domain;
-unsigned int qiniu_expires = 2592000; // 30 dyas by default
-unsigned int qiniu_quota = 10000; // just for debug...
 
 
-static int init_and_config(const char *cfg_file)
+static int get_nus_config(const char *cfg_file, struct nus_config *p_cfg)
 {
     int ret = -1;
     xmlDocPtr doc;
     xmlXPathContextPtr ctx;
-#if 0
-    static char access_key[128];
-    static char secret_key[128];
-    static char bucket[128];
-    static char domain[128];
-
-    /* Init Qiniu stuff,as we need it's service */
-    Qiniu_Servend_Init(-1);
+    char buf[32];
 
     if(access(cfg_file, F_OK) != 0)
     {
@@ -80,47 +63,27 @@ static int init_and_config(const char *cfg_file)
         ctx = xmlXPathNewContext(doc);
         if(ctx != NULL)
         {
-            get_node_via_xpath("/config/netdisk/qiniu/access_key", ctx,
-                    access_key, sizeof(access_key));
+            get_node_via_xpath("/config/new_usertoken/memcache/ip", ctx,
+                    buf, sizeof(buf));
+            strncpy(p_cfg->memcach_ip, buf, sizeof(buf));
 
-            get_node_via_xpath("/config/netdisk/qiniu/secret_key", ctx,
-                    secret_key, sizeof(secret_key));
+            get_node_via_xpath("/config/new_usertoken/memcache/port", ctx,
+                    buf, sizeof(buf));
+            p_cfg->memcach_port = atoi(buf);
 
-            get_node_via_xpath("/config/netdisk/sqlserver/ip", ctx,
-                    sql_cfg.ssi_server_ip, 32);
+            get_node_via_xpath("/config/new_usertoken/sqlserver/ip", ctx,
+                    p_cfg->sql_cfg.ssi_server_ip, 32);
 
-            get_node_via_xpath("/config/netdisk/sqlserver/user", ctx,
-                    sql_cfg.ssi_user_name, 32);
+            get_node_via_xpath("/config/new_usertoken/sqlserver/user", ctx,
+                    p_cfg->sql_cfg.ssi_user_name, 32);
 
-            get_node_via_xpath("/config/netdisk/sqlserver/password", ctx,
-                    sql_cfg.ssi_user_password, 32);
+            get_node_via_xpath("/config/new_usertoken/sqlserver/password", ctx,
+                    p_cfg->sql_cfg.ssi_user_password, 32);
             // FIXME , I don't parse database name here, as we will
             // use database.dbtable in SQL command.
 
-            QINIU_ACCESS_KEY = access_key;
-            QINIU_SECRET_KEY = secret_key;
-
-
-            // re-use a static buf temp for store int...
-            get_node_via_xpath("/config/netdisk/qiniu/expiration", ctx,
-                    domain, sizeof(domain));
-            qiniu_expires = atoi(domain);
-
-            /* TODO - temp comment below, for quota debug...
-            get_node_via_xpath("/config/netdisk/qiniu/quota", ctx,
-                    domain, sizeof(domain));
-            qiniu_quota = atoi(domain);
-            */
-
-            //next, overwrite the domain immediately
-            get_node_via_xpath("/config/netdisk/qiniu/domain", ctx,
-                    domain, sizeof(domain));
-
-            get_node_via_xpath("/config/netdisk/qiniu/bucket", ctx,
-                    bucket, sizeof(bucket));
-
-            qiniu_domain = domain;
-            qiniu_bucket = bucket;
+            INFO("the new user toke SQL info = %s\n",
+                    p_cfg->sql_cfg.ssi_server_ip);
 
             xmlXPathFreeContext(ctx);
             ret = 0;
@@ -128,20 +91,15 @@ static int init_and_config(const char *cfg_file)
 
         xmlFreeDoc(doc);
 
-        LOG("ACCESS KEY:%s, SECRET KEY:%s\n",
-                QINIU_ACCESS_KEY, QINIU_SECRET_KEY);
-        LOG("SQL Server IP : %s Port : %d, user name : %s\n",
-                sql_cfg.ssi_server_ip, sql_cfg.ssi_server_port,
-                sql_cfg.ssi_user_name);
     }
 
-    nds_sql = GET_CMSSQL(&sql_cfg);
-    if(nds_sql == NULL)
+    nus_sql = GET_NUSSQL(&(p_cfg->sql_cfg));
+    if(nus_sql == NULL)
     {
         ERR("failed connecting to the SQL server!\n");
         return -1;
     }
-#endif
+
     return ret;
 }
 
@@ -246,7 +204,10 @@ int in_debug_mode()
  *
  */
 
-
+int ping_nus_handler(int size, void *req, int *len_resp, void *resp)
+{
+    return 0;
+}
 
 /**
  * call back function, handle obj is
@@ -371,32 +332,41 @@ int nus_handler(int size, void *req, int *len_resp, void *resp)
 
 int main(int argc, char **argv)
 {
-    struct addition_config cfg;
+    struct addition_config cfg; // this config is passing to CDS BASE component
+
+    struct nus_config nuscfg; // nus own's config
+
 #ifdef CHECK_MEM_LEAK
     setenv("MALLOC_TRACE", "/tmp/nus.memleak", 1);
     mtrace();
 #endif
 
-    if(init_and_config("/etc/cds_cfg.xml") != 0)
+    if(get_nus_config("/etc/cds_cfg.xml", &nuscfg) != 0)
     {
-        ERR("Failed init and get config info! quit this netdisk service!\n");
+        ERR("Failed init and get config info! quit this new user service!\n");
         return -1;
     }
 
     if(INIT_DB_MUTEX() != 0)
     {
-        FREE_CMSSQL(nds_sql);
+        FREE_NUSSQL(nus_sql);
         ERR("Failed create IPC objs:%d\n", errno);
         return -2;
     }
 
+    //
+    LOG(".. debuging...\n\n");
+    set_memcache(&nuscfg, "13022593515", "tbb8w01xsi4bqkfcmpcyxlx9gn2eahljyzt0pfb5d9crsnz3sy8s850mn548pkr3 2014-12-24 07:54:42");
+    ///
+
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = nus_handler;
+    cfg.ping_handler = ping_nus_handler;
 	cfg.ac_lentype = LEN_TYPE_BIN; /* we use binary leading type */
     cds_init(&cfg, argc, argv);
 
     CLEAN_DB_MUTEX();
-    FREE_CMSSQL(nds_sql);
+    FREE_NUSSQL(nus_sql);
 
     return 0;
 }

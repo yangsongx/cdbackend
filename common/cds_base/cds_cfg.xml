@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
+
+    <new_usertoken>
+        <memcache>
+            <ip>192.168.1.23</ip>
+            <port>12306</port>
+        </memcache>
+        <sqlserver>
+            <ip>192.168.1.13</ip>
+            <user>netdisk</user>
+            <password>heqi</password>
+            <!-- keep below blank -->
+            <databasename></databasename>
+        </sqlserver>
+    </new_usertoken>
+
     <tokenserver>
         <ip>127.8.0.27</ip>
         <port>0</port>

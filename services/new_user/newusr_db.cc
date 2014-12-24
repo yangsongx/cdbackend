@@ -2,13 +2,13 @@
  * The SQL code for NDS
  *
  */
+#include <assert.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <my_global.h>
 #include <mysql.h>
-
-#include <qiniu/base.h>
-#include <qiniu/io.h>
-#include <qiniu/rs.h>
 
 #include "cds_public.h"
 #include "newusr.h"
@@ -19,6 +19,7 @@
 /* DB lock protection */
 pthread_mutex_t sql_mutex;
 
+#if 0
 /* set a defult SQL server value if no config found */
 struct sql_server_info sql_cfg = {
     "127.0.0.1",
@@ -28,33 +29,67 @@ struct sql_server_info sql_cfg = {
     ""
 };
 
-
-extern const char *qiniu_bucket; // defined at nds_main.cc
+#endif
 
 /**
- * Util to delete Qiniu's file
- *
- *@diskkey : the qiniu disk key(MD5SUM for this case)
+ * Act like 'set key 0 0 xx\r\nvalue\r\n' in memcached
  *
  */
-int rm_qiniu_disk_file(const char *diskkey)
+int set_memcache(struct nus_config *p_cfg, const char *key, const char *value)
 {
-    Qiniu_Client theqn;
-    Qiniu_Client_InitMacAuth(&theqn, 1024, NULL);
+    int mem_sock;
+    struct sockaddr_in addr;
+    char buf[256];
+    int len = strlen(value);
 
-    Qiniu_Error err = Qiniu_RS_Delete(&theqn, qiniu_bucket, diskkey);
+    mem_sock = socket(AF_INET, SOCK_STREAM, 0);
+    assert(mem_sock != -1);
 
-    if (err.code != 200)
+    LOG("memcache ip:%s, port:%d\n", p_cfg->memcach_ip, p_cfg->memcach_port);
+
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = inet_addr(p_cfg->memcach_ip);
+    addr.sin_port = htons(p_cfg->memcach_port);
+
+    if(connect(mem_sock, (struct sockaddr *)&addr, sizeof(addr)) == -1)
     {
-        //http status not OK
-        ERR("*** failed delete this file:%s\n", err.message);
+        ERR("Failed calling connect() : %d\n", errno);
     }
     else
     {
-        INFO("[From QiNiu] (%s) key deleted there.\n", diskkey);
+        // setting.
+        snprintf(buf, sizeof(buf),
+                "set %s 0 0 %d\r\n",
+                key, len);
+        write(mem_sock, buf, strlen(buf));
+
+        snprintf(buf, sizeof(buf),
+                "%s\r\n", value);
+        write(mem_sock, buf, strlen(buf));
+        //FIXME will we read?
+
+        len = read(mem_sock, buf, sizeof(buf));
+        if(len > 0)
+        {
+            LOG("<== read=%d bytes\n", len);
+            LOG("<-- out from memcached:%s", buf);
+            LOG("|| ENDOF MARK\n");
+        }
+
     }
 
-    Qiniu_Client_Cleanup(&theqn);
+    close(mem_sock);
+
+    return 0;
+}
+/**
+ * updating new user token into DB(including both cache and SQL)
+ *
+ *
+ *
+ */
+int insert_new_usertoken(const char *diskkey)
+{
 
     return 0;
 }
@@ -65,45 +100,6 @@ int rm_qiniu_disk_file(const char *diskkey)
  *
  *return a FT_XXX type
  */
-int mapping_file_type(const char *filename)
-{
-    int type = FT_DOC;
-    int len = strlen(filename);
-    char *suffix;
-
-    if(filename[len - 1] == '.')
-    {
-        // file ending with dot(i.e, 'xxx.')
-        return type;
-    }
-
-    while(filename[--len] != '.' && len > 0) ;
-
-    if(len != 0)
-    {
-        suffix = (char *) &filename[len + 1]; // + 1 to surpass '.' char
-        LOG("%s ===> %s\n", filename, suffix);
-        if(!strncmp(suffix, "jpg", 3) || !strncmp(suffix, "jpeg", 4)
-          || !strncmp(suffix, "png", 3) || !strncmp(suffix, "bmp", 3)
-          || !strncmp(suffix, "gif", 3))
-        {
-            type = FT_IMAGE;
-        }
-        else if(!strncmp(suffix, "3gp", 3) || !strncmp(suffix, "mp3", 3)
-                || !strncmp(suffix, "wma", 3))
-        {
-            type = FT_MUSIC;
-        }
-        else if(!strncmp(suffix, "mp4", 3) || !strncmp(suffix, "3gp", 3))
-        {
-            type = FT_VIDEO;
-        }
-
-        // all others be considered as doc
-    }
-
-    return type;
-}
 
 /**
  *
@@ -126,11 +122,10 @@ int CLEAN_DB_MUTEX()
 /**
  *@server: the MySQL server config info
  */
-MYSQL *GET_CMSSQL(struct sql_server_info *server)
+MYSQL *GET_NUSSQL(struct sql_server_info *server)
 {
     MYSQL *msql;
 
-#if 0
     LOG("mysql info:MYSQL-%s\n", mysql_get_client_info());
     msql = mysql_init(NULL);
     if(msql != NULL)
@@ -138,8 +133,8 @@ MYSQL *GET_CMSSQL(struct sql_server_info *server)
         if(!mysql_real_connect(msql, server->ssi_server_ip,
                     server->ssi_user_name,
                     server->ssi_user_password,
-                    server->ssi_database,
-                    server->ssi_server_port,
+                    "", // we will use db.table.xx syntax in sql cmd
+                    0, // 0 by default
                     NULL,
                     0))
         {
@@ -153,11 +148,11 @@ MYSQL *GET_CMSSQL(struct sql_server_info *server)
             INFO("\tConnecting to MySQL Database....[OK]\n");
         }
     }
-#endif
+
     return msql;
 }
 
-void FREE_CMSSQL(MYSQL *m)
+void FREE_NUSSQL(MYSQL *m)
 {
     if(m != NULL)
         mysql_close(m);
