@@ -13,6 +13,11 @@ extern "C"
 /* max SQL command length */
 #define CDS_MAX_SQL  512
 
+/* if leading-length is 0x1234, we consider the requets
+   as a ping alive package, and will fall back to the
+   possible ping handler */
+#define MAGIC_PINGALIVE  0x1234
+
 /* a testing magic uid */
 #define MAGIC_UID   "13911111111"
 
@@ -42,7 +47,7 @@ enum {
 };
 
 typedef int (*cb_func)(int size, void *req, int *len, void *resp);
-typedef int (*ping_func)(int size, void *req, int *len, void *resp);
+//typedef int (*ping_func)(int size, void *req, int *len, void *resp);
 /**
  * Config that pass to service framework, this aims to be
  * a config with large data block, not like getopt()'s option
@@ -52,7 +57,7 @@ struct addition_config
 {
     const char *ac_cfgfile;  /**< we plan use XML as the cfg file */
     cb_func     ac_handler;  /**< Caller provided the handler file */
-    ping_func   ping_handler; /**< Handler for PING alive request */
+    cb_func     ping_handler; /**< Handler for PING alive request */
 	int         ac_lentype;  /**< LEN_TYPE_BIN/LEN_TYPE_ASCII */
 };
 

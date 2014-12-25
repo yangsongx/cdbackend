@@ -9,7 +9,7 @@ SRC = NewUserMessage.pb.cc \
 
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = $(COMMON_CFLAGS) -I../../common/cds_base/ -I /usr/include/libxml2/ `mysql_config --cflags` -fpermissive
+CXXFLAGS = $(COMMON_CFLAGS) -I../../common/cds_base/ -I /usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x
 
 # Release should use -O2
 
@@ -19,7 +19,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L ../../common/cds_base/ -lcds -pthread -levent -lcurl -lssl -lcrypto -lxml2 -lprotobuf `mysql_config --libs`
+LDFLAGS = -L ../../common/cds_base/ -lcds -pthread -levent -lcurl -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.

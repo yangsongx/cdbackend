@@ -25,24 +25,28 @@
 #include <openssl/hmac.h>
 #include <openssl/md5.h>
 
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+#include <google/protobuf/io/coded_stream.h>
 
 #include "cds_public.h"
 #include "newusr.h"
-
-
-#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
-#include <google/protobuf/io/coded_stream.h>
 #include "NewUserMessage.pb.h"
 
 /* Now, we're going to C++ world */
 using namespace std;
+using namespace memcache;
 using namespace google::protobuf::io;
 using namespace com::caredear;
 
 static MYSQL *nus_sql = NULL;
 
-/* QINIU SDK KEYS... */
+/* Use a token generation encrypt key */
+static unsigned char encrypt_aeskey[16] = {
+        0xB7, 0xc3, 0x55, 0x57, 0x42, 0xd4, 0x74, 0x9b,
+        0xb8, 0x5a, 0x3f, 0x4f, 0x41, 0xb8, 0x3d, 0xed
+};
 
+memcached_st *memc = NULL;
 
 static int get_nus_config(const char *cfg_file, struct nus_config *p_cfg)
 {
@@ -146,13 +150,33 @@ int get_md5(const char *filename, char *p_md5)
  *
  * reutrn 0 for successful, otherwise return -1
  */
-int sendback_response(int result_code, const char *errmsg, NewUserResponse *p_ndr, int *p_resplen, void *p_respdata)
+static int sendback_response(int result_code, const char *errmsg, NewUserResponse *p_nur, int *p_resplen, void *p_respdata)
 {
     unsigned short len;
 
-    p_ndr->set_result_code(result_code);
+    p_nur->set_result_code(result_code);
 
-    return 0;
+    if(result_code != CDS_OK)
+    {
+        p_nur->set_user_token("BAD");
+    }
+
+    len = p_nur->ByteSize();
+
+    if(len >= 1024)
+    {
+        ERR("FATAL ERROR, response exceed 1k!, should we continue?\n");
+    }
+
+    // we use 2-byte as leading length
+    *p_resplen = (len + 2);
+
+    ArrayOutputStream aos(p_respdata, *p_resplen);
+    CodedOutputStream cos(&aos);
+
+    // add the leading-len
+    cos.WriteRaw(&len, sizeof(len));
+    return ((p_nur->SerializeToCodedStream(&cos) == true) ? 0 : -1);
 }
 
 /**
@@ -164,11 +188,11 @@ int sendback_response(int result_code, const char *errmsg, NewUserResponse *p_nd
  * Debug cookie flag
  *
  */
-int in_debug_mode()
+static int in_debug_mode()
 {
     int debug = 0;
 
-    if(access("/tmp/nd.debug", F_OK) == 0)
+    if(access("/tmp/nu.debug", F_OK) == 0)
     {
         debug = 1;
     }
@@ -188,10 +212,6 @@ int in_debug_mode()
  *
  */
 
-/**
- * update the DB as we found APK upload the file successfully
- *
- */
 
 /**
  * o Mapp the file to MD5 key in Qiniu
@@ -200,12 +220,63 @@ int in_debug_mode()
  */
 
 /**
- * handler for user want to download a netdisk file...
+ * this is a handler for ping alive package, if sth wrong happended,
+ * we need probably send out an email for this!
  *
  */
-
 int ping_nus_handler(int size, void *req, int *len_resp, void *resp)
 {
+    int ret = 0;
+
+    LOG("A PING alive handler\n");
+
+    ret = keep_db_connected(nus_sql);
+
+    /* for ping case, we don't need Protobuf's sendbackresponse...
+     */
+    *len_resp = 4;
+    *(int *)resp = ret;
+
+    return ret;
+}
+
+
+/**
+ * This will:
+ * 
+ * o create a new token
+ * o update memcach and DB
+ * o send back the response to caller.
+ *
+ *@user_token [output]: store user token string
+ *
+ */
+static int new_user_token(const char *username, char *user_token)
+{
+    char buf[64];
+    struct timeval tv;
+    if(gettimeofday(&tv, NULL) != 0)
+    {
+        // this should NEVER happen
+        tv.tv_sec = 123;
+    }
+
+    snprintf(buf, sizeof(buf), "%s#%ld#com.caredear.service",
+           username, tv.tv_sec);
+
+    char *val = encrypt_token_string_with_aes(buf, (char *)encrypt_aeskey);
+
+    //FIXME - caller should provide big enough size to avoid overflow
+    if(val != NULL)
+    {
+        strcpy(user_token, val);
+        free(val);
+    }
+    else
+    {
+        user_token[0] = '\0';
+    }
+
     return 0;
 }
 
@@ -219,8 +290,9 @@ int nus_handler(int size, void *req, int *len_resp, void *resp)
     unsigned short len;
     int ret = CDS_OK;
     bool ok = false;
-#if 0
-    NetdiskResponse nd_resp;
+    string username;
+    NewUserRequest reqobj;
+    NewUserResponse nu_resp;
 
     if(size >= 1024)
     {
@@ -228,9 +300,9 @@ int nus_handler(int size, void *req, int *len_resp, void *resp)
         ERR("Exceed limit(%d > %d), don't handle this request\n",
                 size, 1024);
         ret = CDS_ERR_REQ_TOOLONG;
-        if(sendback_response(ret, "too much long length in req", &nd_resp, len_resp, resp) != 0)
+        if(sendback_response(ret, NULL, &nu_resp, len_resp, resp) != 0)
         {
-            ERR("***Failed Serialize the too-long error data\n");
+            ERR("WARNING Failed Serialize the too-long error data\n");
         }
 
         return ret;
@@ -238,103 +310,42 @@ int nus_handler(int size, void *req, int *len_resp, void *resp)
 
     LOG("got %d size from client\n", size);
 
-    NetdiskRequest reqobj;
+
     ArrayInputStream in(req, size);
     CodedInputStream is(&in);
 
     ok = reqobj.ParseFromCodedStream(&is);
+
     if(ok)
     {
         // After go here, all data section got
-        // and stored in NetdiskRequest obj.
+        // and stored in NewUserRequest obj.
 
-        switch(reqobj.opcode())
-        {
-            case UPLOADING:
-                LOG("\n=== UPLOADING case===\n");
-                LOG("User:%s, File:%s, size:%d, MD5:%s\n",
-                        reqobj.user().c_str(),
-                        reqobj.filename().c_str(),
-                        reqobj.filesize(),
-                        reqobj.md5().c_str());
-                LOG("==================\n\n");
+        username = reqobj.user();
 
-                ret = do_upload(&reqobj, &nd_resp, len_resp, resp);
-                break;
+        //new_user_token();
 
-            case UPLOADED:
-                LOG("\n=== UPLOADED case===\n");
-                LOG("User:%s, File:%s, size:%d, MD5:%s\n",
-                        reqobj.user().c_str(),
-                        reqobj.filename().c_str(),
-                        reqobj.filesize(),
-                        reqobj.md5().c_str());
-                LOG("==================\n\n");
-                ret = complete_upload(&reqobj, &nd_resp, len_resp, resp);
-                break;
-
-            case DOWNLOADURL:
-                LOG("\n=== DOWNLOAD case===\n");
-                LOG("User:%s, File:%s\n",
-                        reqobj.user().c_str(), reqobj.filename().c_str());
-                LOG("==================\n\n");
-                ret = do_download(&reqobj, &nd_resp, len_resp, resp);
-                break;
-
-            case DELETE:
-                LOG("\n=== DELETE case===\n");
-                LOG("User:%s, File:%s\n",
-                        reqobj.user().c_str(), reqobj.filename().c_str());
-                LOG("==================\n\n");
-
-                ret = do_deletion(&reqobj, &nd_resp, len_resp, resp);
-                break;
-
-            case SHARE:
-                LOG("\n=== SHARE case===\n");
-                LOG("Try sharing File:%s\n",
-                        reqobj.filename().c_str());
-                LOG("==================\n\n");
-
-                ret = do_sharing(&reqobj, &nd_resp, len_resp, resp);
-                break;
-
-            case RENAME: // such as user move one file to another plaee
-                // this is just change DB record, won't modify any stuff
-                // on Qiniu Server
-                LOG("\n=== RENAME case===\n");
-                LOG("Try renaming %s --> %s\n",
-                        reqobj.filename().c_str(), reqobj.newfile().c_str());
-                LOG("==================\n\n");
-
-                ret = do_rename(&reqobj, &nd_resp, len_resp, resp);
-                break;
-
-            case LISTFILE:
-                //
-                //TODO, this is a complicated operation
-                //
-                break;
-
-            default:
-                break;
-        }
-
+        //TODO new user token....
 
     }
     else
     {
         ERR("**Failed parse the request obj in protobuf!\n");
+        ret = CDS_ERR_REQ_INVALID;
+        if(sendback_response(ret, NULL, &nu_resp, len_resp, resp) != 0)
+        {
+            ERR("WARNING Failed Serialize the req-invalide error data\n");
+        }
     }
-#endif
+
     return ret;
 }
 
 int main(int argc, char **argv)
 {
     struct addition_config cfg; // this config is passing to CDS BASE component
-
     struct nus_config nuscfg; // nus own's config
+    char buffer[256];
 
 #ifdef CHECK_MEM_LEAK
     setenv("MALLOC_TRACE", "/tmp/nus.memleak", 1);
@@ -347,23 +358,53 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    snprintf(buffer, sizeof(buffer), "--SERVER=%s:%d",
+            nuscfg.memcach_ip, nuscfg.memcach_port);
+    memc = memcached(buffer, strlen(buffer));
+    if(memc == NULL)
+    {
+        ERR("**failed to connect \'%s\' memcached server!\n", buffer);
+    }
+    else
+    {
+        INFO("connect to memcached server(\'%s\') [OK]\n", buffer);
+    }
+
     if(INIT_DB_MUTEX() != 0)
     {
         FREE_NUSSQL(nus_sql);
         ERR("Failed create IPC objs:%d\n", errno);
         return -2;
     }
+#if 0
+    //just debug code...
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    char *plain = "13815882359#1419492935#com.caredear.service";
+    char * value = encrypt_token_string_with_aes(plain, encrypt_aeskey);
 
-    //
-    LOG(".. debuging...\n\n");
-    set_memcache(&nuscfg, "13022593515", "tbb8w01xsi4bqkfcmpcyxlx9gn2eahljyzt0pfb5d9crsnz3sy8s850mn548pkr3 2014-12-24 07:54:42");
+    printf("%s-> val:%s\n",  plain, value);
+
+    char *v2 = decrypt_token_string_with_aes(value, encrypt_aeskey);
+    printf("\n%s\n", v2);
+
+    free(v2);
+    free(value);
+#endif
+
     ///
-
+    // Now, drop into cds_base loop...
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = nus_handler;
     cfg.ping_handler = ping_nus_handler;
 	cfg.ac_lentype = LEN_TYPE_BIN; /* we use binary leading type */
     cds_init(&cfg, argc, argv);
+
+    // quit action...
+    if(memc != NULL)
+    {
+        memcached_free(memc);
+    }
 
     CLEAN_DB_MUTEX();
     FREE_NUSSQL(nus_sql);

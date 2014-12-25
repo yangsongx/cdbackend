@@ -1,8 +1,0 @@
-package com.caredear;
-
-
-message CircleContent{
-    required string uid = 1;
-    required int32  startpoint = 2;
-    required string syn_data = 3;
-}

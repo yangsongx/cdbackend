@@ -13,6 +13,7 @@
 #undef max
 #endif
 
+#include <libmemcached/memcached.hpp>
 #include "cds_public.h"
 #include "NewUserMessage.pb.h"
 
@@ -26,12 +27,15 @@ struct nus_config
     int  memcach_port;
 };
 
+extern memcached_st *memc;
+
 extern int INIT_DB_MUTEX();
 extern int CLEAN_DB_MUTEX();
 
 extern MYSQL *GET_NUSSQL(struct sql_server_info *server);
 extern void FREE_NUSSQL(MYSQL *m);
 
+extern int keep_db_connected(MYSQL *ms);
 extern int set_memcache(struct nus_config *p_cfg, const char *key, const char *value);
-
+extern int is_user_registered(MYSQL *ms, const char *username);
 #endif

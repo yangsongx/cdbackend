@@ -94,6 +94,11 @@ nus:
 testcode:
 	cd test/ && $(MAKE)
 
+# FIXME - Should I call ldconfig for below?
+.PHONY:install
+install:
+	mkdir -p $(DESTDIR)/usr/local/lib/
+	cp libcds.so $(DESTDIR)/usr/local/lib/
 
 .PHONY:clean
 clean:

@@ -315,6 +315,7 @@ struct settings {
     int tail_repair_time;   /* LRU tail refcount leak repair time */
     bool flush_enabled;     /* flush_all enabled */
     cb_func  callback_func;
+    cb_func  callback_ping;
     char     leading_len_type;
 };
 

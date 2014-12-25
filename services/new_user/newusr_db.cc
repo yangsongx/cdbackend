@@ -13,23 +13,53 @@
 #include "cds_public.h"
 #include "newusr.h"
 
-#define ND_USER_TBL   "netdisk.USERS"
-#define ND_FILE_TBL   "netdisk.FILES"
+#define NU_USER_TBL   "ucen.USERS"
 
 /* DB lock protection */
 pthread_mutex_t sql_mutex;
 
-#if 0
-/* set a defult SQL server value if no config found */
-struct sql_server_info sql_cfg = {
-    "127.0.0.1",
-    0,
-    "root",
-    "njcm",
-    ""
-};
+/**
+ * This is to ensure memcached and DB are both healthy
+ *
+ * MySQL will auto-disconnect you if you idle > 8 hours
+ *
+ * return the CDS_XXX error code
+ */
+int keep_db_connected(MYSQL *ms)
+{
+    int ret = CDS_OK;
+    char sqlcmd[128];
+    MYSQL_RES *mresult;
 
-#endif
+    sprintf(sqlcmd, "SELECT ID FROM %s;", NU_USER_TBL);
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("failed execute the ping sql cmd:%s\n", mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+
+    if(mresult)
+    {
+        MYSQL_ROW row;
+        row = mysql_fetch_row(mresult);
+        //DO NOTHING HERE, we just call a store result code,
+        //since MySQL connection timeout is removed when
+        //code come here.
+    }
+    else
+    {
+        ERR("got a null result for ping SQL cmd\n");
+        ret = CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    return ret;
+}
 
 /**
  * Act like 'set key 0 0 xx\r\nvalue\r\n' in memcached
@@ -160,9 +190,76 @@ void FREE_NUSSQL(MYSQL *m)
 
 
 /**
+ * check in memcached if user(key) existed or not.
  *
- *return 1 means exceed quota
+ *return 1 means existed, otherwise 0
  */
+static int get_username_in_mem(const char *username)
+{
+    int existed = 0;
+    int len;
+
+    if(memc != NULL)
+    {
+        memcached_return_t rc;
+        char *val = memcached_get_by_key(memc, NULL, 0,
+                username, strlen(username), &len, 0, &rc);
+
+        if(val != NULL && rc == MEMCACHED_SUCCESS) {
+            existed = 1;
+            free(val);
+        }
+    }
+
+    return existed;
+}
+
+/**
+ * find user name info in DB
+ *
+ *return 1 means existed, otherwise 0
+ */
+static int get_username_in_db(MYSQL *ms, const char *username)
+{
+    int existed = 0;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT username FROM %s WHERE username=\'%s\';",
+            NU_USER_TBL, username);
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        // TODO code
+    }
+    else
+    {
+        // TODO code
+    }
+
+    UNLOCK_SQL;
+
+    return existed;
+}
+/**
+ *
+ * reuturn 1 means user already registered before, otherwise return 0.
+ */
+int is_user_registered(MYSQL *ms, const char *username)
+{
+    int existed = 0;
+
+    existed = get_username_in_mem(username);
+
+    if(existed == 0)
+    {
+        // if memcache not found, check it in DB again...
+        existed = get_username_in_db(ms, username);
+    }
+
+    return existed;
+}
 
 /**
  *

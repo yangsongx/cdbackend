@@ -1122,13 +1122,24 @@ static void sendback_result(conn *c) {
  * if we have a complete line in the buffer, process it.
  */
 static int try_parse_command(conn *c) {
+    int i;
+
     assert(c != NULL);
     assert(c->rcurr <= (c->rbuf + c->rsize));
     assert(c->rbytes > 0);
 
+    if(c->rsize == MAGIC_PINGALIVE && settings.callback_ping != NULL)
+    {
+        // PING ALIVE handler
+        i = settings.callback_ping(c->rbytes, c->rbuf, &(c->wbytes), c->wbuf);
+        INFO("ping-cb returned %d(%s)\n", i, convert_err_to_str(i));
+        sendback_result(c);
+        return 1;
+    }
+
+    // Normal data handler case...
     if(settings.callback_func!= NULL)
     {
-        int i;
         LOG("the client want %d bytes data\n", c->rbytes);
 
         i = settings.callback_func(c->rbytes, c->rbuf, &(c->wbytes), c->wbuf);
@@ -1294,6 +1305,14 @@ static enum try_read_result try_read_network(conn *c) {
 
         return READ_ERROR;
     }
+
+    // 2014-12 code change begin
+    if(c->rsize == MAGIC_PINGALIVE && settings.callback_ping != NULL)
+    {
+        // directly go through next try_parse_command()...
+        return READ_DATA_RECEIVED;
+    }
+    // 2014-12 code change end
 
     c->rbytes = 0;
     int avail = 0;
@@ -2937,6 +2956,11 @@ int cds_init(struct addition_config *acfg, int argc, char **argv)
     if(acfg->ac_handler != NULL)
     {
         settings.callback_func = acfg->ac_handler;
+    }
+    
+    if(acfg->ping_handler != NULL)
+    {
+        settings.callback_ping = acfg->ping_handler;
     }
 
 	settings.leading_len_type = acfg->ac_lentype;
