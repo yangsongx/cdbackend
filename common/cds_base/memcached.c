@@ -1299,20 +1299,22 @@ static enum try_read_result try_read_network(conn *c) {
 
     c->rsize = try_know_request_length(c->sfd);
     LOG("%d: Client tell me he wants to send %d byte data to me\n", c->sfd, c->rsize);
+
+    // 2014-12 code change begin
+    if(c->rsize == MAGIC_PINGALIVE && settings.callback_ping != NULL)
+    {
+        // directly go through next try_parse_command()...
+        c->rbytes = 2; // this just bypass assertion failure
+        return READ_DATA_RECEIVED;
+    }
+    // 2014-12 code change end
+
     if(c->rsize <= 0 || c->rsize >= DATA_BUFFER_SIZE)
     {
         ERR("client's leading length is incorrect(it is %d)\n", c->rsize);
 
         return READ_ERROR;
     }
-
-    // 2014-12 code change begin
-    if(c->rsize == MAGIC_PINGALIVE && settings.callback_ping != NULL)
-    {
-        // directly go through next try_parse_command()...
-        return READ_DATA_RECEIVED;
-    }
-    // 2014-12 code change end
 
     c->rbytes = 0;
     int avail = 0;

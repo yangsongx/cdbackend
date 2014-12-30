@@ -369,6 +369,27 @@ int simulate_client_upload(NetdiskResponse *p_ndr)
 }
 
 /**
+ * this is a handler for ping alive package, if sth wrong happended,
+ * we need probably send out an email for this!
+ *
+ * return value is also CDS_XXX constants.
+ */
+int ping_nds_handler(int size, void *req, int *len_resp, void *resp)
+{
+    int ret = 0;
+
+    ret = keep_nds_db_connected(nds_sql);
+    LOG("nds ping result=%d\n", ret);
+
+    /* for ping case, we don't need Protobuf's sendbackresponse...
+     */
+    *len_resp = 4;
+    *(int *)resp = ret;
+
+    return ret;
+}
+
+/**
  * handler for user try uploading a file to netdisk. This function will just return
  * upload token to caller.
  *
@@ -675,6 +696,7 @@ int main(int argc, char **argv)
 
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = nds_handler;
+    cfg.ping_handler = ping_nds_handler;
 	cfg.ac_lentype = LEN_TYPE_BIN; /* we use binary leading type */
     cds_init(&cfg, argc, argv);
 

@@ -22,7 +22,9 @@ enum FILE_TYPE {
     FT_IMAGE = 0,
     FT_MUSIC = 1,
     FT_VIDEO,
-    FT_DOC
+    FT_CONTACTS,    /**< backup contacts data file */
+    FT_SMS,         /**< backup short SMS data file */
+    FT_DOC          /**< others will be considered as documents... */
 };
 
 extern unsigned int qiniu_quota;
@@ -41,4 +43,6 @@ extern int get_netdisk_key(MYSQL *ms, NetdiskRequest *p_obj, char *p_result);
 extern int remove_file_from_db(MYSQL *ms, NetdiskRequest *p_obj);
 extern int share_file(MYSQL *ms, NetdiskRequest *p_obj, char *p_result);
 extern int copy_shared_file(MYSQL *ms,  MYSQL_ROW  row, NetdiskRequest *p_obj);
+extern int keep_nds_db_connected(MYSQL *ms);
+
 #endif

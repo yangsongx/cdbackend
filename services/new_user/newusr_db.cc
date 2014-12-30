@@ -197,7 +197,7 @@ void FREE_NUSSQL(MYSQL *m)
 static int get_username_in_mem(const char *username)
 {
     int existed = 0;
-    int len;
+    size_t len = 0;
 
     if(memc != NULL)
     {

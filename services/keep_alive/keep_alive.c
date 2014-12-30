@@ -57,7 +57,7 @@ static int  ka_maxmail = KA_MAXMAIL;
 static int  ka_health_sum = KA_DEF_HEALTH_SUM;
 static int  ka_interval = 240; /* in minute unit */
 
-static char ka_ping_payload[] = "00DD13911111111#com.caredear.pcare_parent#1403578305#3QXJFlSXghueTIrDivljeBisw3Ly7SFKaPJTMPKAjJHxIoa/RwkN6tzl2pRfclX2ETCPGAf9BBlLNnKH5my92ObtEXy9gRAPARCIlDMqgd3k6BlwjG6n2txZbZ/y82Feve9kipaGWN6eHA4do7D5h/MFv9EsV/et6o3GxAhIII0=";
+//static char ka_ping_payload[] = "00DD13911111111#com.caredear.pcare_parent#1403578305#3QXJFlSXghueTIrDivljeBisw3Ly7SFKaPJTMPKAjJHxIoa/RwkN6tzl2pRfclX2ETCPGAf9BBlLNnKH5my92ObtEXy9gRAPARCIlDMqgd3k6BlwjG6n2txZbZ/y82Feve9kipaGWN6eHA4do7D5h/MFv9EsV/et6o3GxAhIII0=";
 
 time_t start_time;
 time_t end_time;
@@ -243,7 +243,11 @@ void alive_ping()
 
     LOG("Now, connected to %s:%d [OK]\n", ka_ip, ka_port);
 
-    rc = write(s, ka_ping_payload, strlen(ka_ping_payload));
+    /* NOTE - magic is 0x1234, but we write here byte-by-byte, so
+       need a swap. */
+    const char ka_ping_payload[2] = {0x34, 0x12};
+
+    rc = write(s, ka_ping_payload, 2);
     if(rc > 0)
     {
         rc = read(s, &result, sizeof(result));
