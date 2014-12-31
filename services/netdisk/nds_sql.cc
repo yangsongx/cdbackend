@@ -129,9 +129,8 @@ int mapping_file_md5_and_size(MYSQL *ms, NetdiskRequest *p_obj, char *p_md5, int
     MYSQL_ROW  row;
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT %s.MD5 %s.SIZE FROM %s WHERE %s.FILENAME=\'%s\' AND %s.OWNER=\'%s\';",
-            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, p_obj->filename().c_str(),
-            ND_FILE_TBL, p_obj->user().c_str());
+            "SELECT MD5 SIZE FROM %s WHERE FILENAME=\'%s\' AND OWNER=\'%s\';",
+            ND_FILE_TBL, p_obj->filename().c_str(), p_obj->user().c_str());
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -182,9 +181,8 @@ int reduce_used_size(MYSQL *ms, NetdiskRequest *p_obj, int size)
     }
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "UPDATE %s SET %s.USED_SIZE=%s.USED_SIZE-%d WHERE %s.USER_NAME=\'%s\';",
-            ND_USER_TBL, ND_USER_TBL, ND_USER_TBL,
-            size, ND_USER_TBL, p_obj->user().c_str());
+            "UPDATE %s SET USED_SIZE=USED_SIZE-%d WHERE USER_NAME=\'%s\';",
+            ND_USER_TBL, size, p_obj->user().c_str());
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -274,10 +272,9 @@ int create_new_user(MYSQL *ms, NetdiskRequest *p_obj)
     strftime(timeformat, sizeof(timeformat), "%Y-%m-%d %H:%M:%S", localtime_r(&t, &re));
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "INSERT INTO %s (%s.USER_NAME,%s.USED_SIZE,%s.USER_QUOTA,%s.CREATE_TIME,%s.MODIFY_TIME) "
+            "INSERT INTO %s (USER_NAME,USED_SIZE,USER_QUOTA,CREATE_TIME,MODIFY_TIME) "
             "VALUES (\'%s\',0,%d,\'%s\',\'%s\');",
-            ND_USER_TBL, ND_USER_TBL, ND_USER_TBL, ND_USER_TBL, ND_USER_TBL, ND_USER_TBL,
-            p_obj->user().c_str(), qiniu_quota, timeformat, timeformat);
+            ND_USER_TBL, p_obj->user().c_str(), qiniu_quota, timeformat, timeformat);
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -312,8 +309,8 @@ int exceed_quota(MYSQL *ms, NetdiskRequest *p_obj)
 
     // When we compare, choose which one? (DB? or configxml?)
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT %s.USED_SIZE FROM %s WHERE %s.USER_NAME=\'%s\';",
-            ND_USER_TBL, ND_USER_TBL, ND_USER_TBL, username);
+            "SELECT USED_SIZE FROM %s WHERE USER_NAME=\'%s\';",
+            ND_USER_TBL, username);
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -366,8 +363,8 @@ int preprocess_upload_req (MYSQL *ms, NetdiskRequest *p_obj)
 
     // First, check if user is a new netdisk users...
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT %s.USER_NAME FROM %s WHERE %s.USER_NAME=\'%s\';",
-            ND_USER_TBL, ND_USER_TBL, ND_USER_TBL, p_obj->user().c_str());
+            "SELECT USER_NAME FROM %s WHERE USER_NAME=\'%s\';",
+            ND_USER_TBL, p_obj->user().c_str());
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -407,8 +404,8 @@ int preprocess_upload_req (MYSQL *ms, NetdiskRequest *p_obj)
     // so check if file already existed...
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT %s.ID FROM %s WHERE %s.MD5=\'%s\';",
-            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, p_obj->md5().c_str());
+            "SELECT ID FROM %s WHERE MD5=\'%s\';",
+            ND_FILE_TBL, p_obj->md5().c_str());
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -457,9 +454,8 @@ int update_existed_file_db(MYSQL *ms, NetdiskRequest *p_obj)
     MYSQL_ROW  row;
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT %s.ID FROM %s WHERE %s.MD5=\'%s\' AND %s.FILENAME=\'%s\';",
-            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, p_obj->md5().c_str(),
-            ND_FILE_TBL, p_obj->filename().c_str());
+            "SELECT ID FROM %s WHERE MD5=\'%s\' AND FILENAME=\'%s\';",
+            ND_FILE_TBL,  p_obj->md5().c_str(), p_obj->filename().c_str());
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -535,10 +531,9 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
 
     // Next, updating FILES table
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "INSERT INTO %s (%s.MD5,%s.SIZE,%s.FILENAME,%s.CREATE_TIME,%s.MODIFY_TIME,%s.TYPE,%s.OWNER) VALUES "
+            "INSERT INTO %s (MD5,SIZE,FILENAME,CREATE_TIME,MODIFY_TIME,TYPE,OWNER) VALUES "
             "(\'%s\',%d,\'%s\',\'%s\',\'%s\',%d,\'%s\');",
-            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
-            md5, filesize, filename, timeformat, timeformat, type, username);
+            ND_FILE_TBL, md5, filesize, filename, timeformat, timeformat, type, username);
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -578,9 +573,8 @@ int remove_file_from_db(MYSQL *ms, NetdiskRequest *p_obj)
     }
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "DELETE FROM %s WHERE %s.MD5=\'%s\' AND %s.OWNER=\'%s\';",
-            ND_FILE_TBL, ND_FILE_TBL, md5,
-            ND_FILE_TBL,p_obj->user().c_str());
+            "DELETE FROM %s WHERE MD5=\'%s\' AND OWNER=\'%s\';",
+            ND_FILE_TBL, md5, p_obj->user().c_str());
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -605,8 +599,8 @@ int remove_file_from_db(MYSQL *ms, NetdiskRequest *p_obj)
 
     // next ,check if we need really delete the physical file...
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT count(ID) FROM %s WHERE %s.MD5=\'%s\';",
-            ND_FILE_TBL, ND_FILE_TBL, md5);
+            "SELECT count(ID) FROM %s WHERE MD5=\'%s\';",
+            ND_FILE_TBL, md5);
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -654,9 +648,8 @@ int get_netdisk_key(MYSQL *ms, NetdiskRequest *p_obj, char *p_result)
     p_result[0] = '\0';
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT %s.MD5 FROM %s WHERE %s.OWNER=\'%s\' AND %s.FILENAME=\'%s\';",
-            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
-            p_obj->user().c_str(), ND_FILE_TBL, p_obj->filename().c_str()
+            "SELECT MD5 FROM %s WHERE OWNER=\'%s\' AND FILENAME=\'%s\';",
+            ND_FILE_TBL, p_obj->user().c_str(), p_obj->filename().c_str()
             );
 
     LOCK_SQL;
@@ -761,10 +754,10 @@ int copy_shared_file(MYSQL *ms,  MYSQL_ROW  row, NetdiskRequest *p_obj)
     char sqlcmd[1024];
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "INSERT INTO %s (%s.MD5,%s.SIZE,%s.FILENAME,%s.TYPE, %s.OWNER) "
+            "INSERT INTO %s (MD5,SIZE,FILENAME,TYPE,OWNER) "
             "VALUES (\'%s\',%d,\'%s\',\'%s\',\'%s\');",
-            ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL, ND_FILE_TBL,
-            row[0][0],row[0][1],row[0][2],row[0][3], p_obj->user().c_str());
+            ND_FILE_TBL, 
+            row[0],atoi(row[1]),row[2],row[3], p_obj->user().c_str());
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))

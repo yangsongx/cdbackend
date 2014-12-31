@@ -5,7 +5,7 @@ DEBUG=true
 CC = gcc
 SRC = keep_alive.c
 
-CFLAGS += -I /usr/include/libxml2/
+CFLAGS += -I /usr/include/libxml2/ -W -Wall
 
 # Release should use -O2
 

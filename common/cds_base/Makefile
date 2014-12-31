@@ -100,8 +100,8 @@ testcode:
 # FIXME - Should I call ldconfig for below?
 .PHONY:install
 install:
-	mkdir -p $(DESTDIR)/usr/local/lib/
-	cp libcds.so $(DESTDIR)/usr/local/lib/
+	mkdir -p $(DESTDIR)/usr/lib/
+	cp libcds.so $(DESTDIR)/usr/lib/libcds.so
 
 .PHONY:clean
 clean:
