@@ -70,6 +70,12 @@ void FREE_MYSQL(MYSQL *m)
         mysql_close(m);
 }
 
+void cleanup_res(MYSQL *ms, pthread_mutex_t *m)
+{
+    LOG("...Free unused resources...\n");
+    FREE_MYSQL(ms);
+    pthread_mutex_destroy(m);
+}
 
 int read_config(const char *cfg_file)
 {
@@ -209,11 +215,20 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    if(pthread_mutex_init(&sql_mutex, NULL) != 0)
+    {
+        ERR("failed init the mutex!\n");
+        goto failed;
+    }
+
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = sips_handler;
     cfg.ping_handler = NULL;
     cfg.ac_lentype = LEN_TYPE_BIN;
     cds_init(&cfg, argc, argv);
+
+failed:
+    cleanup_res(msql, &sql_mutex);
 
     return 0;
 }
