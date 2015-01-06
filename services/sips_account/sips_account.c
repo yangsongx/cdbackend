@@ -26,10 +26,14 @@
 
 #include <my_global.h>
 #include <mysql.h>
+#include <errmsg.h>
 
 #include "cds_public.h"
 
+#define MAXRETRY 3
+
 static MYSQL *msql = NULL;
+static int already_reconn = 0; // a flag, which let's reconnecting SQL
 
 struct sql_server_info sql_cfg;
 pthread_mutex_t sql_mutex;
@@ -145,9 +149,35 @@ int get_user_token(MYSQL *ms, const char *username, char *token_data)
         ERR("**failed query sql cmd:%s, error:%s\n",
                 sqlcmd, mysql_error(ms));
 
-        // TODO = code need check the timeout idle case!
+        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR)
+        {
+            if(already_reconn++ > MAXRETRY)
+            {
+                ERR("Now, we retry exceed max(%d), give up\n", already_reconn);
+                ret = CDS_ERR_SQL_DISCONNECTED;
+            }
+            else
+            {
+                ERR("Wow, found server lost connection, need reconnecting...\n");
+                FREE_MYSQL(ms);
 
-        ret = CDS_ERR_SQL_EXECUTE_FAILED;
+                msql = GET_MYSQL(&sql_cfg);
+                if(msql != NULL)
+                {
+                    // recursive calling
+                    get_user_token(msql,username,token_data);
+                }
+                else
+                {
+                    ERR("can't connect to SQL, abort\n");
+                    ret = CDS_ERR_SQL_DISCONNECTED;
+                }
+            }
+        }
+        else
+        {
+            ret = CDS_ERR_SQL_EXECUTE_FAILED;
+        }
     }
     else
     {
