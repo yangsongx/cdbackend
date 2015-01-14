@@ -78,4 +78,11 @@
             <databasename></databasename>
         </sqlserver>
     </sips_account>
+    
+    <stunlist>
+        <server>stun.ideasip.com</server>
+        <server>stun.sipgate.net</server>
+        <server>stun.voxgratia.org</server>
+        <server>stun.voipbuster.com</server>
+    </stunlist>
 </config>
