@@ -38,7 +38,7 @@ using namespace std;
 
 
 #define DAY_SECONDS (3600*24)
-#define STUNLIST_PATH  "/opt/usercenter/conf/active.stun"
+#define STUNLIST_PATH  "/opt/usercenter/public/active.stun"
 
 static int get_xpath_data(const char *xpath, xmlXPathContextPtr ctx, list<string> *server_list) 
 {
