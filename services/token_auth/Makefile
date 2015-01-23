@@ -2,22 +2,27 @@
 #
 CONFIG_SINGLE_APPTOKEN=true
 CDSBASE = ../../common/cds_base/
-CC = gcc
+CC = g++
 
-SRC = token_main.c \
-      sql_operation.c
+SRC = token_main.cc \
+      sql_operation.cc \
+      mem_operation.cc \
+      db_access.cc
 
 CLIENT_TOKEN_SRC = client_token.c
 
 
-include ../../common/cds_base/common.mk
-CFLAGS = $(COMMON_CFLAGS) -I../../common/cds_base/ `mysql_config --cflags` -I /usr/include/libxml2/
+CXXFLAGS = -I$(CDSBASE) `mysql_config --cflags` -I /usr/include/libxml2/ -std=gnu++0x
+BUILD_NUMBER = $(shell date +%Y%m%d)
+CXXCFLAGS += -DBUILD_NUMBER=$(BUILD_NUMBER)
 
 ifeq ($(CONFIG_SINGLE_APPTOKEN),true)
-CFLAGS += -DCONFIG_SINGLE_APPTOKEN
+CXXFLAGS += -DCONFIG_SINGLE_APPTOKEN
 endif
 
-LDFLAGS = -L ../../common/cds_base/ -lcds -pthread -levent -lcrypto -lxml2 `mysql_config --libs`
+CXXFLAGS += -O2
+
+LDFLAGS = -L $(CDSBASE) -lcds -pthread -levent -lcrypto -lxml2 -lmemcached `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
@@ -25,19 +30,16 @@ ifneq ($(STATICLIB),false)
 LDFLAGS += -lm -ldl -lz -lrt -static
 endif
 
-OBJS = $(SRC:.c=.o)
-CLIENT_TOKEN_OBJS = $(CLIENT_TOKEN_SRC:.c=.o)
+OBJS = $(SRC:.cc=.o)
+#CLIENT_TOKEN_OBJS = $(CLIENT_TOKEN_SRC:.c=.o)
 
-all:tauth ct
+all:tauth
 
 tauth:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-ct:$(CLIENT_TOKEN_OBJS)
-	$(CC) -o $@ $^ $(LDFLAGS)
-
-.c.o:
-	$(CC) $(CFLAGS) -c $< -o $@
+.cc.o:
+	$(CC) $(CXXFLAGS) -c $< -o $@
 
 .PHONY:install
 install:

@@ -37,11 +37,12 @@ void fill_server_info(xmlXPathContextPtr ctx, struct sql_server_info *server)
 {
     char buf[32];
 
-    get_node_via_xpath("/config/sqlserver/ip", ctx, server->ssi_server_ip, 32);
-    get_node_via_xpath("/config/sqlserver/port", ctx, buf, sizeof(buf));
-    get_node_via_xpath("/config/sqlserver/user", ctx, server->ssi_user_name, 32);
-    get_node_via_xpath("/config/sqlserver/password", ctx, server->ssi_user_password, 32);
-    get_node_via_xpath("/config/sqlserver/databasename", ctx, server->ssi_database, 32);
+    /* TODO - need let below token_auth node moved to token_auth component */
+    get_node_via_xpath("/config/token_auth/sqlserver/ip", ctx, server->ssi_server_ip, 32);
+    get_node_via_xpath("/config/token_auth/sqlserver/port", ctx, buf, sizeof(buf));
+    get_node_via_xpath("/config/token_auth/sqlserver/user", ctx, server->ssi_user_name, 32);
+    get_node_via_xpath("/config/token_auth/sqlserver/password", ctx, server->ssi_user_password, 32);
+    get_node_via_xpath("/config/token_auth/sqlserver/databasename", ctx, server->ssi_database, 32);
 
     server->ssi_server_port = atoi(buf);
 }

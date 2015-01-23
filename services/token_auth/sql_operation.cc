@@ -13,6 +13,7 @@
  */
 #include <my_global.h>
 #include <mysql.h>
+#include <errmsg.h> //MySQL error code
 #include <string.h>
 
 #include "cds_public.h"
@@ -21,35 +22,47 @@
 /* DATABASE Table Names */
 #define USER_TBL        "ucen.USERS"
 #define USER_DETAIL_TBL "ucen.USER_DETAILS"
+#define DEVICE_TBL      "ucen.DEVICES"
 
 /* Table's Column Name */
 #define USER_TBL_USERNAME_COL  "username"
 
-int ping_sql(MYSQL *ms)
+/**
+ * keep MySQL connect by keep alive ping request
+ */
+int keep_tauth_db_connected(MYSQL *ms)
 {
-    int ret = 0;
-#if 0
+    int ret = CDS_OK;
     char sqlcmd[128];
+    MYSQL_RES *mresult;
 
-    snprintf(sqlcmd, sizeof(sqlcmd), "SELECT * FROM %s WHERE username=\'13911111111\';",
-            USER_TBL);
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT ID FROM %s;", USER_TBL);
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
     {
-        ERR("**failed execute the ping SQL command:%s,error:%s\n",
-                sqlcmd, mysql_error(ms));
-        ret = -1;
+        UNLOCK_SQL;
+        ERR("failed execute the ping sql cmd:%s\n", mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+
+    if(mresult)
+    {
+        MYSQL_ROW row;
+        row = mysql_fetch_row(mresult);
+        //DO NOTHING HERE, we just call a store result code,
+        //since MySQL connection timeout is removed when
+        //code come here.
     }
     else
     {
-        /* MUST store the result, otherwise, will cauase CR_COMMANDS_OUT_OF_SYNC */
-        MYSQL_RES *mresult;
-        mresult = mysql_store_result(ms);
+        ERR("got a null result for ping SQL cmd\n");
+        ret = CDS_ERR_SQL_EXECUTE_FAILED;
     }
-
-    UNLOCK_SQL;
-#endif
     return ret;
 }
 
@@ -319,23 +332,29 @@ int get_token_from_db(MYSQL *ms, char *uid, char *token_in_db, int token_size)
 }
 
 /**
- *@cexpir_str : An ecrypt expire str.
+ * Fetch user token info from MySQL DB
+ *
+ *@req_info: the request's token info
  *@expir_str : DB's data for TOKEN_EXPIRATE
  *@expir_size: specify the @expir_str's length.
  *
- * return 0 for successful, -1 for error case, -2 for MySQL lost connection, and -3 for record NOT in DB.
+ * return 0 for successful, others are failure, and caller need take care of the
+ * MySQL dis-connect case after 8 hours idle period.
  */
-int fetch_expire_from_db(MYSQL *ms, const char *cexpir_str, char *lastlogin_str, int lastlogin_size, char *expir_str, int expir_size)
+int fetch_tokeninfo_from_db(MYSQL *ms, struct token_string_info *req_info,  char *uid_in_db, int uid_in_db_size,
+        char *did_in_db, int did_in_db_size, char *lastlogin_str, int lastlogin_size, char *expir_str, int expir_size)
 {
     char sqlcmd[1024];
+    int  ret = CDS_OK;
 
     memset(expir_str, '\0', expir_size);
     memset(lastlogin_str, '\0', lastlogin_size);
 
+    // TODO, below cmd is incorrect, need replace with USER_TOKEN in devices in the future,
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT TOKEN_EXPIRATE,LAST_LOGIN FROM %s WHERE USER_TOKEN=\'%s\';",
-            USER_DETAIL_TBL,
-            cexpir_str);
+        "SELECT USERS.username,DEVICES.ID,DEVICES.LAST_LOGIN,DEVICES.TOKEN_EXPIRATE "
+        "FROM %s,%s WHERE DEVICES.USER_TOKEN=\'%s\' AND USERS.ID=DEVICES.USER_ID",
+        USER_TBL, DEVICE_TBL, req_info->tsi_rsastr);
 
     LOCK_SQL;
 
@@ -356,14 +375,14 @@ int fetch_expire_from_db(MYSQL *ms, const char *cexpir_str, char *lastlogin_str,
                 mysql_error(ms));
         if(strstr(mysql_error(ms), "server has gone away"))
         {
-            /* set -2 mean MySQL disconnection due to no interactive data
+            /* this means MySQL disconnection due to no interactive data
                exchange during long-time(default is 8h) */
-            return -2;
+            return CDS_ERR_SQL_DISCONNECTED;
         }
-        return -1;
+        return CDS_ERR_SQL_EXECUTE_FAILED;
     }
 
-    LOG("execute the (%s) [OK]\n", sqlcmd);
+    LOG("SQL execute the complicated token info [OK]\n");
 
     MYSQL_RES *mresult;
     MYSQL_ROW  row;
@@ -376,17 +395,17 @@ int fetch_expire_from_db(MYSQL *ms, const char *cexpir_str, char *lastlogin_str,
         row = mysql_fetch_row(mresult);
         if(row != NULL)
         {
-            /* got the first-match if multi hit */
-            strncpy(expir_str, row[0], expir_size);
-
-            //FIXME - for second column, it would be LAST_LOGIN data!
-            if(mysql_num_fields(mresult) > 1)
+            if(mysql_num_fields(mresult) == 4)
             {
-                strncpy(lastlogin_str, row[1], lastlogin_size);
+                strncpy(uid_in_db, row[0], uid_in_db_size);
+                strncpy(did_in_db, row[1], did_in_db_size);
+                strncpy(lastlogin_str, row[2], lastlogin_size);
+                strncpy(expir_str, row[3], expir_size);
             }
             else
             {
-                ERR("*** can't get LAST_LOGIN column, check DB please!\n");
+                ERR("*** can't get correct column, check DB please!\n");
+                ret = CDS_ERR_SQL_NORECORD_FOUND;
             }
         }
         else
@@ -394,12 +413,152 @@ int fetch_expire_from_db(MYSQL *ms, const char *cexpir_str, char *lastlogin_str,
             ERR("**failed fetch DB row:%s, probably no record found\n",
                     mysql_error(ms));
             /* record not found, we need take a look! */
-            return -3;
+            ret = CDS_ERR_SQL_EXECUTE_FAILED;
         }
     }
 
+    return ret;
+}
+
+/**
+ * Util to let's check if this login is within 2 days
+ *
+ * return 1 means we need increment DEIVCES.LOGIN_DAYS, otherewise will re-count it.
+ */
+int is_contious_day_for_this_login(MYSQL *ms, struct token_data_wrapper *tokeninfo)
+{
+    int continuous = 0;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT DEVICES.ID FROM %s WHERE DEVICES.USER_TOKEN=\'%s\' AND "
+            "(TO_DAYS(NOW()) - TO_DAYS(USER_DETAILS.LAST_LOGIN)) >=1 AND (TO_DAYS(NOW()) - TO_DAYS(USER_DETAILS.LAST_LOGIN))<2",
+            DEVICE_TBL, tokeninfo->tdw_token);
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("***failed query login acitivty :%s\n", mysql_error(ms));
+        continuous = 1; // NOTE - for SQL failure, we still don't re-count user's login activity
+    }
+    else
+    {
+        LOG("Got the query login activity OK");
+        MYSQL_RES *mresult;
+        MYSQL_ROW  row;
+        mresult = mysql_store_result(ms);
+
+        UNLOCK_SQL;
+
+        if(mresult)
+        {
+            row = mysql_fetch_row(mresult);
+            if(row != NULL)
+            {
+                // YES! I keep login with 2 dyas. mark flag as 1
+                continuous = 1;
+            }
+        }
+    }
+
+    return continuous;
+}
+
+/**
+ * Try find if we record user's continuous login activity.
+ *
+ * @tokeninfo : the toke info data
+ * @flag : 0 means we need re-count the USER_DETAILS.LOGIN_DAYS field, 1 will increment this number
+ *
+ */
+int record_continuous_login_activity(MYSQL *ms, struct token_data_wrapper *tokeninfo, int flag)
+{
+    char sqlcmd[1024];
+
+    if(flag == 1)
+    {
+        snprintf(sqlcmd, sizeof(sqlcmd),
+                "UPDATE %s,%s SET USER_DETAILS.LOGIN_DAYS=USER_DETAILS.LOGIN_DAYS+1 WHERE "
+                "DEVICES.USER_ID=USER_DETAILS.ID AND DEVICES.USER_TOKEN=\'%s\'",
+                USER_DETAIL_TBL, DEVICE_TBL, tokeninfo->tdw_token);
+    }
+    else
+    {
+        snprintf(sqlcmd, sizeof(sqlcmd),
+                "UPDATE %s,%s SET USER_DETAILS.LOGIN_DAYS=1 WHERE "
+                "DEVICES.USER_ID=USER_DETAILS.ID AND DEVICES.USER_TOKEN=\'%s\'",
+                USER_DETAIL_TBL, DEVICE_TBL, tokeninfo->tdw_token);
+    }
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("*** failed record the login days in USER_DETAILS:%s\n",
+                mysql_error(ms));
+        return -1;
+    }
+
+    MYSQL_RES *mresult;
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+
+
+    /* FIXME for the UPDATE, mresult is NULL */
+
     return 0;
 }
+
+/**
+ * A new version(2015-1-21) of update token related info to MySQL DB
+ *
+ * return CDS_XXX code
+ */
+int push_tokeninfo_to_db(MYSQL *ms, struct token_data_wrapper *tokeninfo)
+{
+    int ret = CDS_OK;
+    char sqlcmd[1024];
+
+    // before update, try if we can set lasting-login-day value..
+    if(is_contious_day_for_this_login(ms, tokeninfo) == 1)
+    {
+        /* increment */
+        record_continuous_login_activity(ms, tokeninfo, 1);
+    }
+    else
+    {
+        /* reset to 1 */
+        record_continuous_login_activity(ms, tokeninfo, 0);
+    }
+
+    //
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE");
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("***failed execute the push token info DB cmd:%s\n", mysql_error(ms));
+        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR)
+        {
+            return CDS_ERR_SQL_DISCONNECTED;
+        }
+
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    //
+    MYSQL_RES *mresult;
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+
+    // FIXME update table need result here?
+
+    return ret;
+}
+
 
 /**
  *@server: the MySQL server config info

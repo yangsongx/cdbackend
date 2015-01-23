@@ -2,12 +2,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef __cplusplus
 #define __USE_XOPEN
+#endif
+
 #include <time.h>
 
 #ifdef CHECK_MEM_LEAK
 #include <mcheck.h>
 #endif
+
+/* libmemcached library */
+#include <libmemcached/memcached.h>
 
 #include "cds_public.h"
 #include "token_def.h"
@@ -20,6 +27,8 @@
                              goto failed
 
 static MYSQL *glb_msql = NULL;
+static memcached_st *glb_memc = NULL;
+
 pthread_mutex_t sql_mutex;
 
 /* set a defult value if no config found */
@@ -30,6 +39,63 @@ struct sql_server_info server_cfg = {
     "njcm",
     "ucen"
 };
+
+static char glb_memc_cfg[128];
+
+extern int get_token_info(memcached_st *memc, MYSQL *ms, struct token_string_info *info, struct token_data_wrapper *result);
+
+
+int init_tauth_config(const char *cfg_file)
+{
+    char buffer[128];
+    xmlDocPtr doc;
+    xmlXPathContextPtr ctx;
+
+    if(access(cfg_file, F_OK) != 0)
+    {
+        ERR("\'%s\' not existed!\n", cfg_file);
+        return -1;
+    }
+
+    doc = xmlParseFile(cfg_file);
+    if(doc != NULL)
+    {
+        ctx = xmlXPathNewContext(doc);
+        if(ctx != NULL)
+        {
+            get_node_via_xpath("/config/token_auth/sqlserver/ip", ctx,
+                    server_cfg.ssi_server_ip, 32);
+            get_node_via_xpath("/config/token_auth/sqlserver/port", ctx,
+                    server_cfg.ssi_server_ip, 32);
+            get_node_via_xpath("/config/token_auth/sqlserver/user", ctx,
+                    server_cfg.ssi_user_name, 32);
+            get_node_via_xpath("/config/token_auth/sqlserver/password", ctx,
+                    server_cfg.ssi_user_password, 32);
+
+
+            get_node_via_xpath("/config/token_auth/memcache/ip", ctx,
+                    buffer, sizeof(buffer));
+
+            sprintf(glb_memc_cfg, "--SERVER=%s:", buffer);
+
+            get_node_via_xpath("/config/token_auth/memcache/port", ctx,
+                    buffer, sizeof(buffer));
+            strcat(glb_memc_cfg, buffer);
+
+            xmlXPathFreeContext(ctx);
+        }
+
+        xmlFreeDoc(doc);
+
+        LOG("ACCESS KEY:%s, SECRET KEY:%s\n",
+                QINIU_ACCESS_KEY, QINIU_SECRET_KEY);
+        LOG("SQL Server IP : %s Port : %d, user name : %s\n",
+                sql_cfg.ssi_server_ip, sql_cfg.ssi_server_port,
+                sql_cfg.ssi_user_name);
+    }
+
+    return 0;
+}
 
 int extract_token_string_data(char *token_data, struct token_string_info *info)
 {
@@ -105,19 +171,22 @@ int match_basic_info(struct token_string_info *s, struct cipher_token_string_inf
  *
  * return 1 means user not expired(may auto-update DB if needed), otherwise return 0.
  */
-int is_valid_user(struct token_string_info *s, struct cipher_token_string_info *c)
+int is_valid_user(const char *user_id)
 {
     char lastlogin_line[32]; /* string format as 'YYYY-MM-DD HH:MM:SS' */
     char expire_dead_line[32]; /* string format as 'YYYY-MM-DD HH:MM:SS' */
     int  rc = 0;
 
+    // FIXME 2015-1-21 don't use this DB flag yet....
+#if 0
     if(BYPASS_DB_COOKIE_ON)
     {
         INFO("PASS DB ON - return is_valid with 1 directly");
         return 1;
     }
-
-    rc = fetch_expire_from_db(glb_msql, c->csi_expire,
+#endif
+#if 0 // a22301  below code is not needed any more
+    rc = fetch_expire_from_db(glb_msql, NULL, c->csi_expire,
             lastlogin_line, sizeof(lastlogin_line),
             expire_dead_line, sizeof(expire_dead_line));
 
@@ -132,7 +201,7 @@ int is_valid_user(struct token_string_info *s, struct cipher_token_string_info *
         glb_msql = GET_MYSQL(&server_cfg);
         if(glb_msql != NULL)
         {
-            rc = fetch_expire_from_db(glb_msql, c->csi_expire,
+            rc = fetch_expire_from_db(glb_msql, NULL, c->csi_expire,
                     lastlogin_line, sizeof(lastlogin_line),
                     expire_dead_line, sizeof(expire_dead_line));
         }
@@ -150,7 +219,7 @@ int is_valid_user(struct token_string_info *s, struct cipher_token_string_info *
             if(!strcmp(db_user_token, c->csi_expire))
             {
                 // try again
-                rc = fetch_expire_from_db(glb_msql, c->csi_expire,
+                rc = fetch_expire_from_db(glb_msql, NULL, c->csi_expire,
                         lastlogin_line, sizeof(lastlogin_line),
                         expire_dead_line, sizeof(expire_dead_line));
             }
@@ -212,9 +281,34 @@ int is_valid_user(struct token_string_info *s, struct cipher_token_string_info *
     }
 
     update_token_time_to_db(glb_msql, s, c, last, cal);
-
+#endif
     return 1;
 }
+
+/**
+ * @auth_data : a parsed data request from Web
+ *
+ * return CDS_XXX constant, which CDS_OK is succesful.
+ */
+int do_token_authentication(struct token_string_info *auth_data)
+{
+    int ret = 0;
+    //struct token_data_wrapper base_data;
+
+    ret = get_token_info(glb_memc, glb_msql, auth_data, NULL /*&base_data*/);
+    if(ret == CDS_ERR_SQL_DISCONNECTED)
+    {
+        ERR("MySQL disconnected, try re-conn it one more time\n");
+        // TODO need re-connect to the SQL!
+    }
+    else
+    {
+        // TODO how to handle other cases?
+    }
+
+    return ret;
+}
+
 /**
  * call back function, handle Token
  *
@@ -242,7 +336,7 @@ int token_handler(int size, void *req, int *len, void *resp)
                     size, (char *)req);
 
     struct token_string_info ts;
-    extract_token_string_data(req, &ts);
+    extract_token_string_data((char *)req, &ts);
     LOG("Phase-I extraction is complete:\n");
     LOG("user ID = %s, login time = %d, app ID = %s, rsa str = %s\n",
        ts.tsi_userid, ts.tsi_login, ts.tsi_appid, ts.tsi_rsastr);
@@ -278,26 +372,28 @@ int token_handler(int size, void *req, int *len, void *resp)
 #else
     /* for single APP TOKEN case */
     cs.csi_expire = ts.tsi_rsastr;
-    if(PING_ALIVE_TESTING(ts.tsi_userid))
-    {
-        /* Need ping a SQL to avoid that server broken after 8 hours. */
-        if(ping_sql(glb_msql) == 0)
-        {
-            INFO("+===> A PING Payload, mark it as CDS_OK as MySQL access is also OK\n");
-            COMPOSE_RESP(CDS_OK);
-        }
-        else
-        {
-            ERR("---> A PING Payload, but MySQL access failed!\n");
-            COMPOSE_RESP(CDS_ERR_SQL_EXECUTE_FAILED);
-        }
-    }
 #endif
+
+
+
+
+    /// 2015 new code change begin
+    //
+    ret = do_token_authentication(&ts);
+    //
+    // 2015 new code end
+
+
+
+
+
+#if 0
     if(!is_valid_user(&ts, &cs))
     {
         ERR("User token expired!\n");
         COMPOSE_RESP(CDS_ERR_USER_TOKEN_EXPIRED);
     }
+#endif
 
     /* If comes here, it is OK case */
     *(int *)resp = CDS_OK;
@@ -311,23 +407,51 @@ failed:
     return ret;
 }
 
+/**
+ * Handler the ping alive request
+ *
+ */
+int ping_tauth_handler(int size, void *req, int *len_resp, void *resp)
+{
+    int ret = 0;
+
+    ret = keep_tauth_db_connected(glb_msql);
+    LOG("tauth ping result=%d\n", ret);
+
+    /* for ping case, we don't need Protobuf's sendbackresponse...
+     */
+    *len_resp = 4;
+    *(int *)resp = ret;
+
+    return ret;
+}
+
+
 int main(int argc, char **argv)
 {
     struct addition_config cfg;
 #ifdef CHECK_MEM_LEAK
+    setenv("MALLOC_TRACE", "/tmp/tauth.memleak", 1);
     mtrace();
 #endif
 
-    if(parse_config_file("/etc/cds_cfg.xml", &server_cfg) != 0)
-    {
-        ERR("config file probably missed, will use default settings.\n");
-        /* for cfg file error, we still continue execution.  */
-    }
+    init_tauth_config("/etc/cds_cfg.xml");
 
-    LOG("(%d)SQL Server IP : %s Port : %d, user name : %s, DB name : %s\n",
+    LOG("(%d)== TAUTH Program==\nSQL Server IP : %s Port : %d, user name : %s, DB name : %s\n",
             BUILD_NUMBER, /* automatically generated via make */
             server_cfg.ssi_server_ip, server_cfg.ssi_server_port,
             server_cfg.ssi_user_name, server_cfg.ssi_database);
+    LOG("memcached config:%s\n", glb_memc_cfg);
+
+    // 2015-1-21 try add memcached support
+
+    glb_memc = memcached(glb_memc_cfg, strlen(glb_memc_cfg));
+    if(!glb_memc)
+    {
+        ERR("Warning, failed connect to the memcached!\n");
+        // FIXME when acceess mem simultaneous, IPC wanted or not wanted?
+    }
+    // end of 2015-1-21 memcached support
 
     if(!BYPASS_DB_COOKIE_ON)
     {
@@ -349,6 +473,7 @@ int main(int argc, char **argv)
 
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = token_handler;
+    cfg.ping_handler = ping_tauth_handler;
     cds_init(&cfg, argc, argv);
 
     pthread_mutex_destroy(&sql_mutex);
@@ -356,6 +481,11 @@ int main(int argc, char **argv)
     if(!BYPASS_DB_COOKIE_ON)
     {
         FREE_MYSQL(glb_msql);
+    }
+
+    if(glb_memc != NULL)
+    {
+        memcached_free(glb_memc);
     }
 
     return 0;
