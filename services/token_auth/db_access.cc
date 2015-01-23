@@ -34,12 +34,17 @@ int map_into_mem(memcached_st *memc, const char *key, struct token_data_wrapper 
  */
 int refresh_token_info_data(memcached_st *memc, MYSQL *ms, struct token_data_wrapper *tokeninfo)
 {
+    int ret = 0;
+
     // step 1 - mem
     map_into_mem(memc, tokeninfo->tdw_token, tokeninfo);
 
     // step 2 - db
-    push_tokeninfo_to_db(ms, tokeninfo);
+    KPI("==>Begin WRITE DB for TAUTH\n");
+    ret = push_tokeninfo_to_db(ms, tokeninfo);
+    KPI("==>Finished WRITE DB for TAUTH(code=%d)\n", ret);
 
+    /* FIXME - still return 0 here, even sth wrong when updating DB */
     return 0;
 }
 
@@ -189,6 +194,7 @@ int get_token_info(memcached_st *memc, MYSQL *ms, struct token_string_info *info
         {
             struct tm lst;
             struct tm epr;
+            struct tm *ptr;
 
             memset(&lst, 0x00, sizeof(lst));
             memset(&epr, 0x00, sizeof(epr));
@@ -197,12 +203,50 @@ int get_token_info(memcached_st *memc, MYSQL *ms, struct token_string_info *info
             {
                 ERR("failed call strptime on lastlogin, data:%s, error:%d\n",
                     lastlogin_line, errno);
-                return CDS_ERR_LIBC_FAILURE;
+                if(!strncmp(lastlogin_line, "0000-00-00", 10))
+                {
+                    /* FIXME for the incorrect date time,
+                     * I think need silient set it to a
+                     * correct value, and don't treat it
+                     * as an authentication failure.
+                     */
+                    time_t cur_time;
+                    time(&cur_time);
+                    cur_time -= (24*60*60); // make it a little earlier
+                    ptr = localtime(&cur_time);
+                    memcpy(&lst, ptr, sizeof(lst));
+#if 1 // just debug
+                    LOG("DEBUG  == fake a last login :%s", asctime(&lst));
+#endif
+                }
+                else
+                {
+                    return CDS_ERR_LIBC_FAILURE;
+                }
             }
             if(strptime(expire_dead_line, "%Y-%m-%d %H:%M:%S", &epr) == NULL)
             {
                 ERR("failed call strptime on expire:%d\n", errno);
-                return CDS_ERR_LIBC_FAILURE;
+                if(!strncmp(lastlogin_line, "0000-00-00", 10))
+                {
+                    /* FIXME for the incorrect date time,
+                     * I think need silient set it to a
+                     * correct value, and don't treat it
+                     * as an authentication failure.
+                     */
+                    time_t cur_time;
+                    time(&cur_time);
+                    cur_time += (24*60*60); // expiration should be later than current time
+                    ptr = localtime(&cur_time);
+                    memcpy(&epr, ptr, sizeof(epr));
+#if 1 // just debug
+                    LOG("DEBUG  == fake a expiration :%s", asctime(&epr));
+#endif
+                }
+                else
+                {
+                    return CDS_ERR_LIBC_FAILURE;
+                }
             }
 
 

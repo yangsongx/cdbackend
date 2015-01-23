@@ -87,11 +87,6 @@ int init_tauth_config(const char *cfg_file)
 
         xmlFreeDoc(doc);
 
-        LOG("ACCESS KEY:%s, SECRET KEY:%s\n",
-                QINIU_ACCESS_KEY, QINIU_SECRET_KEY);
-        LOG("SQL Server IP : %s Port : %d, user name : %s\n",
-                sql_cfg.ssi_server_ip, sql_cfg.ssi_server_port,
-                sql_cfg.ssi_user_name);
     }
 
     return 0;
@@ -298,12 +293,22 @@ int do_token_authentication(struct token_string_info *auth_data)
     ret = get_token_info(glb_memc, glb_msql, auth_data, NULL /*&base_data*/);
     if(ret == CDS_ERR_SQL_DISCONNECTED)
     {
-        ERR("MySQL disconnected, try re-conn it one more time\n");
-        // TODO need re-connect to the SQL!
+        ERR("MySQL disconnected, try re-conn it one more time...\n");
+        glb_msql = GET_MYSQL(&server_cfg);
+        if(glb_msql != NULL)
+        {
+            INFO("Reconnecting to the MySQL successfully, do TAUTH again!\n");
+            ret = get_token_info(glb_memc, glb_msql, auth_data, NULL);
+        }
+        else
+        {
+            INFO("A pity for reconn MySQL,I consider this req as invalid user!\n");
+        }
     }
     else
     {
         // TODO how to handle other cases?
+        // Currrently, we don't do anything for this.
     }
 
     return ret;
@@ -374,29 +379,14 @@ int token_handler(int size, void *req, int *len, void *resp)
     cs.csi_expire = ts.tsi_rsastr;
 #endif
 
-
-
-
     /// 2015 new code change begin
     //
     ret = do_token_authentication(&ts);
     //
     // 2015 new code end
 
-
-
-
-
-#if 0
-    if(!is_valid_user(&ts, &cs))
-    {
-        ERR("User token expired!\n");
-        COMPOSE_RESP(CDS_ERR_USER_TOKEN_EXPIRED);
-    }
-#endif
-
     /* If comes here, it is OK case */
-    *(int *)resp = CDS_OK;
+    *(int *)resp = ret;
     *len = sizeof(int);
 
 failed:
@@ -418,8 +408,6 @@ int ping_tauth_handler(int size, void *req, int *len_resp, void *resp)
     ret = keep_tauth_db_connected(glb_msql);
     LOG("tauth ping result=%d\n", ret);
 
-    /* for ping case, we don't need Protobuf's sendbackresponse...
-     */
     *len_resp = 4;
     *(int *)resp = ret;
 
@@ -437,11 +425,11 @@ int main(int argc, char **argv)
 
     init_tauth_config("/etc/cds_cfg.xml");
 
-    LOG("(%d)== TAUTH Program==\nSQL Server IP : %s Port : %d, user name : %s, DB name : %s\n",
+    INFO("(%d)== TAUTH Program==\nSQL Server IP : %s Port : %d, user name : %s, DB name : %s\n",
             BUILD_NUMBER, /* automatically generated via make */
             server_cfg.ssi_server_ip, server_cfg.ssi_server_port,
             server_cfg.ssi_user_name, server_cfg.ssi_database);
-    LOG("memcached config:%s\n", glb_memc_cfg);
+    INFO("memcached config:%s\n", glb_memc_cfg);
 
     // 2015-1-21 try add memcached support
 
@@ -474,6 +462,11 @@ int main(int argc, char **argv)
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = token_handler;
     cfg.ping_handler = ping_tauth_handler;
+
+    /* 2015-1-23 - we use ASCII leading len type
+     * for back compatability
+     */
+    cfg.ac_lentype = LEN_TYPE_ASCII;
     cds_init(&cfg, argc, argv);
 
     pthread_mutex_destroy(&sql_mutex);

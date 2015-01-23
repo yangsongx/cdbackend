@@ -13,14 +13,17 @@ CLIENT_TOKEN_SRC = client_token.c
 
 
 CXXFLAGS = -I$(CDSBASE) `mysql_config --cflags` -I /usr/include/libxml2/ -std=gnu++0x
+
 BUILD_NUMBER = $(shell date +%Y%m%d)
-CXXCFLAGS += -DBUILD_NUMBER=$(BUILD_NUMBER)
+CXXFLAGS += -DBUILD_NUMBER=$(BUILD_NUMBER)
 
 ifeq ($(CONFIG_SINGLE_APPTOKEN),true)
 CXXFLAGS += -DCONFIG_SINGLE_APPTOKEN
 endif
 
-CXXFLAGS += -O2
+# toggle below two flags..
+CXXFLAGS += -DDEBUG -g -O0
+#CXXFLAGS += -O2
 
 LDFLAGS = -L $(CDSBASE) -lcds -pthread -levent -lcrypto -lxml2 -lmemcached `mysql_config --libs`
 

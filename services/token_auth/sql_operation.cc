@@ -423,16 +423,18 @@ int fetch_tokeninfo_from_db(MYSQL *ms, struct token_string_info *req_info,  char
 /**
  * Util to let's check if this login is within 2 days
  *
- * return 1 means we need increment DEIVCES.LOGIN_DAYS, otherewise will re-count it.
+ * return a flag for operating USER_DETAILS.LOGIN_DAYS:
+ * - 0 do nothing(it's a consecutive login)
+ * - 1 means we need increment USER_DETAILS.LOGIN_DAYS
+ * - 2 user's last login is so long long ago, need re-count LOGIN_DAYS.
  */
 int is_contious_day_for_this_login(MYSQL *ms, struct token_data_wrapper *tokeninfo)
 {
-    int continuous = 0;
     char sqlcmd[1024];
 
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT DEVICES.ID FROM %s WHERE DEVICES.USER_TOKEN=\'%s\' AND "
-            "(TO_DAYS(NOW()) - TO_DAYS(USER_DETAILS.LAST_LOGIN)) >=1 AND (TO_DAYS(NOW()) - TO_DAYS(USER_DETAILS.LAST_LOGIN))<2",
+            "(TO_DAYS(NOW()) - TO_DAYS(DEVICES.LAST_LOGIN)) >=1 AND (TO_DAYS(NOW()) - TO_DAYS(DEVICES.LAST_LOGIN))<2",
             DEVICE_TBL, tokeninfo->tdw_token);
 
     LOCK_SQL;
@@ -440,11 +442,11 @@ int is_contious_day_for_this_login(MYSQL *ms, struct token_data_wrapper *tokenin
     {
         UNLOCK_SQL;
         ERR("***failed query login acitivty :%s\n", mysql_error(ms));
-        continuous = 1; // NOTE - for SQL failure, we still don't re-count user's login activity
+        return 0; // NOTE - for SQL failure, we still don't re-count user's login activity
     }
     else
     {
-        LOG("Got the query login activity OK");
+        LOG("Got the query login activity OK\n");
         MYSQL_RES *mresult;
         MYSQL_ROW  row;
         mresult = mysql_store_result(ms);
@@ -457,12 +459,42 @@ int is_contious_day_for_this_login(MYSQL *ms, struct token_data_wrapper *tokenin
             if(row != NULL)
             {
                 // YES! I keep login with 2 dyas. mark flag as 1
-                continuous = 1;
+                return 1;
             }
         }
     }
 
-    return continuous;
+    // Here try know if user last login is long long ago...
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT DEVICES.ID FROM %s WHERE DEVICES.USER_TOKEN=\'%s\' AND "
+            "(TO_DAYS(NOW()) - TO_DAYS(DEVICES.LAST_LOGIN)) >= 2",
+            DEVICE_TBL, tokeninfo->tdw_token);
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("** failed get a longlong ago login data:%s\n", mysql_error(ms));
+        return 0;
+    }
+    else
+    {
+        MYSQL_RES *mresult;
+        MYSQL_ROW  row;
+        mresult = mysql_store_result(ms);
+        UNLOCK_SQL;
+
+        if(mresult)
+        {
+            row = mysql_fetch_row(mresult);
+            if(row != NULL)
+            {
+                return 2;
+            }
+        }
+    }
+
+    return 0;
 }
 
 /**
@@ -483,12 +515,17 @@ int record_continuous_login_activity(MYSQL *ms, struct token_data_wrapper *token
                 "DEVICES.USER_ID=USER_DETAILS.ID AND DEVICES.USER_TOKEN=\'%s\'",
                 USER_DETAIL_TBL, DEVICE_TBL, tokeninfo->tdw_token);
     }
-    else
+    else if(flag == 2)
     {
         snprintf(sqlcmd, sizeof(sqlcmd),
                 "UPDATE %s,%s SET USER_DETAILS.LOGIN_DAYS=1 WHERE "
                 "DEVICES.USER_ID=USER_DETAILS.ID AND DEVICES.USER_TOKEN=\'%s\'",
                 USER_DETAIL_TBL, DEVICE_TBL, tokeninfo->tdw_token);
+    }
+    else
+    {
+        /* don't need do anything for other case */
+        return 0;
     }
 
     LOCK_SQL;
@@ -519,22 +556,27 @@ int push_tokeninfo_to_db(MYSQL *ms, struct token_data_wrapper *tokeninfo)
 {
     int ret = CDS_OK;
     char sqlcmd[1024];
+    char readable_login[24];
+    char readable_expir[24];
+    int  flag = 0;
 
     // before update, try if we can set lasting-login-day value..
-    if(is_contious_day_for_this_login(ms, tokeninfo) == 1)
-    {
-        /* increment */
-        record_continuous_login_activity(ms, tokeninfo, 1);
-    }
-    else
-    {
-        /* reset to 1 */
-        record_continuous_login_activity(ms, tokeninfo, 0);
-    }
+    flag = is_contious_day_for_this_login(ms, tokeninfo);
 
-    //
+    INFO("user login activity frequency = %d\n", flag);
+    record_continuous_login_activity(ms, tokeninfo, flag);
+
+    // Now, update the last login, expiration etc fields..
+    strftime(readable_login, sizeof(readable_login),
+            "%Y-%m-%d %H:%M:%S", localtime(&(tokeninfo->tdw_lastlogin)));
+    strftime(readable_expir, sizeof(readable_expir),
+            "%Y-%m-%d %H:%M:%S", localtime(&(tokeninfo->tdw_expire)));
+
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "UPDATE");
+            "UPDATE %s SET DEVICES.LAST_LOGIN=\'%s\',DEVICES.TOKEN_EXPIRATE=\'%s\' "
+            "WHERE DEVICES.USER_TOKEN=\'%s\'",
+            DEVICE_TBL, readable_login, readable_expir,
+            tokeninfo->tdw_token);
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -549,7 +591,6 @@ int push_tokeninfo_to_db(MYSQL *ms, struct token_data_wrapper *tokeninfo)
         return CDS_ERR_SQL_EXECUTE_FAILED;
     }
 
-    //
     MYSQL_RES *mresult;
     mresult = mysql_store_result(ms);
     UNLOCK_SQL;
