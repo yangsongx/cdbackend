@@ -458,7 +458,7 @@ int is_contious_day_for_this_login(MYSQL *ms, struct token_data_wrapper *tokenin
             row = mysql_fetch_row(mresult);
             if(row != NULL)
             {
-                // YES! I keep login with 2 dyas. mark flag as 1
+                // YES! I keep loging within 2 days. mark flag as 1
                 return 1;
             }
         }
@@ -496,6 +496,106 @@ int is_contious_day_for_this_login(MYSQL *ms, struct token_data_wrapper *tokenin
 
     return 0;
 }
+
+
+/**
+ * Update more tables in a transaction.
+ *
+ * @login_flag : determine how to increment LOGIN_DAYS, see @is_contious_day_for_this_login
+ * for more details.
+ *
+ */
+int update_db_with_transaction(MYSQL *ms, int login_flag, struct token_data_wrapper *tokeninfo)
+{
+    int ret = CDS_OK;
+    char sqlcmd[1024];
+    char readable_login[24];
+    char readable_expir[24];
+
+    LOCK_SQL;
+
+    if(mysql_query(ms, "begin"))
+    {
+        UNLOCK_SQL;
+        ERR("failed do the begin transaction:%s\n", mysql_error(ms));
+        return -1;
+    }
+
+    if(login_flag > 0)
+    {
+        if(login_flag == 1)
+        {
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                "UPDATE %s,%s SET USER_DETAILS.LOGIN_DAYS=USER_DETAILS.LOGIN_DAYS+1 WHERE "
+                "DEVICES.USER_ID=USER_DETAILS.ID AND DEVICES.USER_TOKEN=\'%s\'",
+                USER_DETAIL_TBL, DEVICE_TBL, tokeninfo->tdw_token);
+        }
+        else if(login_flag == 2)
+        {
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                "UPDATE %s,%s SET USER_DETAILS.LOGIN_DAYS=1 WHERE "
+                "DEVICES.USER_ID=USER_DETAILS.ID AND DEVICES.USER_TOKEN=\'%s\'",
+                USER_DETAIL_TBL, DEVICE_TBL, tokeninfo->tdw_token);
+        }
+
+        if(mysql_query(ms, sqlcmd))
+        {
+            ERR("failed update login day data:%s\n", mysql_error(ms));
+            goto need_rollback;
+        }
+
+    }
+
+    // next , update the last login, expiration etc fields..
+    strftime(readable_login, sizeof(readable_login),
+        "%Y-%m-%d %H:%M:%S", localtime(&(tokeninfo->tdw_lastlogin)));
+    strftime(readable_expir, sizeof(readable_expir),
+        "%Y-%m-%d %H:%M:%S", localtime(&(tokeninfo->tdw_expire)));
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+        "UPDATE %s SET DEVICES.LAST_LOGIN=\'%s\',DEVICES.TOKEN_EXPIRATE=\'%s\' "
+        "WHERE DEVICES.USER_TOKEN=\'%s\'",
+        DEVICE_TBL, readable_login, readable_expir,
+        tokeninfo->tdw_token);
+    if(mysql_query(ms, sqlcmd))
+    {
+        ERR("failed update login/expire data:%s\n", mysql_error(ms));
+        goto need_rollback;
+    }
+
+    MYSQL_RES *mresult;
+    mresult = mysql_store_result(ms);
+
+    INFO("Update the two table OK, commit them...");
+    if(mysql_commit(ms) == 0)
+    {
+        INFO("[OK]\n");
+    }
+    else
+    {
+        INFO("Failed : %s\n", mysql_error(ms));
+    }
+
+    UNLOCK_SQL;
+    // FIXME update table need result here?
+
+    return 0;
+
+need_rollback:
+    UNLOCK_SQL;
+    INFO("will rollback as sth wrong...");
+    if(mysql_rollback(ms) == 0)
+    {
+        INFO("[OK]\n");
+    }
+    else
+    {
+        INFO("[failed:%s]\n", mysql_error(ms));
+    }
+
+    return 0;
+}
+
 
 /**
  * Try find if we record user's continuous login activity.
@@ -564,38 +664,9 @@ int push_tokeninfo_to_db(MYSQL *ms, struct token_data_wrapper *tokeninfo)
     flag = is_contious_day_for_this_login(ms, tokeninfo);
 
     INFO("user login activity frequency = %d\n", flag);
-    record_continuous_login_activity(ms, tokeninfo, flag);
 
-    // Now, update the last login, expiration etc fields..
-    strftime(readable_login, sizeof(readable_login),
-            "%Y-%m-%d %H:%M:%S", localtime(&(tokeninfo->tdw_lastlogin)));
-    strftime(readable_expir, sizeof(readable_expir),
-            "%Y-%m-%d %H:%M:%S", localtime(&(tokeninfo->tdw_expire)));
-
-    snprintf(sqlcmd, sizeof(sqlcmd),
-            "UPDATE %s SET DEVICES.LAST_LOGIN=\'%s\',DEVICES.TOKEN_EXPIRATE=\'%s\' "
-            "WHERE DEVICES.USER_TOKEN=\'%s\'",
-            DEVICE_TBL, readable_login, readable_expir,
-            tokeninfo->tdw_token);
-
-    LOCK_SQL;
-    if(mysql_query(ms, sqlcmd))
-    {
-        UNLOCK_SQL;
-        ERR("***failed execute the push token info DB cmd:%s\n", mysql_error(ms));
-        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR)
-        {
-            return CDS_ERR_SQL_DISCONNECTED;
-        }
-
-        return CDS_ERR_SQL_EXECUTE_FAILED;
-    }
-
-    MYSQL_RES *mresult;
-    mresult = mysql_store_result(ms);
-    UNLOCK_SQL;
-
-    // FIXME update table need result here?
+    /* below transaction will touch more than one table */
+    ret = update_db_with_transaction(ms, flag, tokeninfo);
 
     return ret;
 }
