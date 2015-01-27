@@ -97,6 +97,10 @@ struct settings settings;
 time_t process_started;     /* when the process was started */
 conn **conns;
 
+#ifdef CONFIG_LOG2FILE
+FILE *_log_file = NULL;
+#endif
+
 struct slab_rebalance slab_rebal;
 volatile int slab_rebalance_signal;
 
@@ -2715,6 +2719,7 @@ int ENTRY_POINT(int argc, char **argv) {
 
             }
             break;
+
         default:
             fprintf(stderr, "Illegal argument \"%c\"\n", c);
             return 1;

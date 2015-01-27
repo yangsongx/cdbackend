@@ -24,8 +24,9 @@ case "$1" in
     if [ ! -d $TAUTHDIR ]; then
         mkdir -p $TAUTHDIR
     fi
+    chmod 777 $TAUTHDIR
     echo "#!/bin/sh" > $TAUTHDIR/start.sh
-    echo "/usr/bin/tauth -u root -vvv -p 12000" >> $TAUTHDIR/start.sh
+    echo "/opt/tokenauth/tauth -u root -vvv -p 12000" >> $TAUTHDIR/start.sh
     chmod a+x $TAUTHDIR/start.sh
     start-stop-daemon --start --background --exec $TAUTHDIR/start.sh
     ;;

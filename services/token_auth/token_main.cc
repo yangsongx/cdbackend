@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <libgen.h>
 
 #ifndef __cplusplus
 #define __USE_XOPEN
@@ -18,6 +19,11 @@
 
 #include "cds_public.h"
 #include "token_def.h"
+
+
+#define TAUTH_CFGFILE "cds_cfg.xml"
+#define TAUTH_LOGFILE "tauth.log"
+
 
 #define PING_ALIVE_TESTING(x) (strcmp((x), "13911111111") == 0)
 
@@ -45,6 +51,11 @@ static char glb_memc_cfg[128];
 extern int get_token_info(memcached_st *memc, MYSQL *ms, struct token_string_info *info, struct token_data_wrapper *result);
 
 
+/**
+ *
+ * @cfg_file : specify the config XML file
+ *
+ */
 int init_tauth_config(const char *cfg_file)
 {
     char buffer[128];
@@ -64,8 +75,6 @@ int init_tauth_config(const char *cfg_file)
         if(ctx != NULL)
         {
             get_node_via_xpath("/config/token_auth/sqlserver/ip", ctx,
-                    server_cfg.ssi_server_ip, 32);
-            get_node_via_xpath("/config/token_auth/sqlserver/port", ctx,
                     server_cfg.ssi_server_ip, 32);
             get_node_via_xpath("/config/token_auth/sqlserver/user", ctx,
                     server_cfg.ssi_user_name, 32);
@@ -423,8 +432,44 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
-    init_tauth_config("/etc/cds_cfg.xml");
+    char buffer[512];
+    memset(buffer, 0x00, sizeof(buffer));
 
+    /**
+     * [Note] 2015-1-27
+     *  Below getcwd() will take no effect if started
+     *  by deamon tools(because it will be chdir("/"))
+     */
+    if(getcwd(buffer, sizeof(buffer)) != NULL)
+    {
+        if(buffer[strlen(buffer) - 1 ] == '/')
+        {
+
+            strcat(buffer, TAUTH_CFGFILE);
+        }
+        else
+        {
+            strcat(buffer, "/");
+            strcat(buffer, TAUTH_CFGFILE);
+        }
+    }
+    else
+    {
+        strcpy(buffer, TAUTH_CFGFILE);
+    }
+
+    /* [2015-1-27] FIXME - currently, we only hard code this,
+     * as start script use deamon tool, which will do fork()-2 times,
+     * and chdir("/"), close(0,1,2)
+     *
+     * If we dont' do this, log output location is hard to decided and found.
+     *
+     * open this file, for all LOG/INFO/ERR/KPI macros..
+     */
+    _log_file = fopen("/opt/tokenauth/tauth.log", "a+");
+    init_tauth_config("/opt/tokenauth/cds_cfg.xml");
+
+    /* Whole Program's Log show up~~ */
     INFO("(%d)== TAUTH Program==\nSQL Server IP : %s Port : %d, user name : %s, DB name : %s\n",
             BUILD_NUMBER, /* automatically generated via make */
             server_cfg.ssi_server_ip, server_cfg.ssi_server_port,

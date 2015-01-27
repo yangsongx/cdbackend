@@ -4,6 +4,8 @@ CONFIG_SINGLE_APPTOKEN=true
 CDSBASE = ../../common/cds_base/
 CC = g++
 
+TAUTHDIR=$(DESTDIR)/opt/tokenauth
+
 SRC = token_main.cc \
       sql_operation.cc \
       mem_operation.cc \
@@ -16,6 +18,8 @@ CXXFLAGS = -I$(CDSBASE) `mysql_config --cflags` -I /usr/include/libxml2/ -std=gn
 
 BUILD_NUMBER = $(shell date +%Y%m%d)
 CXXFLAGS += -DBUILD_NUMBER=$(BUILD_NUMBER)
+
+CXXFLAGS += -DCONFIG_LOG2FILE
 
 ifeq ($(CONFIG_SINGLE_APPTOKEN),true)
 CXXFLAGS += -DCONFIG_SINGLE_APPTOKEN
@@ -46,10 +50,9 @@ tauth:$(OBJS)
 
 .PHONY:install
 install:
-	mkdir -p $(DESTDIR)/etc/
-	cp ${CDSBASE}cds_cfg.xml $(DESTDIR)/etc/
-	mkdir -p $(DESTDIR)/usr/bin/
-	cp tauth $(DESTDIR)/usr/bin/
+	mkdir -p $(TAUTHDIR)
+	cp ${CDSBASE}cds_cfg.xml $(TAUTHDIR)
+	cp tauth $(TAUTHDIR)
 
 .PHONY:clean
 clean:

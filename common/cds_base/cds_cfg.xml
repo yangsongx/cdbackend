@@ -40,7 +40,7 @@
 
     <token_auth>
         <sqlserver>
-            <ip>www.mysqlmaster.com</ip>
+            <ip>master.caredear.com</ip>
             <!-- 0 for default port-->
             <port>0</port>
             <user>auth</user>

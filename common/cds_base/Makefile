@@ -25,6 +25,9 @@ OBJS = $(SRC:.c=.o)
 include common.mk
 CFLAGS = $(COMMON_CFLAGS) -std=c99 -I /usr/include/libxml2/
 
+# keep the log output to file
+CFLAGS += -DCONFIG_LOG2FILE
+
 LDFLAGS = -levent -pthread -lcrypto -lxml2
 
 # Let static link as default
