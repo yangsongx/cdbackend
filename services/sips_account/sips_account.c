@@ -32,6 +32,8 @@
 
 #define MAXRETRY 3
 
+#define COMPOSE_CFG(b,l,prefix) strcpy(b, #prefix, l)
+
 static MYSQL *msql = NULL;
 static int already_reconn = 0; // a flag, which let's reconnecting SQL
 
@@ -131,6 +133,32 @@ int read_config(const char *cfg_file)
     return ret;
 }
 
+int peek_db(MYSQL *ms)
+{
+    int ret = CDS_OK;
+    char sqlcmd[64];
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT USERS.ID FROM ucen.USERS WHERE USERS.ID<10");
+
+    LOCK_SQL;
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_SQL;
+        ERR("**failed peek_db:%s\n", mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    MYSQL_RES *mresult;
+    mresult = mysql_store_result(ms);
+    UNLOCK_SQL;
+    if(mresult)
+    {
+        MYSQL_ROW  row = mysql_fetch_row(mresult);
+    }
+
+    return ret;
+}
+
 int get_user_token(MYSQL *ms, const char *username, char *token_data)
 {
     int ret = CDS_OK;
@@ -214,6 +242,16 @@ int get_user_token(MYSQL *ms, const char *username, char *token_data)
     return ret;
 }
 
+int sips_ping(int size, void *req, int *len, void *resp)
+{
+    int ret = 0;
+    LOG("WOW, a PING for SIPS...\n");
+
+    ret = peek_db(msql);
+    
+    return ret;
+}
+
 int sips_handler(int size, void *req, int *len, void *resp)
 {
     int ret = CDS_OK;
@@ -239,7 +277,9 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
-    if(read_config("/etc/cds_cfg.xml") != 0)
+    _log_file = fopen(CONFIG_PREFIX "/sips.log", "a+");
+
+    if(read_config(CONFIG_PREFIX "/cds_cfg.xml") != 0)
     {
         ERR("Failed read config XML file!\n");
         return -1;
@@ -253,7 +293,7 @@ int main(int argc, char **argv)
 
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = sips_handler;
-    cfg.ping_handler = NULL;
+    cfg.ping_handler = sips_ping;
     cfg.ac_lentype = LEN_TYPE_BIN;
     cds_init(&cfg, argc, argv);
 
