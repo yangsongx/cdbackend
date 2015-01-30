@@ -25,9 +25,6 @@ OBJS = $(SRC:.c=.o)
 include common.mk
 CFLAGS = $(COMMON_CFLAGS) -std=c99 -I /usr/include/libxml2/
 
-# keep the log output to file
-CFLAGS += -DCONFIG_LOG2FILE
-
 LDFLAGS = -levent -pthread -lcrypto -lxml2
 
 # Let static link as default
@@ -53,7 +50,7 @@ endif
 SO_LDFLAGS = -shared -fPIC
 
 .PHONY: all
-all: cds cs ca testcode token circle nds nus ka
+all: cds cs ca testcode token circle nds nus ka sipsaccount
 
 cds:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
@@ -84,6 +81,9 @@ ca:$(SO_OBJS)
 
 token:
 	cd ../../services/token_auth/ && $(MAKE)
+
+sipsaccount:
+	cd ../../services/sips_account/ && $(MAKE)
 
 ka:
 	cd ../../services/keep_alive/ && $(MAKE)

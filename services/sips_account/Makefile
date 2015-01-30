@@ -12,10 +12,9 @@ SRC = sips_account.c
 CFLAGS += -I /usr/include/libxml2/ -W -Wall -Wno-unused-parameter `mysql_config --cflags` -I../../common/cds_base/
 
 # program running dir
-CFLAGS += -DCONFIG_PREFIX=\"${PREFIX_DIR}\" -DCONFIG_LOG2FILE
+CFLAGS += -DCONFIG_PREFIX=\"${PREFIX_DIR}\"
 
 # Release should use -O2
-
 ifeq ($(DEBUG),false)
 CFLAGS += -O2
 else

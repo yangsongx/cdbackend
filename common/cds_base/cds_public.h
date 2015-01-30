@@ -77,9 +77,8 @@ struct sql_server_info{
 
 extern struct sql_server_info server_cfg;
 
-#ifdef CONFIG_LOG2FILE
+/* this is help program log into a file */
 extern FILE *_log_file;
-#endif
 
 extern char *convert_err_to_str(int errcode);
 extern int parse_config_file(const char *cfg_name, struct sql_server_info *info);
@@ -104,58 +103,35 @@ extern char *encrypt_token_string_with_aes(const char *token_str, char *aes_key)
 #define LOCK_CDS(x)   do{pthread_mutex_lock(&(x));}while(0)
 #define UNLOCK_CDS(x) do{pthread_mutex_unlock(&(x));}while(0)
 
-/**
- * if CONFIG_LOG2FILE defined, _log_file will be maintained
- * by each callee.
- */
-#ifdef CONFIG_LOG2FILE
 
-# ifdef DEBUG
+#ifdef DEBUG
 #define LOG(fmt, args...)  do { \
                              if(_log_file) { \
                                  fprintf(_log_file, fmt, ##args); \
+                             } else { \
+                                 printf(fmt, ##args); \
                              } \
-                           }while(0)
-# else
+                           } while(0)
+
+#else
 #define LOG(fmt, args...)  do{}while(0)
 #endif
 
 #define ERR(fmt, args...)  do { \
                              if(_log_file) { \
                                  fprintf(_log_file, fmt, ##args); \
+                             } else { \
+                                 printf(fmt, ##args); \
                              } \
-                           }while(0)
-
-#define KPI(fmt, args...)  do { \
-                             if(_log_file) { \
-                                 char _buf[20]; \
-                                 struct timeval _tv; \
-                                 gettimeofday(&_tv, NULL); \
-                                 time_t _n = time(NULL); \
-                                 strftime(_buf, sizeof(_buf), "%m-%d %H:%M:%S", localtime(&_n)); \
-                                 fprintf(_log_file, "[%s", _buf); \
-                                 fprintf(_log_file, ".%03ld] ", (_tv.tv_usec/1000)); \
-                                 fprintf(_log_file, fmt, ##args); \
-                             } \
-                           }while(0)
+                           } while(0)
 
 #define INFO(fmt, args...)  do { \
                              if(_log_file) { \
                                  fprintf(_log_file, fmt, ##args); \
+                             } else { \
+                                 printf(fmt, ##args); \
                              } \
-                           }while(0)
-
-# else /* NON - log 2 file */
-
-#ifdef DEBUG
-#define LOG                printf
-#define ERR                printf
-#else
-#define LOG(fmt, args...)  do{}while(0)
-#define ERR                printf
-#endif
-
-#define INFO(fmt, args...) do{printf(fmt, ##args);}while(0)
+                           } while(0)
 
 #define KPI(fmt, args...)  do { \
                              char _buf[20]; \
@@ -163,12 +139,11 @@ extern char *encrypt_token_string_with_aes(const char *token_str, char *aes_key)
                              gettimeofday(&_tv, NULL); \
                              time_t _n = time(NULL); \
                              strftime(_buf, sizeof(_buf), "%m-%d %H:%M:%S", localtime(&_n)); \
-                             printf("[%s", _buf); \
-                             printf(".%03ld] ", (_tv.tv_usec/1000)); \
-                             printf(fmt, ##args); \
+                             INFO("[%s", _buf); \
+                             INFO(".%03ld] ", (_tv.tv_usec/1000)); \
+                             INFO(fmt, ##args); \
                            }while(0)
 
-#endif /* CONFIG_LOG2FILE */
 
 
 #ifdef __cplusplus

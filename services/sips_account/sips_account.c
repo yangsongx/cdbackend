@@ -86,6 +86,7 @@ void cleanup_res(MYSQL *ms, pthread_mutex_t *m)
 int read_config(const char *cfg_file)
 {
     int ret = -1;
+    char buf[32];
     xmlDocPtr doc;
     xmlXPathContextPtr ctx;
 
@@ -101,6 +102,14 @@ int read_config(const char *cfg_file)
         ctx = xmlXPathNewContext(doc);
         if(ctx != NULL)
         {
+            get_node_via_xpath("/config/sips_account/@logfile", ctx,
+                    buf, sizeof(buf));
+            if(strncmp(buf, "false", 5))
+            {
+                /* we need log into file instead of output to stdout */
+                _log_file = fopen(CONFIG_PREFIX "/sips.log", "a+");
+            }
+
             get_node_via_xpath("/config/sips_account/sqlserver/ip", ctx,
                     sql_cfg.ssi_server_ip, 32);
 
@@ -154,6 +163,10 @@ int peek_db(MYSQL *ms)
     if(mresult)
     {
         MYSQL_ROW  row = mysql_fetch_row(mresult);
+        if(row == NULL)
+        {
+            ERR("warning, peek_db got a NULL row\n");
+        }
     }
 
     return ret;
@@ -164,11 +177,19 @@ int get_user_token(MYSQL *ms, const char *username, char *token_data)
     int ret = CDS_OK;
     char sqlcmd[1024];
 
+#if 1 // 2015-1-31 DB table changed, so change the SQL cmd
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT USERS.username,DEVICES.USER_TOKEN FROM "
+            "ucen.USERS,ucen.DEVICES WHERE USERS.ID=DEVICES.USER_ID "
+            "AND USERS.username=\'%s\' ORDER BY DEVICES.LAST_LOGIN DESC;",
+            username);
+#else
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT USERS.username,USER_DETAILS.USER_TOKEN FROM "
             "ucen.USERS,ucen.USER_DETAILS WHERE USERS.ID=USER_DETAILS.USER_ID "
             "AND USERS.username=\'%s\';",
             username);
+#endif
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -277,7 +298,9 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
-    _log_file = fopen(CONFIG_PREFIX "/sips.log", "a+");
+    /* FIXME as argc/argv would handled in libcds,
+     * we can't do this here, which would eat all
+     * the options before go into libcds */
 
     if(read_config(CONFIG_PREFIX "/cds_cfg.xml") != 0)
     {
