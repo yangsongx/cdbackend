@@ -4,7 +4,8 @@ CONFIG_SINGLE_APPTOKEN=true
 CDSBASE = ../../common/cds_base/
 CC = g++
 
-TAUTHDIR=$(DESTDIR)/opt/tokenauth
+PREFIX_DIR=/opt/tokenauth
+TAUTHDIR=$(DESTDIR)${PREFIX_DIR}
 
 SRC = token_main.cc \
       sql_operation.cc \
@@ -15,6 +16,7 @@ CLIENT_TOKEN_SRC = client_token.c
 
 
 CXXFLAGS = -I$(CDSBASE) `mysql_config --cflags` -I /usr/include/libxml2/ -std=gnu++0x
+CXXFLAGS += -DCONFIG_PREFIX=\"${PREFIX_DIR}\"
 
 BUILD_NUMBER = $(shell date +%Y%m%d)
 CXXFLAGS += -DBUILD_NUMBER=$(BUILD_NUMBER)

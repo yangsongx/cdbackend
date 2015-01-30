@@ -50,7 +50,7 @@ endif
 SO_LDFLAGS = -shared -fPIC
 
 .PHONY: all
-all: cds cs ca testcode token circle nds nus ka sipsaccount
+all: cds cs ca testcode token circle nds nus ka sipsaccount stun
 
 cds:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
@@ -91,6 +91,9 @@ ka:
 circle:
 	cd ../../services/circle_mgr/ && $(MAKE)
 
+stun:
+	cd ../../services/stun_list/ && $(MAKE)
+
 nds:
 	cd ../../services/netdisk/ && $(MAKE)
 
@@ -112,6 +115,8 @@ clean:
 	find . -name '*.o' -exec rm -rf {} ";"
 	find ../../services/token_auth/ -name '*.o' -exec rm -rf {} ";"
 	find ../../services/keep_alive/ -name '*.o' -exec rm -rf {} ";"
+	find ../../services/stun_list/ -name '*.o' -exec rm -rf {} ";"
+	find ../../services/sips_account/ -name '*.o' -exec rm -rf {} ";"
 	find ../../services/netdisk/ -name '*.o' -exec rm -rf {} ";"
 	find ../../services/new_user/ -name '*.o' -exec rm -rf {} ";"
 	find ../../services/circle_mgr/ -name '*.o' -exec rm -rf {} ";"

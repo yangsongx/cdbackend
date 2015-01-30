@@ -74,6 +74,13 @@ int init_tauth_config(const char *cfg_file)
         ctx = xmlXPathNewContext(doc);
         if(ctx != NULL)
         {
+            get_node_via_xpath("/config/token_auth/@logfile", ctx,
+                    buffer, sizeof(buffer));
+            if(strncmp(buffer, "false", 5))
+            {
+                _log_file = fopen(CONFIG_PREFIX "/tauth.log", "a+");
+            }
+
             get_node_via_xpath("/config/token_auth/sqlserver/ip", ctx,
                     server_cfg.ssi_server_ip, 32);
             get_node_via_xpath("/config/token_auth/sqlserver/user", ctx,
@@ -458,15 +465,6 @@ int main(int argc, char **argv)
         strcpy(buffer, TAUTH_CFGFILE);
     }
 
-    /* [2015-1-27] FIXME - currently, we only hard code this,
-     * as start script use deamon tool, which will do fork()-2 times,
-     * and chdir("/"), close(0,1,2)
-     *
-     * If we dont' do this, log output location is hard to decided and found.
-     *
-     * open this file, for all LOG/INFO/ERR/KPI macros..
-     */
-    _log_file = fopen("/opt/tokenauth/tauth.log", "a+");
     init_tauth_config("/opt/tokenauth/cds_cfg.xml");
 
     /* Whole Program's Log show up~~ */

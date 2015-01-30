@@ -38,7 +38,7 @@
 
     </keepalive>
 
-    <token_auth>
+    <token_auth logfile="true">
         <sqlserver>
             <ip>master.caredear.com</ip>
             <!-- 0 for default port-->
