@@ -356,6 +356,7 @@ int fetch_tokeninfo_from_db(MYSQL *ms, struct token_string_info *req_info,  char
         "FROM %s,%s WHERE DEVICES.USER_TOKEN=\'%s\' AND USERS.ID=DEVICES.USER_ID",
         USER_TBL, DEVICE_TBL, req_info->tsi_rsastr);
 
+
     LOCK_SQL;
 
     if(mysql_query(ms, sqlcmd))
@@ -399,8 +400,36 @@ int fetch_tokeninfo_from_db(MYSQL *ms, struct token_string_info *req_info,  char
             {
                 strncpy(uid_in_db, row[0], uid_in_db_size);
                 strncpy(did_in_db, row[1], did_in_db_size);
-                strncpy(lastlogin_str, row[2], lastlogin_size);
-                strncpy(expir_str, row[3], expir_size);
+
+
+                /*
+                 * FIXME - add some strict checking for exception such
+                 * as DB contained corrupted data.
+                 *
+                 *
+                 * For this failure case, we only set a correct format
+                 * date string, don't consider the validation of date!
+                 */
+
+                if(row[2] != NULL)
+                {
+                    strncpy(lastlogin_str, row[2], lastlogin_size);
+                }
+                else
+                {
+                    ERR("DB contained null for last login!\n");
+                    strcpy(lastlogin_str, "2015-01-01 20:51:51");
+                }
+
+                if(row[3] != NULL)
+                {
+                    strncpy(expir_str, row[3], expir_size);
+                }
+                else
+                {
+                    ERR("DB contained null for expiration!\n");
+                    strcpy(expir_str, "2015-01-01 20:51:51");
+                }
             }
             else
             {

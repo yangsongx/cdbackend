@@ -10,6 +10,7 @@ extern char *get_by_key(memcached_st *memc, const char *key, size_t *vallen);
 extern int set_by_key(memcached_st *memc, const char *key, const char *value, time_t val_expir);
 extern int delete_by_key(memcached_st *memc, const char *key);
 
+
 /**
  *
  * @key : memcache key, currently is token string.
@@ -27,6 +28,8 @@ int map_into_mem(memcached_st *memc, const char *key, struct token_data_wrapper 
 
     return 0;
 }
+
+
 
 /**
  * update latest token info data into mem/db
@@ -64,8 +67,10 @@ int process_token_data(memcached_st *memc, MYSQL *ms, struct token_string_info *
     if(strcmp(info->tsi_userid, base->tdw_userid))
     {
        // Log this unmatch info to help debug
-       ERR("%s->%s | (db/mem)%s=>%s\n", info->tsi_userid, info->tsi_rsastr,
-               base->tdw_userid, info->tsi_rsastr);
+       ERR("%s->%s | while in db/mem it is:%s, addr:%p\n",
+               info->tsi_rsastr, info->tsi_userid,
+               base->tdw_userid, base);
+
        return CDS_ERR_UMATCH_USER_INFO;
     }
 
@@ -122,6 +127,12 @@ void extract_memcach_value(const char *strings, struct token_data_wrapper *p_inf
     char *t, *d, *l, *e; // token + last login + expire
     char *saveptr;
 
+    if(strings == NULL)
+    {
+        ERR("a NULL memcach value, ignore it\n");
+        return;
+    }
+
     /*
      * Memcached layout are:
      * ============================================================
@@ -146,6 +157,121 @@ void extract_memcach_value(const char *strings, struct token_data_wrapper *p_inf
     }
 }
 
+/**
+ * A util wrapper for token info from DB, instead of mem
+ *
+ * return a CDS_XXX constant
+ */
+int tokeninfo_operation_on_db(memcached_st *memc, MYSQL *ms, struct token_string_info *info)
+{
+   int  ret = CDS_OK;
+   char userid_line[128];  // user's mobile number
+   char devid_line[32];    // user's device id
+   char lastlogin_line[32]; /* string format as 'YYYY-MM-DD HH:MM:SS' */
+   char expire_dead_line[32]; /* string format as 'YYYY-MM-DD HH:MM:SS' */
+   struct token_data_wrapper datasection;
+   memset(&datasection, 0x00, sizeof(datasection));
+
+   ret = fetch_tokeninfo_from_db(ms,
+                              info,
+                              userid_line, sizeof(userid_line),
+                              devid_line, sizeof(devid_line),
+                              lastlogin_line, sizeof(lastlogin_line),
+                              expire_dead_line, sizeof(expire_dead_line));
+   if(ret == CDS_OK)
+   {
+       struct tm lst;
+       struct tm epr;
+       struct tm *ptr;
+
+       memset(&lst, 0x00, sizeof(lst));
+       memset(&epr, 0x00, sizeof(epr));
+
+
+       if(strptime(lastlogin_line, "%Y-%m-%d %H:%M:%S", &lst) == NULL)
+       {
+           ERR("failed call strptime on lastlogin, data:%s, error:%d\n",
+               lastlogin_line, errno);
+           if(!strncmp(lastlogin_line, "0000-00-00", 10))
+           {
+               /* FIXME for the incorrect date time,
+                * I think need silient set it to a
+                * correct value, and don't treat it
+                * as an authentication failure.
+                */
+               time_t cur_time;
+               time(&cur_time);
+               cur_time -= (24*60*60); // make it a little earlier
+               ptr = localtime(&cur_time);
+               memcpy(&lst, ptr, sizeof(lst));
+#if 1 // just debug
+                    LOG("DEBUG  == fake a last login :%s", asctime(&lst));
+#endif
+       }
+       else
+       {
+           return CDS_ERR_LIBC_FAILURE;
+       }
+   }
+   if(strptime(expire_dead_line, "%Y-%m-%d %H:%M:%S", &epr) == NULL)
+   {
+       ERR("failed call strptime on expire:%d\n", errno);
+       if(!strncmp(lastlogin_line, "0000-00-00", 10))
+       {
+           /* FIXME for the incorrect date time,
+            * I think need silient set it to a
+            * correct value, and don't treat it
+            * as an authentication failure.
+            */
+           time_t cur_time;
+           time(&cur_time);
+           cur_time += (24*60*60); // expiration should be later than current time
+           ptr = localtime(&cur_time);
+           memcpy(&epr, ptr, sizeof(epr));
+#if 1 // just debug
+                    LOG("DEBUG  == fake a expiration :%s", asctime(&epr));
+#endif
+           }
+           else
+           {
+               return CDS_ERR_LIBC_FAILURE;
+           }
+       }
+
+
+       // next, try compare if user's request is expired
+       time_t last = mktime(&lst);
+       if(last == (time_t) -1)
+       {
+           ERR("failed call mktime for last login:%d\n", errno);
+           return CDS_ERR_LIBC_FAILURE;
+       }
+
+       time_t expire = mktime(&epr);
+       if(expire == -1)
+       {
+           ERR("failed call mktime for expire:%d\n", errno);
+           return CDS_ERR_LIBC_FAILURE;
+       }
+
+
+       datasection.tdw_userid = userid_line;
+       datasection.tdw_deviceid = atoi(devid_line);
+       datasection.tdw_lastlogin = last;
+       datasection.tdw_expire = expire;
+       // if we come here, time_t value is got.
+       map_into_mem(memc, info->tsi_rsastr, &datasection);
+
+       ret = process_token_data(memc, ms, info, &datasection);
+   }
+   else
+   {
+       // FIXME for MySQL disconnected case, upper caller(do_token_authentication())
+       // will consider to re-connected it or not.
+   }
+
+   return ret;
+}
 
 
 /**
@@ -179,115 +305,34 @@ int get_token_info(memcached_st *memc, MYSQL *ms, struct token_string_info *info
     {
         // no memcached, fall back to MySQL
         LOG("got NULL in mem, go into MySQL...\n");
-
-        char userid_line[128];  // user's mobile number
-        char devid_line[32];    // user's device id
-        char lastlogin_line[32]; /* string format as 'YYYY-MM-DD HH:MM:SS' */
-        char expire_dead_line[32]; /* string format as 'YYYY-MM-DD HH:MM:SS' */
-        ret = fetch_tokeninfo_from_db(ms,
-                                   info,
-                                   userid_line, sizeof(userid_line),
-                                   devid_line, sizeof(devid_line),
-                                   lastlogin_line, sizeof(lastlogin_line),
-                                   expire_dead_line, sizeof(expire_dead_line));
-        if(ret == CDS_OK)
-        {
-            struct tm lst;
-            struct tm epr;
-            struct tm *ptr;
-
-            memset(&lst, 0x00, sizeof(lst));
-            memset(&epr, 0x00, sizeof(epr));
-
-            if(strptime(lastlogin_line, "%Y-%m-%d %H:%M:%S", &lst) == NULL)
-            {
-                ERR("failed call strptime on lastlogin, data:%s, error:%d\n",
-                    lastlogin_line, errno);
-                if(!strncmp(lastlogin_line, "0000-00-00", 10))
-                {
-                    /* FIXME for the incorrect date time,
-                     * I think need silient set it to a
-                     * correct value, and don't treat it
-                     * as an authentication failure.
-                     */
-                    time_t cur_time;
-                    time(&cur_time);
-                    cur_time -= (24*60*60); // make it a little earlier
-                    ptr = localtime(&cur_time);
-                    memcpy(&lst, ptr, sizeof(lst));
-#if 1 // just debug
-                    LOG("DEBUG  == fake a last login :%s", asctime(&lst));
-#endif
-                }
-                else
-                {
-                    return CDS_ERR_LIBC_FAILURE;
-                }
-            }
-            if(strptime(expire_dead_line, "%Y-%m-%d %H:%M:%S", &epr) == NULL)
-            {
-                ERR("failed call strptime on expire:%d\n", errno);
-                if(!strncmp(lastlogin_line, "0000-00-00", 10))
-                {
-                    /* FIXME for the incorrect date time,
-                     * I think need silient set it to a
-                     * correct value, and don't treat it
-                     * as an authentication failure.
-                     */
-                    time_t cur_time;
-                    time(&cur_time);
-                    cur_time += (24*60*60); // expiration should be later than current time
-                    ptr = localtime(&cur_time);
-                    memcpy(&epr, ptr, sizeof(epr));
-#if 1 // just debug
-                    LOG("DEBUG  == fake a expiration :%s", asctime(&epr));
-#endif
-                }
-                else
-                {
-                    return CDS_ERR_LIBC_FAILURE;
-                }
-            }
-
-
-            // next, try compare if user's request is expired
-            time_t last = mktime(&lst);
-            if(last == (time_t) -1)
-            {
-                ERR("failed call mktime for last login:%d\n", errno);
-                return CDS_ERR_LIBC_FAILURE;
-            }
-
-            time_t expire = mktime(&epr);
-            if(expire == -1)
-            {
-                ERR("failed call mktime for expire:%d\n", errno);
-                return CDS_ERR_LIBC_FAILURE;
-            }
-
-
-            datasection.tdw_userid = userid_line;
-            datasection.tdw_deviceid = atoi(devid_line);
-            datasection.tdw_lastlogin = last;
-            datasection.tdw_expire = expire;
-            // if we come here, time_t value is got.
-            map_into_mem(memc, info->tsi_rsastr, &datasection);
-
-            ret = process_token_data(memc, ms, info, &datasection);
-        }
-        else
-        {
-            // FIXME for MySQL disconnected case, upper caller(do_token_authentication())
-            // will consider to re-connected it or not.
-        }
-
+        ret = tokeninfo_operation_on_db(memc, ms, info);
     }
     else
     {
         // got a valid value in mem, split the mem sections..
+        LOG("memval key:%s,val:%s,base addr:%p\n",
+                info->tsi_rsastr, mem_val == NULL ? "null" : mem_val,
+                &datasection);
         extract_memcach_value(mem_val, &datasection);
 
         ret = process_token_data(memc, ms, info, &datasection);
+
+        // 2015-2-25 code change
+        //if(ret != CDS_OK)
+        {
+            if(ret == CDS_ERR_UMATCH_USER_INFO)
+            {
+                // Note for 2015-2-25, sometime token->user id mapping is incorrect,
+                // which cause above api return un-match error, we need take value from DB again
+                //
+                // Keep in mind this is workaround as the root cause is token->user id mapping
+                // failed between User-Req and Memcache, I guess this is caused by race condition!
+
+                INFO("As meet this unmatch case, we try to fetch from raw DB...\n");
+                ret = tokeninfo_operation_on_db(memc, ms, info);
+            }
+        }
+        // 2015-2-25 code end
 
         // need free this one!
         free(mem_val);
