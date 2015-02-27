@@ -13,6 +13,9 @@ extern "C"
 /* max SQL command length */
 #define CDS_MAX_SQL  512
 
+/* the CDS max read/write buffer won't exceed 1k */
+#define DATA_BUFFER_SIZE 1024
+
 /* if leading-length is 0x1234, we consider the requets
    as a ping alive package, and will fall back to the
    possible ping handler */

@@ -1,0 +1,20 @@
+// IDL for New User Login(for 2.0 architecture)
+
+package com.caredear;
+
+enum Logintype{
+    MOBILE_PHONE = 0;
+    NAME_PASSWD = 1;
+    OTHERS = 2;
+}
+
+message LoginRequest{
+    required Logintype login_type = 1;  // reg via mobile/email/name/etc..
+    required string    login_name = 2;
+    required string    login_password = 3;  // token for mobile case
+}
+
+// FIXME - result code be consistent with Web defination?
+message LoginResponse{
+    required int32 result_code = 1; //CDS_XXX error code
+}

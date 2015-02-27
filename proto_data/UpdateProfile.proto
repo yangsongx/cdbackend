@@ -1,0 +1,23 @@
+// IDL for User Update his profile(for 2.0 architecture)
+
+package com.caredear;
+
+enum Updatetype{
+    MOBILE_PHONE = 0;
+    EMAIL = 1;
+    USER_NAME = 2;
+    PASSWORD = 3;
+    OTHERS = 4;
+}
+
+message UpdateRequest{
+    required Updatetype reg_type = 1;  //
+    required string     reg_data = 2;
+
+    optional string     reg_value = 3;  //
+}
+
+// FIXME - result code be consistent with Web defination?
+message UpdateResponse{
+    required int32 result_code = 1; //CDS_XXX error code
+}

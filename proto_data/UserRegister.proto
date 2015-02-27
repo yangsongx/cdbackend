@@ -1,0 +1,30 @@
+// IDL for New User Registration(for 2.0 architecture)
+
+package com.caredear;
+
+enum Regtype{
+    MOBILE_PHONE = 0;
+    EMAIL = 1;
+    USER_NAME = 2;
+    OTHERS = 3;
+}
+
+enum DeviceType{
+    ANDROID = 0;
+    IOS = 1;
+    CAREDEAROS = 2;
+    PC = 3;
+}
+
+message RegisterRequest{
+    required Regtype    reg_type = 1;  // reg via mobile/email/name/etc..
+    required DeviceType reg_device = 2;
+    required string  reg_name = 3;
+
+    optional string  reg_password = 4;  // for name+password reg scenario
+}
+
+// FIXME - result code be consistent with Web defination?
+message RegisterResponse{
+    required int32 result_code = 1; //CDS_XXX error code
+}

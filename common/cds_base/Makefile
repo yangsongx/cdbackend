@@ -25,7 +25,7 @@ OBJS = $(SRC:.c=.o)
 include common.mk
 CFLAGS = $(COMMON_CFLAGS) -std=c99 -I /usr/include/libxml2/
 
-LDFLAGS = -levent -pthread -lcrypto -lxml2
+LDFLAGS = -levent -pthread -lcrypto -lxml2 -lssl
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
@@ -47,7 +47,7 @@ else
 SO_CFLAGS += -DDEBUG -g -O0
 endif
 
-SO_LDFLAGS = -shared -fPIC
+SO_LDFLAGS = -levent -pthread -lcrypto -lxml2 -lssl -shared -fPIC
 
 .PHONY: all
 all: cds cs ca testcode token circle nds nus ka sipsaccount stun
@@ -59,7 +59,7 @@ cds:$(OBJS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 cs:$(SO_OBJS)
-	$(CC) $(SO_LDFLAGS) -o libcds.so $^
+	$(CC) -o libcds.so $^ $(SO_LDFLAGS)
 
 s_cache.o : cache.c
 	$(CC) $(SO_CFLAGS) -c $< -o $@
