@@ -1,15 +1,12 @@
-# Makefile for User Registration Service(URS)
+# Makefile for OpensiPs Account Service(OPAS)
 #
 DEBUG=true
 CDSBASE = ../../common/cds_base/
 
 CC = g++
 
-SRC = usr_reg_service.cc \
-      data_access.cc \
-      UserRegister.pb.cc \
-      RegOperation.cc \
-      UserRegConfig.cc
+SRC = opensips_account_service.cc \
+      SipAccount.pb.cc
 
 
 #include ../../common/caredear_service_lib/common.mk
@@ -23,7 +20,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L . -L $(CDSBASE) -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs` -luuid-static
+LDFLAGS = -L . -L $(CDSBASE) -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
@@ -33,9 +30,9 @@ endif
 
 OBJS = $(SRC:.cc=.o)
 
-all:urs
+all:opas
 
-urs:$(OBJS)
+opas:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 .cc.o:
@@ -43,5 +40,5 @@ urs:$(OBJS)
 
 .PHONY:clean
 clean:
-	rm -rf *.o urs a.out
+	rm -rf *.o opas a.out
 	find . -name '*.o' -exec rm -rf {} ";"

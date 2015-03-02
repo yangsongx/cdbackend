@@ -8,13 +8,21 @@
 
 #include "cds_public.h"
 
-#include <libmemcached/memcached.hpp>
-
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
+
+#include "cds_public.h"
+
 #include "UserRegister.pb.h"
+#include "UserRegConfig.h"
+#include "RegOperation.h"
 
 using namespace std;
+using namespace com::caredear;
+using namespace google::protobuf::io;
+
+pthread_mutex_t  urs_mutex;
+UserRegConfig    g_info;
 
 /**
  * Handler entry for a user registration request
@@ -22,11 +30,48 @@ using namespace std;
  */
 int register_handler(int size, void *req, int *len_resp, void *resp)
 {
+    int ret = CDS_OK;
+    bool ok;
+    RegOperation opr;
+    RegisterRequest   reqobj;
+    RegisterResponse  respobj;
+
+    opr.set_conf(&g_info);
+
     if(size >= DATA_BUFFER_SIZE)
     {
+        ERR("Too much long data, drop it!\n");
+        if(opr.sendback_reg_result(CDS_ERR_REQ_TOOLONG, "too much long",
+                    &respobj, len_resp, resp) != 0)
+        {
+            ERR("***Failed Serialize the too-long error data\n");
+        }
+
+        return CDS_ERR_REQ_TOOLONG;
     }
 
-    return 0;
+    ArrayInputStream in(req, size);
+    CodedInputStream is(&in);
+
+
+    ok = reqobj.ParseFromCodedStream(&is);
+    if(ok)
+    {
+        // Parse the request OK. drop into
+        // the handling world...
+        ret = opr.process_register_req(&reqobj);
+    }
+    else
+    {
+        ERR("***Failed pare reqobj in protobuf!\n");
+        if(opr.sendback_reg_result(CDS_GENERIC_ERROR, "failed parse in protobuf",
+                &respobj, len_resp, resp) != 0)
+        {
+            ERR("** failed seriliaze for the error case\n");
+        }
+    }
+
+    return ret;
 }
 
 int ping_reg_handler(int size, void *req, int *len_resp, void *resp)
@@ -47,12 +92,25 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
+
+    if(g_info.init("/etc/cds_cfg.xml") != 0)
+    {
+        ERR("*** Warning Failed init the whole service!\n");
+    }
+
+    if(pthread_mutex_init(&urs_mutex, NULL) != 0)
+    {
+       ERR("*** Warning, failed create mutex IPC objs:%d\n", errno);
+    }
+    
+
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = register_handler;
     cfg.ping_handler = ping_reg_handler;
 	cfg.ac_lentype = LEN_TYPE_BIN; /* we use binary leading type */
 
-#if 1 // test code for debug
+#if 0 // test code for debug
+    add_new_user_entry(NULL, NULL);
     memcache::Memcache memc;
     bool res = memc.addServer("127.0.0.1", 11211);
     if(res == true)

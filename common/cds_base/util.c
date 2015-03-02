@@ -543,6 +543,22 @@ void vperror(const char *fmt, ...) {
     perror(buf);
 }
 
+
+/**
+ * Get date time format string, like 'yyyy-mm-dd hh:mm:ss'
+ *
+ * return 0 for successful, otherwise return -1
+ */
+int current_datetime(char *stored_data, size_t size_data)
+{
+    time_t cur;
+    time(&cur);
+
+    /* strftime() return 0 for error */
+    return (strftime(stored_data, size_data, "%Y-%m-%d %H:%M:%S",
+                localtime(&cur)) == 0 ? -1 : 0);
+}
+
 #ifndef HAVE_HTONLL
 static uint64_t mc_swap64(uint64_t in) {
 #ifdef ENDIAN_LITTLE

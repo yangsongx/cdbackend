@@ -39,10 +39,10 @@ class RegisterRequest;
 class RegisterResponse;
 
 enum Regtype {
-  MOBILE_PHONE = 0,
-  EMAIL = 1,
-  USER_NAME = 2,
-  OTHERS = 3
+  MOBILE_PHONE = 1,
+  EMAIL = 2,
+  USER_NAME = 3,
+  OTHERS = 4
 };
 bool Regtype_IsValid(int value);
 const Regtype Regtype_MIN = MOBILE_PHONE;
@@ -58,6 +58,27 @@ inline bool Regtype_Parse(
     const ::std::string& name, Regtype* value) {
   return ::google::protobuf::internal::ParseNamedEnum<Regtype>(
     Regtype_descriptor(), name, value);
+}
+enum DeviceType {
+  ANDROID = 0,
+  IOS = 1,
+  CAREDEAROS = 2,
+  PC = 3
+};
+bool DeviceType_IsValid(int value);
+const DeviceType DeviceType_MIN = ANDROID;
+const DeviceType DeviceType_MAX = PC;
+const int DeviceType_ARRAYSIZE = DeviceType_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* DeviceType_descriptor();
+inline const ::std::string& DeviceType_Name(DeviceType value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    DeviceType_descriptor(), value);
+}
+inline bool DeviceType_Parse(
+    const ::std::string& name, DeviceType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<DeviceType>(
+    DeviceType_descriptor(), name, value);
 }
 // ===================================================================
 
@@ -121,10 +142,29 @@ class RegisterRequest : public ::google::protobuf::Message {
   inline ::com::caredear::Regtype reg_type() const;
   inline void set_reg_type(::com::caredear::Regtype value);
 
-  // required string reg_name = 2;
+  // required .com.caredear.DeviceType reg_device = 2;
+  inline bool has_reg_device() const;
+  inline void clear_reg_device();
+  static const int kRegDeviceFieldNumber = 2;
+  inline ::com::caredear::DeviceType reg_device() const;
+  inline void set_reg_device(::com::caredear::DeviceType value);
+
+  // required string reg_source = 3;
+  inline bool has_reg_source() const;
+  inline void clear_reg_source();
+  static const int kRegSourceFieldNumber = 3;
+  inline const ::std::string& reg_source() const;
+  inline void set_reg_source(const ::std::string& value);
+  inline void set_reg_source(const char* value);
+  inline void set_reg_source(const char* value, size_t size);
+  inline ::std::string* mutable_reg_source();
+  inline ::std::string* release_reg_source();
+  inline void set_allocated_reg_source(::std::string* reg_source);
+
+  // required string reg_name = 4;
   inline bool has_reg_name() const;
   inline void clear_reg_name();
-  static const int kRegNameFieldNumber = 2;
+  static const int kRegNameFieldNumber = 4;
   inline const ::std::string& reg_name() const;
   inline void set_reg_name(const ::std::string& value);
   inline void set_reg_name(const char* value);
@@ -133,10 +173,10 @@ class RegisterRequest : public ::google::protobuf::Message {
   inline ::std::string* release_reg_name();
   inline void set_allocated_reg_name(::std::string* reg_name);
 
-  // optional string reg_password = 3;
+  // optional string reg_password = 5;
   inline bool has_reg_password() const;
   inline void clear_reg_password();
-  static const int kRegPasswordFieldNumber = 3;
+  static const int kRegPasswordFieldNumber = 5;
   inline const ::std::string& reg_password() const;
   inline void set_reg_password(const ::std::string& value);
   inline void set_reg_password(const char* value);
@@ -149,6 +189,10 @@ class RegisterRequest : public ::google::protobuf::Message {
  private:
   inline void set_has_reg_type();
   inline void clear_has_reg_type();
+  inline void set_has_reg_device();
+  inline void clear_has_reg_device();
+  inline void set_has_reg_source();
+  inline void clear_has_reg_source();
   inline void set_has_reg_name();
   inline void clear_has_reg_name();
   inline void set_has_reg_password();
@@ -158,9 +202,11 @@ class RegisterRequest : public ::google::protobuf::Message {
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
+  int reg_type_;
+  int reg_device_;
+  ::std::string* reg_source_;
   ::std::string* reg_name_;
   ::std::string* reg_password_;
-  int reg_type_;
   friend void  protobuf_AddDesc_UserRegister_2eproto();
   friend void protobuf_AssignDesc_UserRegister_2eproto();
   friend void protobuf_ShutdownFile_UserRegister_2eproto();
@@ -230,15 +276,30 @@ class RegisterResponse : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 result_code() const;
   inline void set_result_code(::google::protobuf::int32 value);
 
+  // optional string extra_msg = 2;
+  inline bool has_extra_msg() const;
+  inline void clear_extra_msg();
+  static const int kExtraMsgFieldNumber = 2;
+  inline const ::std::string& extra_msg() const;
+  inline void set_extra_msg(const ::std::string& value);
+  inline void set_extra_msg(const char* value);
+  inline void set_extra_msg(const char* value, size_t size);
+  inline ::std::string* mutable_extra_msg();
+  inline ::std::string* release_extra_msg();
+  inline void set_allocated_extra_msg(::std::string* extra_msg);
+
   // @@protoc_insertion_point(class_scope:com.caredear.RegisterResponse)
  private:
   inline void set_has_result_code();
   inline void clear_has_result_code();
+  inline void set_has_extra_msg();
+  inline void clear_has_extra_msg();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
+  ::std::string* extra_msg_;
   ::google::protobuf::int32 result_code_;
   friend void  protobuf_AddDesc_UserRegister_2eproto();
   friend void protobuf_AssignDesc_UserRegister_2eproto();
@@ -265,7 +326,7 @@ inline void RegisterRequest::clear_has_reg_type() {
   _has_bits_[0] &= ~0x00000001u;
 }
 inline void RegisterRequest::clear_reg_type() {
-  reg_type_ = 0;
+  reg_type_ = 1;
   clear_has_reg_type();
 }
 inline ::com::caredear::Regtype RegisterRequest::reg_type() const {
@@ -279,15 +340,116 @@ inline void RegisterRequest::set_reg_type(::com::caredear::Regtype value) {
   // @@protoc_insertion_point(field_set:com.caredear.RegisterRequest.reg_type)
 }
 
-// required string reg_name = 2;
-inline bool RegisterRequest::has_reg_name() const {
+// required .com.caredear.DeviceType reg_device = 2;
+inline bool RegisterRequest::has_reg_device() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void RegisterRequest::set_has_reg_name() {
+inline void RegisterRequest::set_has_reg_device() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void RegisterRequest::clear_has_reg_name() {
+inline void RegisterRequest::clear_has_reg_device() {
   _has_bits_[0] &= ~0x00000002u;
+}
+inline void RegisterRequest::clear_reg_device() {
+  reg_device_ = 0;
+  clear_has_reg_device();
+}
+inline ::com::caredear::DeviceType RegisterRequest::reg_device() const {
+  // @@protoc_insertion_point(field_get:com.caredear.RegisterRequest.reg_device)
+  return static_cast< ::com::caredear::DeviceType >(reg_device_);
+}
+inline void RegisterRequest::set_reg_device(::com::caredear::DeviceType value) {
+  assert(::com::caredear::DeviceType_IsValid(value));
+  set_has_reg_device();
+  reg_device_ = value;
+  // @@protoc_insertion_point(field_set:com.caredear.RegisterRequest.reg_device)
+}
+
+// required string reg_source = 3;
+inline bool RegisterRequest::has_reg_source() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void RegisterRequest::set_has_reg_source() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void RegisterRequest::clear_has_reg_source() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void RegisterRequest::clear_reg_source() {
+  if (reg_source_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_source_->clear();
+  }
+  clear_has_reg_source();
+}
+inline const ::std::string& RegisterRequest::reg_source() const {
+  // @@protoc_insertion_point(field_get:com.caredear.RegisterRequest.reg_source)
+  return *reg_source_;
+}
+inline void RegisterRequest::set_reg_source(const ::std::string& value) {
+  set_has_reg_source();
+  if (reg_source_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_source_ = new ::std::string;
+  }
+  reg_source_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.RegisterRequest.reg_source)
+}
+inline void RegisterRequest::set_reg_source(const char* value) {
+  set_has_reg_source();
+  if (reg_source_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_source_ = new ::std::string;
+  }
+  reg_source_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.RegisterRequest.reg_source)
+}
+inline void RegisterRequest::set_reg_source(const char* value, size_t size) {
+  set_has_reg_source();
+  if (reg_source_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_source_ = new ::std::string;
+  }
+  reg_source_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.RegisterRequest.reg_source)
+}
+inline ::std::string* RegisterRequest::mutable_reg_source() {
+  set_has_reg_source();
+  if (reg_source_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_source_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.RegisterRequest.reg_source)
+  return reg_source_;
+}
+inline ::std::string* RegisterRequest::release_reg_source() {
+  clear_has_reg_source();
+  if (reg_source_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = reg_source_;
+    reg_source_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void RegisterRequest::set_allocated_reg_source(::std::string* reg_source) {
+  if (reg_source_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete reg_source_;
+  }
+  if (reg_source) {
+    set_has_reg_source();
+    reg_source_ = reg_source;
+  } else {
+    clear_has_reg_source();
+    reg_source_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.RegisterRequest.reg_source)
+}
+
+// required string reg_name = 4;
+inline bool RegisterRequest::has_reg_name() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void RegisterRequest::set_has_reg_name() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void RegisterRequest::clear_has_reg_name() {
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline void RegisterRequest::clear_reg_name() {
   if (reg_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -355,15 +517,15 @@ inline void RegisterRequest::set_allocated_reg_name(::std::string* reg_name) {
   // @@protoc_insertion_point(field_set_allocated:com.caredear.RegisterRequest.reg_name)
 }
 
-// optional string reg_password = 3;
+// optional string reg_password = 5;
 inline bool RegisterRequest::has_reg_password() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+  return (_has_bits_[0] & 0x00000010u) != 0;
 }
 inline void RegisterRequest::set_has_reg_password() {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000010u;
 }
 inline void RegisterRequest::clear_has_reg_password() {
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000010u;
 }
 inline void RegisterRequest::clear_reg_password() {
   if (reg_password_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -459,6 +621,82 @@ inline void RegisterResponse::set_result_code(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:com.caredear.RegisterResponse.result_code)
 }
 
+// optional string extra_msg = 2;
+inline bool RegisterResponse::has_extra_msg() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void RegisterResponse::set_has_extra_msg() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void RegisterResponse::clear_has_extra_msg() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void RegisterResponse::clear_extra_msg() {
+  if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extra_msg_->clear();
+  }
+  clear_has_extra_msg();
+}
+inline const ::std::string& RegisterResponse::extra_msg() const {
+  // @@protoc_insertion_point(field_get:com.caredear.RegisterResponse.extra_msg)
+  return *extra_msg_;
+}
+inline void RegisterResponse::set_extra_msg(const ::std::string& value) {
+  set_has_extra_msg();
+  if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extra_msg_ = new ::std::string;
+  }
+  extra_msg_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.RegisterResponse.extra_msg)
+}
+inline void RegisterResponse::set_extra_msg(const char* value) {
+  set_has_extra_msg();
+  if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extra_msg_ = new ::std::string;
+  }
+  extra_msg_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.RegisterResponse.extra_msg)
+}
+inline void RegisterResponse::set_extra_msg(const char* value, size_t size) {
+  set_has_extra_msg();
+  if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extra_msg_ = new ::std::string;
+  }
+  extra_msg_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.RegisterResponse.extra_msg)
+}
+inline ::std::string* RegisterResponse::mutable_extra_msg() {
+  set_has_extra_msg();
+  if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extra_msg_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.RegisterResponse.extra_msg)
+  return extra_msg_;
+}
+inline ::std::string* RegisterResponse::release_extra_msg() {
+  clear_has_extra_msg();
+  if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = extra_msg_;
+    extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void RegisterResponse::set_allocated_extra_msg(::std::string* extra_msg) {
+  if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete extra_msg_;
+  }
+  if (extra_msg) {
+    set_has_extra_msg();
+    extra_msg_ = extra_msg;
+  } else {
+    clear_has_extra_msg();
+    extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.RegisterResponse.extra_msg)
+}
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -473,6 +711,11 @@ template <> struct is_proto_enum< ::com::caredear::Regtype> : ::google::protobuf
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::Regtype>() {
   return ::com::caredear::Regtype_descriptor();
+}
+template <> struct is_proto_enum< ::com::caredear::DeviceType> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::DeviceType>() {
+  return ::com::caredear::DeviceType_descriptor();
 }
 
 }  // namespace google

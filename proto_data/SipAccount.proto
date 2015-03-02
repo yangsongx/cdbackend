@@ -1,0 +1,11 @@
+// As this is only used for OpenSIPS(C) and native daemon(CPP)
+// no package declearation here like others
+
+message SipAccountRequest {
+    required string user_name = 1; // user's name (mobile number, or others like email?)
+}
+
+message SipAccountResponse {
+    required int32  code = 1; // result code, 0 for Successful
+    optional string user_credential = 2;
+}

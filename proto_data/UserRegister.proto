@@ -3,10 +3,10 @@
 package com.caredear;
 
 enum Regtype{
-    MOBILE_PHONE = 0;
-    EMAIL = 1;
-    USER_NAME = 2;
-    OTHERS = 3;
+    MOBILE_PHONE = 1;
+    EMAIL = 2;
+    USER_NAME = 3;
+    OTHERS = 4;
 }
 
 enum DeviceType{
@@ -18,13 +18,15 @@ enum DeviceType{
 
 message RegisterRequest{
     required Regtype    reg_type = 1;  // reg via mobile/email/name/etc..
-    required DeviceType reg_device = 2;
-    required string  reg_name = 3;
+    required DeviceType reg_device = 2; // which device?
+    required string     reg_source = 3; // user reg via which App?
+    required string     reg_name = 4;
 
-    optional string  reg_password = 4;  // for name+password reg scenario
+    optional string  reg_password = 5;  // for name+password reg scenario
 }
 
 // FIXME - result code be consistent with Web defination?
 message RegisterResponse{
     required int32 result_code = 1; //CDS_XXX error code
+    optional string extra_msg = 2;
 }

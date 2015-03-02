@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
+    <service_2>
+        <user_register_service>
+            <memcache>
+                <ip>127.0.0.1</ip>
+                <port>11211</port>
+            </memcache>
+            <sqlserver>
+                <ip>192.168.1.13</ip>
+                <user>netdisk</user>
+                <password>heqi</password>
+                <!-- keep below blank -->
+                <databasename></databasename>
+            </sqlserver>
+        </user_register_service>
+    </service_2>
 
     <new_usertoken>
         <memcache>
