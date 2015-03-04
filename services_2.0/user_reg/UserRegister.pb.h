@@ -288,18 +288,48 @@ class RegisterResponse : public ::google::protobuf::Message {
   inline ::std::string* release_extra_msg();
   inline void set_allocated_extra_msg(::std::string* extra_msg);
 
+  // optional string reg_verifycode = 3;
+  inline bool has_reg_verifycode() const;
+  inline void clear_reg_verifycode();
+  static const int kRegVerifycodeFieldNumber = 3;
+  inline const ::std::string& reg_verifycode() const;
+  inline void set_reg_verifycode(const ::std::string& value);
+  inline void set_reg_verifycode(const char* value);
+  inline void set_reg_verifycode(const char* value, size_t size);
+  inline ::std::string* mutable_reg_verifycode();
+  inline ::std::string* release_reg_verifycode();
+  inline void set_allocated_reg_verifycode(::std::string* reg_verifycode);
+
+  // optional string caredear_id = 4;
+  inline bool has_caredear_id() const;
+  inline void clear_caredear_id();
+  static const int kCaredearIdFieldNumber = 4;
+  inline const ::std::string& caredear_id() const;
+  inline void set_caredear_id(const ::std::string& value);
+  inline void set_caredear_id(const char* value);
+  inline void set_caredear_id(const char* value, size_t size);
+  inline ::std::string* mutable_caredear_id();
+  inline ::std::string* release_caredear_id();
+  inline void set_allocated_caredear_id(::std::string* caredear_id);
+
   // @@protoc_insertion_point(class_scope:com.caredear.RegisterResponse)
  private:
   inline void set_has_result_code();
   inline void clear_has_result_code();
   inline void set_has_extra_msg();
   inline void clear_has_extra_msg();
+  inline void set_has_reg_verifycode();
+  inline void clear_has_reg_verifycode();
+  inline void set_has_caredear_id();
+  inline void clear_has_caredear_id();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   ::std::string* extra_msg_;
+  ::std::string* reg_verifycode_;
+  ::std::string* caredear_id_;
   ::google::protobuf::int32 result_code_;
   friend void  protobuf_AddDesc_UserRegister_2eproto();
   friend void protobuf_AssignDesc_UserRegister_2eproto();
@@ -695,6 +725,158 @@ inline void RegisterResponse::set_allocated_extra_msg(::std::string* extra_msg) 
     extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:com.caredear.RegisterResponse.extra_msg)
+}
+
+// optional string reg_verifycode = 3;
+inline bool RegisterResponse::has_reg_verifycode() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void RegisterResponse::set_has_reg_verifycode() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void RegisterResponse::clear_has_reg_verifycode() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void RegisterResponse::clear_reg_verifycode() {
+  if (reg_verifycode_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_verifycode_->clear();
+  }
+  clear_has_reg_verifycode();
+}
+inline const ::std::string& RegisterResponse::reg_verifycode() const {
+  // @@protoc_insertion_point(field_get:com.caredear.RegisterResponse.reg_verifycode)
+  return *reg_verifycode_;
+}
+inline void RegisterResponse::set_reg_verifycode(const ::std::string& value) {
+  set_has_reg_verifycode();
+  if (reg_verifycode_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_verifycode_ = new ::std::string;
+  }
+  reg_verifycode_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.RegisterResponse.reg_verifycode)
+}
+inline void RegisterResponse::set_reg_verifycode(const char* value) {
+  set_has_reg_verifycode();
+  if (reg_verifycode_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_verifycode_ = new ::std::string;
+  }
+  reg_verifycode_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.RegisterResponse.reg_verifycode)
+}
+inline void RegisterResponse::set_reg_verifycode(const char* value, size_t size) {
+  set_has_reg_verifycode();
+  if (reg_verifycode_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_verifycode_ = new ::std::string;
+  }
+  reg_verifycode_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.RegisterResponse.reg_verifycode)
+}
+inline ::std::string* RegisterResponse::mutable_reg_verifycode() {
+  set_has_reg_verifycode();
+  if (reg_verifycode_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_verifycode_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.RegisterResponse.reg_verifycode)
+  return reg_verifycode_;
+}
+inline ::std::string* RegisterResponse::release_reg_verifycode() {
+  clear_has_reg_verifycode();
+  if (reg_verifycode_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = reg_verifycode_;
+    reg_verifycode_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void RegisterResponse::set_allocated_reg_verifycode(::std::string* reg_verifycode) {
+  if (reg_verifycode_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete reg_verifycode_;
+  }
+  if (reg_verifycode) {
+    set_has_reg_verifycode();
+    reg_verifycode_ = reg_verifycode;
+  } else {
+    clear_has_reg_verifycode();
+    reg_verifycode_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.RegisterResponse.reg_verifycode)
+}
+
+// optional string caredear_id = 4;
+inline bool RegisterResponse::has_caredear_id() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void RegisterResponse::set_has_caredear_id() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void RegisterResponse::clear_has_caredear_id() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void RegisterResponse::clear_caredear_id() {
+  if (caredear_id_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    caredear_id_->clear();
+  }
+  clear_has_caredear_id();
+}
+inline const ::std::string& RegisterResponse::caredear_id() const {
+  // @@protoc_insertion_point(field_get:com.caredear.RegisterResponse.caredear_id)
+  return *caredear_id_;
+}
+inline void RegisterResponse::set_caredear_id(const ::std::string& value) {
+  set_has_caredear_id();
+  if (caredear_id_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    caredear_id_ = new ::std::string;
+  }
+  caredear_id_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.RegisterResponse.caredear_id)
+}
+inline void RegisterResponse::set_caredear_id(const char* value) {
+  set_has_caredear_id();
+  if (caredear_id_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    caredear_id_ = new ::std::string;
+  }
+  caredear_id_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.RegisterResponse.caredear_id)
+}
+inline void RegisterResponse::set_caredear_id(const char* value, size_t size) {
+  set_has_caredear_id();
+  if (caredear_id_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    caredear_id_ = new ::std::string;
+  }
+  caredear_id_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.RegisterResponse.caredear_id)
+}
+inline ::std::string* RegisterResponse::mutable_caredear_id() {
+  set_has_caredear_id();
+  if (caredear_id_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    caredear_id_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.RegisterResponse.caredear_id)
+  return caredear_id_;
+}
+inline ::std::string* RegisterResponse::release_caredear_id() {
+  clear_has_caredear_id();
+  if (caredear_id_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = caredear_id_;
+    caredear_id_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void RegisterResponse::set_allocated_caredear_id(::std::string* caredear_id) {
+  if (caredear_id_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete caredear_id_;
+  }
+  if (caredear_id) {
+    set_has_caredear_id();
+    caredear_id_ = caredear_id;
+  } else {
+    clear_has_caredear_id();
+    caredear_id_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.RegisterResponse.caredear_id)
 }
 
 

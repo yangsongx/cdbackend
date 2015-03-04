@@ -59,9 +59,11 @@ void protobuf_AssignDesc_UserRegister_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(RegisterRequest));
   RegisterResponse_descriptor_ = file->message_type(1);
-  static const int RegisterResponse_offsets_[2] = {
+  static const int RegisterResponse_offsets_[4] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterResponse, result_code_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterResponse, extra_msg_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterResponse, reg_verifycode_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterResponse, caredear_id_),
   };
   RegisterResponse_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -115,11 +117,12 @@ void protobuf_AddDesc_UserRegister_2eproto() {
     "aredear.Regtype\022,\n\nreg_device\030\002 \002(\0162\030.co"
     "m.caredear.DeviceType\022\022\n\nreg_source\030\003 \002("
     "\t\022\020\n\010reg_name\030\004 \002(\t\022\024\n\014reg_password\030\005 \001("
-    "\t\":\n\020RegisterResponse\022\023\n\013result_code\030\001 \002"
-    "(\005\022\021\n\textra_msg\030\002 \001(\t*A\n\007Regtype\022\020\n\014MOBI"
-    "LE_PHONE\020\001\022\t\n\005EMAIL\020\002\022\r\n\tUSER_NAME\020\003\022\n\n\006"
-    "OTHERS\020\004*:\n\nDeviceType\022\013\n\007ANDROID\020\000\022\007\n\003I"
-    "OS\020\001\022\016\n\nCAREDEAROS\020\002\022\006\n\002PC\020\003", 388);
+    "\t\"g\n\020RegisterResponse\022\023\n\013result_code\030\001 \002"
+    "(\005\022\021\n\textra_msg\030\002 \001(\t\022\026\n\016reg_verifycode\030"
+    "\003 \001(\t\022\023\n\013caredear_id\030\004 \001(\t*A\n\007Regtype\022\020\n"
+    "\014MOBILE_PHONE\020\001\022\t\n\005EMAIL\020\002\022\r\n\tUSER_NAME\020"
+    "\003\022\n\n\006OTHERS\020\004*:\n\nDeviceType\022\013\n\007ANDROID\020\000"
+    "\022\007\n\003IOS\020\001\022\016\n\nCAREDEAROS\020\002\022\006\n\002PC\020\003", 433);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserRegister.proto", &protobuf_RegisterTypes);
   RegisterRequest::default_instance_ = new RegisterRequest();
@@ -627,6 +630,8 @@ void RegisterRequest::Swap(RegisterRequest* other) {
 #ifndef _MSC_VER
 const int RegisterResponse::kResultCodeFieldNumber;
 const int RegisterResponse::kExtraMsgFieldNumber;
+const int RegisterResponse::kRegVerifycodeFieldNumber;
+const int RegisterResponse::kCaredearIdFieldNumber;
 #endif  // !_MSC_VER
 
 RegisterResponse::RegisterResponse()
@@ -650,6 +655,8 @@ void RegisterResponse::SharedCtor() {
   _cached_size_ = 0;
   result_code_ = 0;
   extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  reg_verifycode_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  caredear_id_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -661,6 +668,12 @@ RegisterResponse::~RegisterResponse() {
 void RegisterResponse::SharedDtor() {
   if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete extra_msg_;
+  }
+  if (reg_verifycode_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete reg_verifycode_;
+  }
+  if (caredear_id_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete caredear_id_;
   }
   if (this != default_instance_) {
   }
@@ -688,11 +701,21 @@ RegisterResponse* RegisterResponse::New() const {
 }
 
 void RegisterResponse::Clear() {
-  if (_has_bits_[0 / 32] & 3) {
+  if (_has_bits_[0 / 32] & 15) {
     result_code_ = 0;
     if (has_extra_msg()) {
       if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         extra_msg_->clear();
+      }
+    }
+    if (has_reg_verifycode()) {
+      if (reg_verifycode_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        reg_verifycode_->clear();
+      }
+    }
+    if (has_caredear_id()) {
+      if (caredear_id_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        caredear_id_->clear();
       }
     }
   }
@@ -734,6 +757,40 @@ bool RegisterResponse::MergePartialFromCodedStream(
             this->extra_msg().data(), this->extra_msg().length(),
             ::google::protobuf::internal::WireFormat::PARSE,
             "extra_msg");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26)) goto parse_reg_verifycode;
+        break;
+      }
+
+      // optional string reg_verifycode = 3;
+      case 3: {
+        if (tag == 26) {
+         parse_reg_verifycode:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_reg_verifycode()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->reg_verifycode().data(), this->reg_verifycode().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "reg_verifycode");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(34)) goto parse_caredear_id;
+        break;
+      }
+
+      // optional string caredear_id = 4;
+      case 4: {
+        if (tag == 34) {
+         parse_caredear_id:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_caredear_id()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->caredear_id().data(), this->caredear_id().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "caredear_id");
         } else {
           goto handle_unusual;
         }
@@ -781,6 +838,26 @@ void RegisterResponse::SerializeWithCachedSizes(
       2, this->extra_msg(), output);
   }
 
+  // optional string reg_verifycode = 3;
+  if (has_reg_verifycode()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->reg_verifycode().data(), this->reg_verifycode().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "reg_verifycode");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      3, this->reg_verifycode(), output);
+  }
+
+  // optional string caredear_id = 4;
+  if (has_caredear_id()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->caredear_id().data(), this->caredear_id().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "caredear_id");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      4, this->caredear_id(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -807,6 +884,28 @@ void RegisterResponse::SerializeWithCachedSizes(
         2, this->extra_msg(), target);
   }
 
+  // optional string reg_verifycode = 3;
+  if (has_reg_verifycode()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->reg_verifycode().data(), this->reg_verifycode().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "reg_verifycode");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        3, this->reg_verifycode(), target);
+  }
+
+  // optional string caredear_id = 4;
+  if (has_caredear_id()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->caredear_id().data(), this->caredear_id().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "caredear_id");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        4, this->caredear_id(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -831,6 +930,20 @@ int RegisterResponse::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->extra_msg());
+    }
+
+    // optional string reg_verifycode = 3;
+    if (has_reg_verifycode()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->reg_verifycode());
+    }
+
+    // optional string caredear_id = 4;
+    if (has_caredear_id()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->caredear_id());
     }
 
   }
@@ -866,6 +979,12 @@ void RegisterResponse::MergeFrom(const RegisterResponse& from) {
     if (from.has_extra_msg()) {
       set_extra_msg(from.extra_msg());
     }
+    if (from.has_reg_verifycode()) {
+      set_reg_verifycode(from.reg_verifycode());
+    }
+    if (from.has_caredear_id()) {
+      set_caredear_id(from.caredear_id());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -892,6 +1011,8 @@ void RegisterResponse::Swap(RegisterResponse* other) {
   if (other != this) {
     std::swap(result_code_, other->result_code_);
     std::swap(extra_msg_, other->extra_msg_);
+    std::swap(reg_verifycode_, other->reg_verifycode_);
+    std::swap(caredear_id_, other->caredear_id_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

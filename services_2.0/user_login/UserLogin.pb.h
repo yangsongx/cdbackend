@@ -41,7 +41,9 @@ class LoginResponse;
 enum Logintype {
   MOBILE_PHONE = 0,
   NAME_PASSWD = 1,
-  OTHERS = 2
+  EMAIL_PASSWD = 2,
+  CID_PASSWD = 3,
+  OTHERS = 4
 };
 bool Logintype_IsValid(int value);
 const Logintype Logintype_MIN = MOBILE_PHONE;
@@ -229,15 +231,30 @@ class LoginResponse : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 result_code() const;
   inline void set_result_code(::google::protobuf::int32 value);
 
+  // optional string extra_msg = 2;
+  inline bool has_extra_msg() const;
+  inline void clear_extra_msg();
+  static const int kExtraMsgFieldNumber = 2;
+  inline const ::std::string& extra_msg() const;
+  inline void set_extra_msg(const ::std::string& value);
+  inline void set_extra_msg(const char* value);
+  inline void set_extra_msg(const char* value, size_t size);
+  inline ::std::string* mutable_extra_msg();
+  inline ::std::string* release_extra_msg();
+  inline void set_allocated_extra_msg(::std::string* extra_msg);
+
   // @@protoc_insertion_point(class_scope:com.caredear.LoginResponse)
  private:
   inline void set_has_result_code();
   inline void clear_has_result_code();
+  inline void set_has_extra_msg();
+  inline void clear_has_extra_msg();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
+  ::std::string* extra_msg_;
   ::google::protobuf::int32 result_code_;
   friend void  protobuf_AddDesc_UserLogin_2eproto();
   friend void protobuf_AssignDesc_UserLogin_2eproto();
@@ -456,6 +473,82 @@ inline void LoginResponse::set_result_code(::google::protobuf::int32 value) {
   set_has_result_code();
   result_code_ = value;
   // @@protoc_insertion_point(field_set:com.caredear.LoginResponse.result_code)
+}
+
+// optional string extra_msg = 2;
+inline bool LoginResponse::has_extra_msg() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void LoginResponse::set_has_extra_msg() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void LoginResponse::clear_has_extra_msg() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void LoginResponse::clear_extra_msg() {
+  if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extra_msg_->clear();
+  }
+  clear_has_extra_msg();
+}
+inline const ::std::string& LoginResponse::extra_msg() const {
+  // @@protoc_insertion_point(field_get:com.caredear.LoginResponse.extra_msg)
+  return *extra_msg_;
+}
+inline void LoginResponse::set_extra_msg(const ::std::string& value) {
+  set_has_extra_msg();
+  if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extra_msg_ = new ::std::string;
+  }
+  extra_msg_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.LoginResponse.extra_msg)
+}
+inline void LoginResponse::set_extra_msg(const char* value) {
+  set_has_extra_msg();
+  if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extra_msg_ = new ::std::string;
+  }
+  extra_msg_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.LoginResponse.extra_msg)
+}
+inline void LoginResponse::set_extra_msg(const char* value, size_t size) {
+  set_has_extra_msg();
+  if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extra_msg_ = new ::std::string;
+  }
+  extra_msg_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.LoginResponse.extra_msg)
+}
+inline ::std::string* LoginResponse::mutable_extra_msg() {
+  set_has_extra_msg();
+  if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    extra_msg_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.LoginResponse.extra_msg)
+  return extra_msg_;
+}
+inline ::std::string* LoginResponse::release_extra_msg() {
+  clear_has_extra_msg();
+  if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = extra_msg_;
+    extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void LoginResponse::set_allocated_extra_msg(::std::string* extra_msg) {
+  if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete extra_msg_;
+  }
+  if (extra_msg) {
+    set_has_extra_msg();
+    extra_msg_ = extra_msg;
+  } else {
+    clear_has_extra_msg();
+    extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.LoginResponse.extra_msg)
 }
 
 

@@ -46,8 +46,7 @@ int keep_urs_db_connected(MYSQL *ms)
 
     if(mresult)
     {
-        MYSQL_ROW row;
-        row = mysql_fetch_row(mresult);
+        mysql_fetch_row(mresult);
         //DO NOTHING HERE, we just call a store result code,
         //since MySQL connection timeout is removed when
         //code come here.
@@ -63,7 +62,7 @@ int keep_urs_db_connected(MYSQL *ms)
 
 int add_new_user_entry(MYSQL *ms, RegisterRequest *pRegInfo)
 {
-    int ret = -1;
+    int ret = CDS_OK;
     char sqlcmd[1024];
     char current[32]; // date '1990-12-12 12:12:12' is 20 len
 
@@ -78,30 +77,30 @@ int add_new_user_entry(MYSQL *ms, RegisterRequest *pRegInfo)
     {
         case MOBILE_PHONE:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "INSERT INTO %s (usermobile,createtime) "
-                    "VALUES (%s,%s)",
+                    "INSERT INTO %s (usermobile,device,createtime) "
+                    "VALUES (\'%s\',%d,\'%s\')",
                     NEW_REG_TABLE,
-                    pRegInfo->reg_name().c_str(), current);
+                    pRegInfo->reg_name().c_str(), pRegInfo->reg_device(), current);
             break;
 
         case USER_NAME:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "INSERT INTO %s (username,loginpassword,createtime) "
-                    "VALUES (%s,%s,%s)",
+                    "INSERT INTO %s (username,loginpassword,device,createtime) "
+                    "VALUES (\'%s\',%s,%d,\'%s\')",
                     NEW_REG_TABLE,
-                    pRegInfo->reg_name().c_str(), 
+                    pRegInfo->reg_name().c_str(),
                     pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "",
-                    current);
+                    pRegInfo->reg_device(), current);
             break;
 
         case EMAIL:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "INSERT INTO %s (email,loginpassword,createtime) "
-                    "VALUES (%s,%s,%s)",
+                    "INSERT INTO %s (email,loginpassword,device,createtime) "
+                    "VALUES (\'%s\',%s,%d,\'%s\')",
                     NEW_REG_TABLE,
                     pRegInfo->reg_name().c_str(),
                     pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "",
-                    current);
+                    pRegInfo->reg_device(), current);
             break;
 
         default:
@@ -113,19 +112,24 @@ int add_new_user_entry(MYSQL *ms, RegisterRequest *pRegInfo)
     {
         UNLOCK_CDS(urs_mutex);
         ERR("failed execute the new user sql cmd:%s\n", mysql_error(ms));
+        ERR("the cmd txt:%s\n", sqlcmd);
         return CDS_ERR_SQL_EXECUTE_FAILED;
     }
 
-    MYSQL_RES *mresult;
+    if(mysql_store_result(ms) == NULL)
+    {
+        INFO("mysql_store_result()==NULL, new reg usr insertion [OK]\n");
+    }
 
-    // FIXME - insert into case, no result ?
-    //
-    mresult = mysql_store_result(ms);
     UNLOCK_CDS(urs_mutex);
 
     return ret;
 }
 
+/**
+ * Determin if the new register name existed in DB or not.
+ *
+ */
 bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj)
 {
     char sqlcmd[1024];
@@ -139,10 +143,52 @@ bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj)
             break;
 
         case USER_NAME:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id FROM %s WHERE username=\'%s\'",
+                    NEW_REG_TABLE, reqobj->reg_name().c_str());
             break;
 
         case EMAIL:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id FROM %s WHERE email=\'%s\'",
+                    NEW_REG_TABLE, reqobj->reg_name().c_str());
+            break;
+
+        default:
+            // TODO
             break;
     }
-    return false;
+
+    LOCK_CDS(urs_mutex);
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_CDS(urs_mutex);
+        ERR("Warning, failed execute the existence check sql cmd:%s\n", mysql_error(ms));
+        /* FIXME - for SQL check failure case, we consider user not existed */
+        return false;
+    }
+
+    MYSQL_RES *mresult;
+
+    mresult = mysql_store_result(ms);
+    UNLOCK_CDS(urs_mutex);
+    if(mresult)
+    {
+        if(mysql_fetch_row(mresult) == NULL)
+        {
+            return false;
+        }
+        else
+        {
+            INFO("the %s record existed in DB!\n", reqobj->reg_name().c_str());
+            return true;
+        }
+    }
+    else
+    {
+        // SHOULD NEVER BE NULL,
+        // we consider it as not existed anyway.
+        return false;
+    }
+
 }

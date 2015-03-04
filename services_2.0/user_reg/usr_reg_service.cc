@@ -53,13 +53,18 @@ int register_handler(int size, void *req, int *len_resp, void *resp)
     ArrayInputStream in(req, size);
     CodedInputStream is(&in);
 
-
     ok = reqobj.ParseFromCodedStream(&is);
     if(ok)
     {
+#if 0
+        printf("the req name:%s\n", reqobj.reg_name().c_str());
+        opr.sendback_reg_result(CDS_ERR_REQ_TOOLONG, "hello world",
+                &respobj, len_resp, resp);
+#else
         // Parse the request OK. drop into
         // the handling world...
-        ret = opr.process_register_req(&reqobj);
+        ret = opr.process_register_req(&reqobj, &respobj, len_resp, resp);
+#endif
     }
     else
     {
@@ -102,32 +107,12 @@ int main(int argc, char **argv)
     {
        ERR("*** Warning, failed create mutex IPC objs:%d\n", errno);
     }
-    
+
 
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = register_handler;
     cfg.ping_handler = ping_reg_handler;
 	cfg.ac_lentype = LEN_TYPE_BIN; /* we use binary leading type */
-
-#if 0 // test code for debug
-    add_new_user_entry(NULL, NULL);
-    memcache::Memcache memc;
-    bool res = memc.addServer("127.0.0.1", 11211);
-    if(res == true)
-    {
-        printf("memcached conn [OK]\n");
-
-        vector<char> value;
-        if(memc.get("woep9ge0s5doghu3rbsyxchsdjvzwc9cb54nxzbh4h9q8408n6yhwbz5vjsd5x4b", value))
-        {
-            printf("get key [OK] :%s\n", &value[0]);
-        }
-    }
-    else
-    {
-        printf("memcached conn [false]\n");
-    }
-#endif
 
     cds_init(&cfg, argc, argv);
 

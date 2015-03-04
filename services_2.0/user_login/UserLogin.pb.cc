@@ -56,8 +56,9 @@ void protobuf_AssignDesc_UserLogin_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(LoginRequest));
   LoginResponse_descriptor_ = file->message_type(1);
-  static const int LoginResponse_offsets_[1] = {
+  static const int LoginResponse_offsets_[2] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginResponse, result_code_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginResponse, extra_msg_),
   };
   LoginResponse_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -108,9 +109,11 @@ void protobuf_AddDesc_UserLogin_2eproto() {
     "\n\017UserLogin.proto\022\014com.caredear\"g\n\014Login"
     "Request\022+\n\nlogin_type\030\001 \002(\0162\027.com.carede"
     "ar.Logintype\022\022\n\nlogin_name\030\002 \002(\t\022\026\n\016logi"
-    "n_password\030\003 \002(\t\"$\n\rLoginResponse\022\023\n\013res"
-    "ult_code\030\001 \002(\005*:\n\tLogintype\022\020\n\014MOBILE_PH"
-    "ONE\020\000\022\017\n\013NAME_PASSWD\020\001\022\n\n\006OTHERS\020\002", 234);
+    "n_password\030\003 \002(\t\"7\n\rLoginResponse\022\023\n\013res"
+    "ult_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t*\\\n\tLog"
+    "intype\022\020\n\014MOBILE_PHONE\020\000\022\017\n\013NAME_PASSWD\020"
+    "\001\022\020\n\014EMAIL_PASSWD\020\002\022\016\n\nCID_PASSWD\020\003\022\n\n\006O"
+    "THERS\020\004", 287);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserLogin.proto", &protobuf_RegisterTypes);
   LoginRequest::default_instance_ = new LoginRequest();
@@ -135,6 +138,8 @@ bool Logintype_IsValid(int value) {
     case 0:
     case 1:
     case 2:
+    case 3:
+    case 4:
       return true;
     default:
       return false;
@@ -496,6 +501,7 @@ void LoginRequest::Swap(LoginRequest* other) {
 
 #ifndef _MSC_VER
 const int LoginResponse::kResultCodeFieldNumber;
+const int LoginResponse::kExtraMsgFieldNumber;
 #endif  // !_MSC_VER
 
 LoginResponse::LoginResponse()
@@ -515,8 +521,10 @@ LoginResponse::LoginResponse(const LoginResponse& from)
 }
 
 void LoginResponse::SharedCtor() {
+  ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
   result_code_ = 0;
+  extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -526,6 +534,9 @@ LoginResponse::~LoginResponse() {
 }
 
 void LoginResponse::SharedDtor() {
+  if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete extra_msg_;
+  }
   if (this != default_instance_) {
   }
 }
@@ -552,7 +563,14 @@ LoginResponse* LoginResponse::New() const {
 }
 
 void LoginResponse::Clear() {
-  result_code_ = 0;
+  if (_has_bits_[0 / 32] & 3) {
+    result_code_ = 0;
+    if (has_extra_msg()) {
+      if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        extra_msg_->clear();
+      }
+    }
+  }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -574,6 +592,23 @@ bool LoginResponse::MergePartialFromCodedStream(
                    ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
                  input, &result_code_)));
           set_has_result_code();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(18)) goto parse_extra_msg;
+        break;
+      }
+
+      // optional string extra_msg = 2;
+      case 2: {
+        if (tag == 18) {
+         parse_extra_msg:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_extra_msg()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->extra_msg().data(), this->extra_msg().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "extra_msg");
         } else {
           goto handle_unusual;
         }
@@ -611,6 +646,16 @@ void LoginResponse::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->result_code(), output);
   }
 
+  // optional string extra_msg = 2;
+  if (has_extra_msg()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->extra_msg().data(), this->extra_msg().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "extra_msg");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      2, this->extra_msg(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -624,6 +669,17 @@ void LoginResponse::SerializeWithCachedSizes(
   // required int32 result_code = 1;
   if (has_result_code()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->result_code(), target);
+  }
+
+  // optional string extra_msg = 2;
+  if (has_extra_msg()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->extra_msg().data(), this->extra_msg().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "extra_msg");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->extra_msg(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -643,6 +699,13 @@ int LoginResponse::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
           this->result_code());
+    }
+
+    // optional string extra_msg = 2;
+    if (has_extra_msg()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->extra_msg());
     }
 
   }
@@ -675,6 +738,9 @@ void LoginResponse::MergeFrom(const LoginResponse& from) {
     if (from.has_result_code()) {
       set_result_code(from.result_code());
     }
+    if (from.has_extra_msg()) {
+      set_extra_msg(from.extra_msg());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -700,6 +766,7 @@ bool LoginResponse::IsInitialized() const {
 void LoginResponse::Swap(LoginResponse* other) {
   if (other != this) {
     std::swap(result_code_, other->result_code_);
+    std::swap(extra_msg_, other->extra_msg_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

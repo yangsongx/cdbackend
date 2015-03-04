@@ -5,7 +5,9 @@ package com.caredear;
 enum Logintype{
     MOBILE_PHONE = 0;
     NAME_PASSWD = 1;
-    OTHERS = 2;
+    EMAIL_PASSWD = 2;
+    CID_PASSWD = 3; // using caredear ID login
+    OTHERS = 4;
 }
 
 message LoginRequest{
@@ -17,4 +19,5 @@ message LoginRequest{
 // FIXME - result code be consistent with Web defination?
 message LoginResponse{
     required int32 result_code = 1; //CDS_XXX error code
+    optional string extra_msg = 2;
 }

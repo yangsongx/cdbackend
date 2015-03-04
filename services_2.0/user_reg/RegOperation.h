@@ -15,6 +15,7 @@
  * which would cause min/max macro definition confliction! */
 #include <my_global.h>
 #include <mysql.h>
+#include "uuid.h" //libuuid
 
 using namespace std;
 using namespace com::caredear;
@@ -29,10 +30,12 @@ class RegOperation {
     UserRegConfig *m_cfgInfo;
 
     public:
+        int gen_verifycode(char *result);
+
         int set_conf(UserRegConfig *c);
         int sendback_reg_result(int code, const char *errmsg, RegisterResponse *p_obj, int *p_resplen, void *p_respdata);
 
-        int process_register_req(RegisterRequest *reqobj);
+        int process_register_req(RegisterRequest *reqobj, RegisterResponse *respobj, int *len_resp, void *resp);
 };
 
 #endif
