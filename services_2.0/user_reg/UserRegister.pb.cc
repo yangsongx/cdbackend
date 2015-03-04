@@ -40,12 +40,13 @@ void protobuf_AssignDesc_UserRegister_2eproto() {
       "UserRegister.proto");
   GOOGLE_CHECK(file != NULL);
   RegisterRequest_descriptor_ = file->message_type(0);
-  static const int RegisterRequest_offsets_[5] = {
+  static const int RegisterRequest_offsets_[6] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_device_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_source_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_password_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_devbrand_),
   };
   RegisterRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -112,17 +113,18 @@ void protobuf_AddDesc_UserRegister_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\022UserRegister.proto\022\014com.caredear\"\244\001\n\017R"
+    "\n\022UserRegister.proto\022\014com.caredear\"\272\001\n\017R"
     "egisterRequest\022\'\n\010reg_type\030\001 \002(\0162\025.com.c"
     "aredear.Regtype\022,\n\nreg_device\030\002 \002(\0162\030.co"
     "m.caredear.DeviceType\022\022\n\nreg_source\030\003 \002("
     "\t\022\020\n\010reg_name\030\004 \002(\t\022\024\n\014reg_password\030\005 \001("
-    "\t\"g\n\020RegisterResponse\022\023\n\013result_code\030\001 \002"
-    "(\005\022\021\n\textra_msg\030\002 \001(\t\022\026\n\016reg_verifycode\030"
-    "\003 \001(\t\022\023\n\013caredear_id\030\004 \001(\t*A\n\007Regtype\022\020\n"
-    "\014MOBILE_PHONE\020\001\022\t\n\005EMAIL\020\002\022\r\n\tUSER_NAME\020"
-    "\003\022\n\n\006OTHERS\020\004*:\n\nDeviceType\022\013\n\007ANDROID\020\000"
-    "\022\007\n\003IOS\020\001\022\016\n\nCAREDEAROS\020\002\022\006\n\002PC\020\003", 433);
+    "\t\022\024\n\014reg_devbrand\030\006 \001(\t\"g\n\020RegisterRespo"
+    "nse\022\023\n\013result_code\030\001 \002(\005\022\021\n\textra_msg\030\002 "
+    "\001(\t\022\026\n\016reg_verifycode\030\003 \001(\t\022\023\n\013caredear_"
+    "id\030\004 \001(\t*A\n\007Regtype\022\020\n\014MOBILE_PHONE\020\001\022\t\n"
+    "\005EMAIL\020\002\022\r\n\tUSER_NAME\020\003\022\n\n\006OTHERS\020\004*:\n\nD"
+    "eviceType\022\013\n\007ANDROID\020\000\022\007\n\003IOS\020\001\022\016\n\nCARED"
+    "EAROS\020\002\022\006\n\002PC\020\003", 455);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserRegister.proto", &protobuf_RegisterTypes);
   RegisterRequest::default_instance_ = new RegisterRequest();
@@ -179,6 +181,7 @@ const int RegisterRequest::kRegDeviceFieldNumber;
 const int RegisterRequest::kRegSourceFieldNumber;
 const int RegisterRequest::kRegNameFieldNumber;
 const int RegisterRequest::kRegPasswordFieldNumber;
+const int RegisterRequest::kRegDevbrandFieldNumber;
 #endif  // !_MSC_VER
 
 RegisterRequest::RegisterRequest()
@@ -205,6 +208,7 @@ void RegisterRequest::SharedCtor() {
   reg_source_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   reg_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   reg_password_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  reg_devbrand_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -222,6 +226,9 @@ void RegisterRequest::SharedDtor() {
   }
   if (reg_password_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete reg_password_;
+  }
+  if (reg_devbrand_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete reg_devbrand_;
   }
   if (this != default_instance_) {
   }
@@ -249,7 +256,7 @@ RegisterRequest* RegisterRequest::New() const {
 }
 
 void RegisterRequest::Clear() {
-  if (_has_bits_[0 / 32] & 31) {
+  if (_has_bits_[0 / 32] & 63) {
     reg_type_ = 1;
     reg_device_ = 0;
     if (has_reg_source()) {
@@ -265,6 +272,11 @@ void RegisterRequest::Clear() {
     if (has_reg_password()) {
       if (reg_password_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         reg_password_->clear();
+      }
+    }
+    if (has_reg_devbrand()) {
+      if (reg_devbrand_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        reg_devbrand_->clear();
       }
     }
   }
@@ -368,6 +380,23 @@ bool RegisterRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(50)) goto parse_reg_devbrand;
+        break;
+      }
+
+      // optional string reg_devbrand = 6;
+      case 6: {
+        if (tag == 50) {
+         parse_reg_devbrand:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_reg_devbrand()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->reg_devbrand().data(), this->reg_devbrand().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "reg_devbrand");
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -439,6 +468,16 @@ void RegisterRequest::SerializeWithCachedSizes(
       5, this->reg_password(), output);
   }
 
+  // optional string reg_devbrand = 6;
+  if (has_reg_devbrand()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->reg_devbrand().data(), this->reg_devbrand().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "reg_devbrand");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      6, this->reg_devbrand(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -494,6 +533,17 @@ void RegisterRequest::SerializeWithCachedSizes(
         5, this->reg_password(), target);
   }
 
+  // optional string reg_devbrand = 6;
+  if (has_reg_devbrand()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->reg_devbrand().data(), this->reg_devbrand().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "reg_devbrand");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        6, this->reg_devbrand(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -539,6 +589,13 @@ int RegisterRequest::ByteSize() const {
           this->reg_password());
     }
 
+    // optional string reg_devbrand = 6;
+    if (has_reg_devbrand()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->reg_devbrand());
+    }
+
   }
   if (!unknown_fields().empty()) {
     total_size +=
@@ -581,6 +638,9 @@ void RegisterRequest::MergeFrom(const RegisterRequest& from) {
     if (from.has_reg_password()) {
       set_reg_password(from.reg_password());
     }
+    if (from.has_reg_devbrand()) {
+      set_reg_devbrand(from.reg_devbrand());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -610,6 +670,7 @@ void RegisterRequest::Swap(RegisterRequest* other) {
     std::swap(reg_source_, other->reg_source_);
     std::swap(reg_name_, other->reg_name_);
     std::swap(reg_password_, other->reg_password_);
+    std::swap(reg_devbrand_, other->reg_devbrand_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

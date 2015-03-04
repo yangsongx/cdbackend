@@ -7,13 +7,31 @@
                 <port>11211</port>
             </memcache>
             <sqlserver>
-                <ip>192.168.1.13</ip>
-                <user>netdisk</user>
-                <password>heqi</password>
+                <ip>192.168.4.198</ip>
+                <user>root</user>
+                <password>root</password>
                 <!-- keep below blank -->
                 <databasename></databasename>
             </sqlserver>
+
+            <!-- expiration is in second unit -->
+            <mobile_verifycode_expiration>3600</mobile_verifycode_expiration>
+            <email_verifycode_expiration>18000</email_verifycode_expiration>
         </user_register_service>
+
+        <user_login_service>
+            <memcache>
+                <ip>127.0.0.1</ip>
+                <port>11211</port>
+            </memcache>
+            <sqlserver>
+                <ip>192.168.4.198</ip>
+                <user>root</user>
+                <password>root</password>
+                <!-- keep below blank -->
+                <databasename></databasename>
+            </sqlserver>
+        </user_login_service>
     </service_2>
 
     <new_usertoken>

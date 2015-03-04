@@ -77,30 +77,33 @@ int add_new_user_entry(MYSQL *ms, RegisterRequest *pRegInfo)
     {
         case MOBILE_PHONE:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "INSERT INTO %s (usermobile,device,createtime) "
-                    "VALUES (\'%s\',%d,\'%s\')",
+                    "INSERT INTO %s (usermobile,device,source,createtime,status) "
+                    "VALUES (\'%s\',%d,\'%s\',\'%s\',0)",
                     NEW_REG_TABLE,
-                    pRegInfo->reg_name().c_str(), pRegInfo->reg_device(), current);
+                    pRegInfo->reg_name().c_str(), pRegInfo->reg_device(),
+                    pRegInfo->reg_source().c_str(), current);
             break;
 
         case USER_NAME:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "INSERT INTO %s (username,loginpassword,device,createtime) "
-                    "VALUES (\'%s\',%s,%d,\'%s\')",
+                    "INSERT INTO %s (username,loginpassword,device,source,createtime,status) "
+                    "VALUES (\'%s\',%s,%d,\'%s\',\'%s\',1)",
                     NEW_REG_TABLE,
                     pRegInfo->reg_name().c_str(),
                     pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "",
-                    pRegInfo->reg_device(), current);
+                    pRegInfo->reg_device(),
+                    pRegInfo->reg_source().c_str(),current);
             break;
 
         case EMAIL:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "INSERT INTO %s (email,loginpassword,device,createtime) "
-                    "VALUES (\'%s\',%s,%d,\'%s\')",
+                    "INSERT INTO %s (email,loginpassword,device,source,createtime,status) "
+                    "VALUES (\'%s\',%s,%d,\'%s\',\'%s\',0)",
                     NEW_REG_TABLE,
                     pRegInfo->reg_name().c_str(),
                     pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "",
-                    pRegInfo->reg_device(), current);
+                    pRegInfo->reg_device(),
+                    pRegInfo->reg_source().c_str(), current);
             break;
 
         default:
@@ -127,10 +130,60 @@ int add_new_user_entry(MYSQL *ms, RegisterRequest *pRegInfo)
 }
 
 /**
- * Determin if the new register name existed in DB or not.
+ *
  *
  */
-bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj)
+int overwrite_inactive_user_entry(MYSQL *ms, RegisterRequest *pRegInfo, unsigned long user_id)
+{
+    char sqlcmd[1024];
+
+    switch(pRegInfo->reg_type())
+    {
+        case Regtype::MOBILE_PHONE:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET usermobile=\'%s\',device=%d,source=\'%s\',createtime=NOW(),status=0 WHERE id=%ld",
+                    NEW_REG_TABLE,
+                    pRegInfo->reg_name().c_str(), pRegInfo->reg_device(), pRegInfo->reg_source().c_str(), user_id);
+            break;
+
+        case Regtype::EMAIL:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET email=\'%s\',device=%d,source=\'%s\',createtime=NOW(),status=0 WHERE id=%ld",
+                    NEW_REG_TABLE,
+                    pRegInfo->reg_name().c_str(), pRegInfo->reg_device(), pRegInfo->reg_source().c_str(), user_id);
+            break;
+
+        default:
+            break;
+    }
+
+    LOCK_CDS(urs_mutex);
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_CDS(urs_mutex);
+        ERR("failed execute the overwrite an inactive user sql cmd:%s\n", mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    if(mysql_store_result(ms) == NULL)
+    {
+        INFO("mysql_store_result()==NULL, inactive usr overwrite[OK]\n");
+    }
+
+    UNLOCK_CDS(urs_mutex);
+
+    return 0;
+}
+
+/**
+ * Determin if the new register name existed in DB or not.
+ *
+ * @p_active_status : store the selected User's status.
+ * @p_index: stored the found user's ID(also as caredear id currently)
+ *
+ * return true means user existed, and @p_index stored the user's ID in DB
+ */
+bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj, int *p_active_status, unsigned long *p_index)
 {
     char sqlcmd[1024];
 
@@ -138,19 +191,19 @@ bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj)
     {
         case MOBILE_PHONE:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "SELECT id FROM %s WHERE usermobile=\'%s\'",
+                    "SELECT id,status FROM %s WHERE usermobile=\'%s\'",
                     NEW_REG_TABLE, reqobj->reg_name().c_str());
             break;
 
         case USER_NAME:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "SELECT id FROM %s WHERE username=\'%s\'",
+                    "SELECT id,status FROM %s WHERE username=\'%s\'",
                     NEW_REG_TABLE, reqobj->reg_name().c_str());
             break;
 
         case EMAIL:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "SELECT id FROM %s WHERE email=\'%s\'",
+                    "SELECT id,status FROM %s WHERE email=\'%s\'",
                     NEW_REG_TABLE, reqobj->reg_name().c_str());
             break;
 
@@ -169,18 +222,23 @@ bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj)
     }
 
     MYSQL_RES *mresult;
+    MYSQL_ROW  row;
 
     mresult = mysql_store_result(ms);
     UNLOCK_CDS(urs_mutex);
     if(mresult)
     {
-        if(mysql_fetch_row(mresult) == NULL)
+        row = mysql_fetch_row(mresult);
+        if(row == NULL)
         {
             return false;
         }
         else
         {
-            INFO("the %s record existed in DB!\n", reqobj->reg_name().c_str());
+            INFO("the %s record existed in DB(id=%s)!\n",
+                    reqobj->reg_name().c_str(), row[0]);
+            *p_index = (unsigned long) atol(row[0]);
+            *p_active_status = atoi(row[1]);
             return true;
         }
     }
@@ -191,4 +249,57 @@ bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj)
         return false;
     }
 
+}
+
+/**
+ *
+ */
+int record_user_verifiy_code(MYSQL *ms, RegisterRequest *reqobj, RegisterResponse *respobj, UserRegConfig *config)
+{
+    char sqlcmd[1024];
+
+    switch(reqobj->reg_type())
+    {
+        case Regtype::MOBILE_PHONE:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET code=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
+                    "WHERE usermobile=\'%s\'",
+                    NEW_REG_TABLE,
+                    respobj->reg_verifycode().c_str(),
+                    config->m_iMobileVerifyExpir,
+                    reqobj->reg_name().c_str());
+            break;
+
+        case Regtype::EMAIL:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET code=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
+                    "WHERE email=\'%s\'",
+                    NEW_REG_TABLE,
+                    respobj->reg_verifycode().c_str(),
+                    config->m_iEmailVerifyExpir,
+                    reqobj->reg_name().c_str());
+            break;
+
+        default:
+            ERR("**** SHOULD NEVER meet this verifiy code here(%d line)!!!\n", __LINE__);
+            break;
+    }
+
+    LOCK_CDS(urs_mutex);
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_CDS(urs_mutex);
+        ERR("failed update verify code to DB:%s\n", mysql_error(ms));
+        LOG("txt:%s\n", sqlcmd);
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    if(mysql_store_result(ms) == NULL)
+    {
+        INFO("mysql_store_result()==NULL, verify code insertion [OK]\n");
+    }
+
+    UNLOCK_CDS(urs_mutex);
+
+    return 0;
 }

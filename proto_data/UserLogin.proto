@@ -12,12 +12,15 @@ enum Logintype{
 
 message LoginRequest{
     required Logintype login_type = 1;  // reg via mobile/email/name/etc..
-    required string    login_name = 2;
-    required string    login_password = 3;  // token for mobile case
+    required string    login_session = 2;
+    required string    login_name = 3;
+    required string    login_password = 4;  // it will be token for mobile case
+    required string    login_sysid = 5;
 }
 
 // FIXME - result code be consistent with Web defination?
 message LoginResponse{
-    required int32 result_code = 1; //CDS_XXX error code
+    required int32  result_code = 1; //CDS_XXX error code
     optional string extra_msg = 2;
+    optional string token = 3;
 }

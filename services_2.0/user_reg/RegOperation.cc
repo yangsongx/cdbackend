@@ -81,18 +81,31 @@ int RegOperation::process_register_req(RegisterRequest *reqobj, RegisterResponse
     if(m_cfgInfo == NULL)
     {
         ERR("Non-Config info found!\n");
+        sendback_reg_result(CDS_GENERIC_ERROR, "NULL config obj", respobj, len_resp, resp);
         return CDS_GENERIC_ERROR;
     }
 
-    if(user_already_exist(m_cfgInfo->m_Sql, reqobj))
+    unsigned long usr_id;
+    int status_flag;
+    bool existed = user_already_exist(m_cfgInfo->m_Sql, reqobj, &status_flag, &usr_id);
+
+    if(existed && status_flag == 1)
     {
         ret = CDS_ERR_USER_ALREADY_EXISTED;
         sendback_reg_result(ret, "User Existed Already", respobj, len_resp, resp);
     }
     else
     {
-        // a new user, record it into DB
-        ret = add_new_user_entry(m_cfgInfo->m_Sql, reqobj);
+        if(existed == false)
+        {
+            // a new user, record it into DB
+            ret = add_new_user_entry(m_cfgInfo->m_Sql, reqobj);
+        }
+        else
+        {
+            INFO("Found an existed user in DB(ID-%ld), but not activated, so overwrite it!\n", usr_id);
+            ret = overwrite_inactive_user_entry(m_cfgInfo->m_Sql, reqobj, usr_id);
+        }
 
         if( ret == CDS_OK
                 && (reqobj->reg_type() == Regtype::MOBILE_PHONE
@@ -102,6 +115,11 @@ int RegOperation::process_register_req(RegisterRequest *reqobj, RegisterResponse
             char verifycode[12] = {'8'};
             gen_verifycode(verifycode);
             respobj->set_reg_verifycode(verifycode);
+
+            LOG("==>the verification code=%s\n", verifycode);
+
+            // need update them into DB for later verification...
+            ret = record_user_verifiy_code(m_cfgInfo->m_Sql, reqobj, respobj, m_cfgInfo);
         }
 
         sendback_reg_result(ret, NULL, respobj, len_resp, resp);

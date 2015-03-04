@@ -23,6 +23,7 @@ message RegisterRequest{
     required string     reg_name = 4;
 
     optional string     reg_password = 5;  // for name+password reg scenario
+    optional string     reg_devbrand = 6;  // devices' brand(avaible for Android)
 }
 
 // FIXME - result code be consistent with Web defination?

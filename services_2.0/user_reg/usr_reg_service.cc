@@ -56,15 +56,9 @@ int register_handler(int size, void *req, int *len_resp, void *resp)
     ok = reqobj.ParseFromCodedStream(&is);
     if(ok)
     {
-#if 0
-        printf("the req name:%s\n", reqobj.reg_name().c_str());
-        opr.sendback_reg_result(CDS_ERR_REQ_TOOLONG, "hello world",
-                &respobj, len_resp, resp);
-#else
         // Parse the request OK. drop into
         // the handling world...
         ret = opr.process_register_req(&reqobj, &respobj, len_resp, resp);
-#endif
     }
     else
     {

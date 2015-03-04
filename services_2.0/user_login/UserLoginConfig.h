@@ -1,5 +1,5 @@
-#ifndef _USRREG_CONFIG_H
-#define _USRREG_CONFIG_H
+#ifndef _ULS_CONFIG_H
+#define _ULS_CONFIG_H
 
 #include <unistd.h>
 #include <string.h>
@@ -19,33 +19,23 @@
 
 #include <libmemcached/memcached.h>
 
-class UserRegConfig{
-
+class UserLoginConfig {
     char  m_strSqlIP[32];
     char  m_strSqlUserName[32];
     char  m_strSqlUserPassword[32];
-    int   m_iSqlPort;  // Note, currently, SQL port not used (consider 0 as the default)
 
     char  m_strMemIP[32];
     int   m_iMemPort;
 
     int prepare_job();
 
-public:
+    public:
+        UserLoginConfig();
 
-    /* TODO , we need a constructor, for default value
-     * when the config xml missing */
+        MYSQL *m_Sql;
+        memcached_st *m_Memcached;
 
-
-    // Below are two main Database Module(MySQL + Memcached)
-    MYSQL *m_Sql;
-    memcached_st *m_Memcached;
-    ///////////////////////////////////////////////////////
-
-    int   m_iMobileVerifyExpir;
-    int   m_iEmailVerifyExpir;
-
-    int init(const char *config_file);
+        int init(const char *config_file);
 };
 
 #endif

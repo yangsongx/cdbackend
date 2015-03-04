@@ -49,6 +49,13 @@ int UserRegConfig::init(const char *config_file)
 
             LOG("the memcached ip:%s, port:%d\n", m_strMemIP, m_iMemPort);
 
+            get_node_via_xpath("//service_2/user_register_service/mobile_verifycode_expiration",
+                    ctx, buffer, sizeof(buffer));
+            m_iMobileVerifyExpir = atoi(buffer);
+
+            get_node_via_xpath("//service_2/user_register_service/email_verifycode_expiration",
+                    ctx, buffer, sizeof(buffer));
+            m_iEmailVerifyExpir = atoi(buffer);
 
             xmlXPathFreeContext(ctx);
 

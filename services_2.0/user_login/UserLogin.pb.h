@@ -122,10 +122,22 @@ class LoginRequest : public ::google::protobuf::Message {
   inline ::com::caredear::Logintype login_type() const;
   inline void set_login_type(::com::caredear::Logintype value);
 
-  // required string login_name = 2;
+  // required string login_session = 2;
+  inline bool has_login_session() const;
+  inline void clear_login_session();
+  static const int kLoginSessionFieldNumber = 2;
+  inline const ::std::string& login_session() const;
+  inline void set_login_session(const ::std::string& value);
+  inline void set_login_session(const char* value);
+  inline void set_login_session(const char* value, size_t size);
+  inline ::std::string* mutable_login_session();
+  inline ::std::string* release_login_session();
+  inline void set_allocated_login_session(::std::string* login_session);
+
+  // required string login_name = 3;
   inline bool has_login_name() const;
   inline void clear_login_name();
-  static const int kLoginNameFieldNumber = 2;
+  static const int kLoginNameFieldNumber = 3;
   inline const ::std::string& login_name() const;
   inline void set_login_name(const ::std::string& value);
   inline void set_login_name(const char* value);
@@ -134,10 +146,10 @@ class LoginRequest : public ::google::protobuf::Message {
   inline ::std::string* release_login_name();
   inline void set_allocated_login_name(::std::string* login_name);
 
-  // required string login_password = 3;
+  // required string login_password = 4;
   inline bool has_login_password() const;
   inline void clear_login_password();
-  static const int kLoginPasswordFieldNumber = 3;
+  static const int kLoginPasswordFieldNumber = 4;
   inline const ::std::string& login_password() const;
   inline void set_login_password(const ::std::string& value);
   inline void set_login_password(const char* value);
@@ -146,21 +158,39 @@ class LoginRequest : public ::google::protobuf::Message {
   inline ::std::string* release_login_password();
   inline void set_allocated_login_password(::std::string* login_password);
 
+  // required string login_sysid = 5;
+  inline bool has_login_sysid() const;
+  inline void clear_login_sysid();
+  static const int kLoginSysidFieldNumber = 5;
+  inline const ::std::string& login_sysid() const;
+  inline void set_login_sysid(const ::std::string& value);
+  inline void set_login_sysid(const char* value);
+  inline void set_login_sysid(const char* value, size_t size);
+  inline ::std::string* mutable_login_sysid();
+  inline ::std::string* release_login_sysid();
+  inline void set_allocated_login_sysid(::std::string* login_sysid);
+
   // @@protoc_insertion_point(class_scope:com.caredear.LoginRequest)
  private:
   inline void set_has_login_type();
   inline void clear_has_login_type();
+  inline void set_has_login_session();
+  inline void clear_has_login_session();
   inline void set_has_login_name();
   inline void clear_has_login_name();
   inline void set_has_login_password();
   inline void clear_has_login_password();
+  inline void set_has_login_sysid();
+  inline void clear_has_login_sysid();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
+  ::std::string* login_session_;
   ::std::string* login_name_;
   ::std::string* login_password_;
+  ::std::string* login_sysid_;
   int login_type_;
   friend void  protobuf_AddDesc_UserLogin_2eproto();
   friend void protobuf_AssignDesc_UserLogin_2eproto();
@@ -243,18 +273,33 @@ class LoginResponse : public ::google::protobuf::Message {
   inline ::std::string* release_extra_msg();
   inline void set_allocated_extra_msg(::std::string* extra_msg);
 
+  // optional string token = 3;
+  inline bool has_token() const;
+  inline void clear_token();
+  static const int kTokenFieldNumber = 3;
+  inline const ::std::string& token() const;
+  inline void set_token(const ::std::string& value);
+  inline void set_token(const char* value);
+  inline void set_token(const char* value, size_t size);
+  inline ::std::string* mutable_token();
+  inline ::std::string* release_token();
+  inline void set_allocated_token(::std::string* token);
+
   // @@protoc_insertion_point(class_scope:com.caredear.LoginResponse)
  private:
   inline void set_has_result_code();
   inline void clear_has_result_code();
   inline void set_has_extra_msg();
   inline void clear_has_extra_msg();
+  inline void set_has_token();
+  inline void clear_has_token();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   ::std::string* extra_msg_;
+  ::std::string* token_;
   ::google::protobuf::int32 result_code_;
   friend void  protobuf_AddDesc_UserLogin_2eproto();
   friend void protobuf_AssignDesc_UserLogin_2eproto();
@@ -295,15 +340,91 @@ inline void LoginRequest::set_login_type(::com::caredear::Logintype value) {
   // @@protoc_insertion_point(field_set:com.caredear.LoginRequest.login_type)
 }
 
-// required string login_name = 2;
-inline bool LoginRequest::has_login_name() const {
+// required string login_session = 2;
+inline bool LoginRequest::has_login_session() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void LoginRequest::set_has_login_name() {
+inline void LoginRequest::set_has_login_session() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void LoginRequest::clear_has_login_name() {
+inline void LoginRequest::clear_has_login_session() {
   _has_bits_[0] &= ~0x00000002u;
+}
+inline void LoginRequest::clear_login_session() {
+  if (login_session_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    login_session_->clear();
+  }
+  clear_has_login_session();
+}
+inline const ::std::string& LoginRequest::login_session() const {
+  // @@protoc_insertion_point(field_get:com.caredear.LoginRequest.login_session)
+  return *login_session_;
+}
+inline void LoginRequest::set_login_session(const ::std::string& value) {
+  set_has_login_session();
+  if (login_session_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    login_session_ = new ::std::string;
+  }
+  login_session_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.LoginRequest.login_session)
+}
+inline void LoginRequest::set_login_session(const char* value) {
+  set_has_login_session();
+  if (login_session_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    login_session_ = new ::std::string;
+  }
+  login_session_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.LoginRequest.login_session)
+}
+inline void LoginRequest::set_login_session(const char* value, size_t size) {
+  set_has_login_session();
+  if (login_session_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    login_session_ = new ::std::string;
+  }
+  login_session_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.LoginRequest.login_session)
+}
+inline ::std::string* LoginRequest::mutable_login_session() {
+  set_has_login_session();
+  if (login_session_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    login_session_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.LoginRequest.login_session)
+  return login_session_;
+}
+inline ::std::string* LoginRequest::release_login_session() {
+  clear_has_login_session();
+  if (login_session_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = login_session_;
+    login_session_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void LoginRequest::set_allocated_login_session(::std::string* login_session) {
+  if (login_session_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete login_session_;
+  }
+  if (login_session) {
+    set_has_login_session();
+    login_session_ = login_session;
+  } else {
+    clear_has_login_session();
+    login_session_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.LoginRequest.login_session)
+}
+
+// required string login_name = 3;
+inline bool LoginRequest::has_login_name() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void LoginRequest::set_has_login_name() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void LoginRequest::clear_has_login_name() {
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline void LoginRequest::clear_login_name() {
   if (login_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -371,15 +492,15 @@ inline void LoginRequest::set_allocated_login_name(::std::string* login_name) {
   // @@protoc_insertion_point(field_set_allocated:com.caredear.LoginRequest.login_name)
 }
 
-// required string login_password = 3;
+// required string login_password = 4;
 inline bool LoginRequest::has_login_password() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+  return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void LoginRequest::set_has_login_password() {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000008u;
 }
 inline void LoginRequest::clear_has_login_password() {
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline void LoginRequest::clear_login_password() {
   if (login_password_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -445,6 +566,82 @@ inline void LoginRequest::set_allocated_login_password(::std::string* login_pass
     login_password_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:com.caredear.LoginRequest.login_password)
+}
+
+// required string login_sysid = 5;
+inline bool LoginRequest::has_login_sysid() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void LoginRequest::set_has_login_sysid() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void LoginRequest::clear_has_login_sysid() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void LoginRequest::clear_login_sysid() {
+  if (login_sysid_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    login_sysid_->clear();
+  }
+  clear_has_login_sysid();
+}
+inline const ::std::string& LoginRequest::login_sysid() const {
+  // @@protoc_insertion_point(field_get:com.caredear.LoginRequest.login_sysid)
+  return *login_sysid_;
+}
+inline void LoginRequest::set_login_sysid(const ::std::string& value) {
+  set_has_login_sysid();
+  if (login_sysid_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    login_sysid_ = new ::std::string;
+  }
+  login_sysid_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.LoginRequest.login_sysid)
+}
+inline void LoginRequest::set_login_sysid(const char* value) {
+  set_has_login_sysid();
+  if (login_sysid_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    login_sysid_ = new ::std::string;
+  }
+  login_sysid_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.LoginRequest.login_sysid)
+}
+inline void LoginRequest::set_login_sysid(const char* value, size_t size) {
+  set_has_login_sysid();
+  if (login_sysid_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    login_sysid_ = new ::std::string;
+  }
+  login_sysid_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.LoginRequest.login_sysid)
+}
+inline ::std::string* LoginRequest::mutable_login_sysid() {
+  set_has_login_sysid();
+  if (login_sysid_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    login_sysid_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.LoginRequest.login_sysid)
+  return login_sysid_;
+}
+inline ::std::string* LoginRequest::release_login_sysid() {
+  clear_has_login_sysid();
+  if (login_sysid_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = login_sysid_;
+    login_sysid_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void LoginRequest::set_allocated_login_sysid(::std::string* login_sysid) {
+  if (login_sysid_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete login_sysid_;
+  }
+  if (login_sysid) {
+    set_has_login_sysid();
+    login_sysid_ = login_sysid;
+  } else {
+    clear_has_login_sysid();
+    login_sysid_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.LoginRequest.login_sysid)
 }
 
 // -------------------------------------------------------------------
@@ -549,6 +746,82 @@ inline void LoginResponse::set_allocated_extra_msg(::std::string* extra_msg) {
     extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:com.caredear.LoginResponse.extra_msg)
+}
+
+// optional string token = 3;
+inline bool LoginResponse::has_token() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void LoginResponse::set_has_token() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void LoginResponse::clear_has_token() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void LoginResponse::clear_token() {
+  if (token_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    token_->clear();
+  }
+  clear_has_token();
+}
+inline const ::std::string& LoginResponse::token() const {
+  // @@protoc_insertion_point(field_get:com.caredear.LoginResponse.token)
+  return *token_;
+}
+inline void LoginResponse::set_token(const ::std::string& value) {
+  set_has_token();
+  if (token_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    token_ = new ::std::string;
+  }
+  token_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.LoginResponse.token)
+}
+inline void LoginResponse::set_token(const char* value) {
+  set_has_token();
+  if (token_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    token_ = new ::std::string;
+  }
+  token_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.LoginResponse.token)
+}
+inline void LoginResponse::set_token(const char* value, size_t size) {
+  set_has_token();
+  if (token_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    token_ = new ::std::string;
+  }
+  token_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.LoginResponse.token)
+}
+inline ::std::string* LoginResponse::mutable_token() {
+  set_has_token();
+  if (token_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    token_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.LoginResponse.token)
+  return token_;
+}
+inline ::std::string* LoginResponse::release_token() {
+  clear_has_token();
+  if (token_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = token_;
+    token_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void LoginResponse::set_allocated_token(::std::string* token) {
+  if (token_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete token_;
+  }
+  if (token) {
+    set_has_token();
+    token_ = token;
+  } else {
+    clear_has_token();
+    token_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.LoginResponse.token)
 }
 
 

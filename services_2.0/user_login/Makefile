@@ -6,7 +6,10 @@ CDSBASE = ../../common/cds_base/
 CC = g++
 
 SRC = usr_login_service.cc \
-      UserLogin.pb.cc
+      usr_login_db.cc \
+      UserLogin.pb.cc \
+      UserLoginConfig.cc \
+      LoginOperation.cc
 
 
 #include ../../common/caredear_service_lib/common.mk
@@ -20,7 +23,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L $(CDSBASE) -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs`
+LDFLAGS = -L $(CDSBASE) -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs` -luuid-static
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.

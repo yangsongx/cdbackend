@@ -185,6 +185,18 @@ class RegisterRequest : public ::google::protobuf::Message {
   inline ::std::string* release_reg_password();
   inline void set_allocated_reg_password(::std::string* reg_password);
 
+  // optional string reg_devbrand = 6;
+  inline bool has_reg_devbrand() const;
+  inline void clear_reg_devbrand();
+  static const int kRegDevbrandFieldNumber = 6;
+  inline const ::std::string& reg_devbrand() const;
+  inline void set_reg_devbrand(const ::std::string& value);
+  inline void set_reg_devbrand(const char* value);
+  inline void set_reg_devbrand(const char* value, size_t size);
+  inline ::std::string* mutable_reg_devbrand();
+  inline ::std::string* release_reg_devbrand();
+  inline void set_allocated_reg_devbrand(::std::string* reg_devbrand);
+
   // @@protoc_insertion_point(class_scope:com.caredear.RegisterRequest)
  private:
   inline void set_has_reg_type();
@@ -197,6 +209,8 @@ class RegisterRequest : public ::google::protobuf::Message {
   inline void clear_has_reg_name();
   inline void set_has_reg_password();
   inline void clear_has_reg_password();
+  inline void set_has_reg_devbrand();
+  inline void clear_has_reg_devbrand();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -207,6 +221,7 @@ class RegisterRequest : public ::google::protobuf::Message {
   ::std::string* reg_source_;
   ::std::string* reg_name_;
   ::std::string* reg_password_;
+  ::std::string* reg_devbrand_;
   friend void  protobuf_AddDesc_UserRegister_2eproto();
   friend void protobuf_AssignDesc_UserRegister_2eproto();
   friend void protobuf_ShutdownFile_UserRegister_2eproto();
@@ -621,6 +636,82 @@ inline void RegisterRequest::set_allocated_reg_password(::std::string* reg_passw
     reg_password_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:com.caredear.RegisterRequest.reg_password)
+}
+
+// optional string reg_devbrand = 6;
+inline bool RegisterRequest::has_reg_devbrand() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void RegisterRequest::set_has_reg_devbrand() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void RegisterRequest::clear_has_reg_devbrand() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void RegisterRequest::clear_reg_devbrand() {
+  if (reg_devbrand_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_devbrand_->clear();
+  }
+  clear_has_reg_devbrand();
+}
+inline const ::std::string& RegisterRequest::reg_devbrand() const {
+  // @@protoc_insertion_point(field_get:com.caredear.RegisterRequest.reg_devbrand)
+  return *reg_devbrand_;
+}
+inline void RegisterRequest::set_reg_devbrand(const ::std::string& value) {
+  set_has_reg_devbrand();
+  if (reg_devbrand_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_devbrand_ = new ::std::string;
+  }
+  reg_devbrand_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.RegisterRequest.reg_devbrand)
+}
+inline void RegisterRequest::set_reg_devbrand(const char* value) {
+  set_has_reg_devbrand();
+  if (reg_devbrand_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_devbrand_ = new ::std::string;
+  }
+  reg_devbrand_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.RegisterRequest.reg_devbrand)
+}
+inline void RegisterRequest::set_reg_devbrand(const char* value, size_t size) {
+  set_has_reg_devbrand();
+  if (reg_devbrand_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_devbrand_ = new ::std::string;
+  }
+  reg_devbrand_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.RegisterRequest.reg_devbrand)
+}
+inline ::std::string* RegisterRequest::mutable_reg_devbrand() {
+  set_has_reg_devbrand();
+  if (reg_devbrand_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    reg_devbrand_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.RegisterRequest.reg_devbrand)
+  return reg_devbrand_;
+}
+inline ::std::string* RegisterRequest::release_reg_devbrand() {
+  clear_has_reg_devbrand();
+  if (reg_devbrand_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = reg_devbrand_;
+    reg_devbrand_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void RegisterRequest::set_allocated_reg_devbrand(::std::string* reg_devbrand) {
+  if (reg_devbrand_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete reg_devbrand_;
+  }
+  if (reg_devbrand) {
+    set_has_reg_devbrand();
+    reg_devbrand_ = reg_devbrand;
+  } else {
+    clear_has_reg_devbrand();
+    reg_devbrand_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.RegisterRequest.reg_devbrand)
 }
 
 // -------------------------------------------------------------------
