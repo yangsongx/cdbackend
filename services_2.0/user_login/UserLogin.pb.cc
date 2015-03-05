@@ -116,8 +116,8 @@ void protobuf_AddDesc_UserLogin_2eproto() {
     "\022\023\n\013login_sysid\030\005 \002(\t\"F\n\rLoginResponse\022\023"
     "\n\013result_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t\022\r"
     "\n\005token\030\003 \001(\t*\\\n\tLogintype\022\020\n\014MOBILE_PHO"
-    "NE\020\000\022\017\n\013NAME_PASSWD\020\001\022\020\n\014EMAIL_PASSWD\020\002\022"
-    "\016\n\nCID_PASSWD\020\003\022\n\n\006OTHERS\020\004", 347);
+    "NE\020\001\022\020\n\014EMAIL_PASSWD\020\002\022\017\n\013NAME_PASSWD\020\003\022"
+    "\n\n\006OTHERS\020\004\022\016\n\nCID_PASSWD\020\005", 347);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserLogin.proto", &protobuf_RegisterTypes);
   LoginRequest::default_instance_ = new LoginRequest();
@@ -139,11 +139,11 @@ const ::google::protobuf::EnumDescriptor* Logintype_descriptor() {
 }
 bool Logintype_IsValid(int value) {
   switch(value) {
-    case 0:
     case 1:
     case 2:
     case 3:
     case 4:
+    case 5:
       return true;
     default:
       return false;
@@ -180,7 +180,7 @@ LoginRequest::LoginRequest(const LoginRequest& from)
 void LoginRequest::SharedCtor() {
   ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
-  login_type_ = 0;
+  login_type_ = 1;
   login_session_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   login_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   login_password_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
@@ -233,7 +233,7 @@ LoginRequest* LoginRequest::New() const {
 
 void LoginRequest::Clear() {
   if (_has_bits_[0 / 32] & 31) {
-    login_type_ = 0;
+    login_type_ = 1;
     if (has_login_session()) {
       if (login_session_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         login_session_->clear();

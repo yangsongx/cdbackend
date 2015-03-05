@@ -3,11 +3,11 @@
 package com.caredear;
 
 enum Logintype{
-    MOBILE_PHONE = 0;
-    NAME_PASSWD = 1;
+    MOBILE_PHONE = 1;
     EMAIL_PASSWD = 2;
-    CID_PASSWD = 3; // using caredear ID login
+    NAME_PASSWD = 3;
     OTHERS = 4;
+    CID_PASSWD = 5; // using caredear ID login
 }
 
 message LoginRequest{

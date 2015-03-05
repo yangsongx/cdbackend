@@ -15,18 +15,18 @@ extern pthread_mutex_t uls_mutex; // defined in the main()
  */
 int gen_uuid(char *result)
 {
-            uuid_t id;
+    uuid_t id;
         
-                uuid_generate(id);
-           sprintf(result,
-                            "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-                            id[0], id[1], id[2], id[3],
-                            id[4], id[5],
-                            id[6], id[7],
-                            id[8], id[9],
-                            id[10], id[11], id[12], id[13], id[14], id[15]);
+    uuid_generate(id);
+    sprintf(result,
+           "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+           id[0], id[1], id[2], id[3],
+           id[4], id[5],
+           id[6], id[7],
+           id[8], id[9],
+           id[10], id[11], id[12], id[13], id[14], id[15]);
         
-                return 0;
+    return 0;
 }
 
 /**
@@ -116,9 +116,115 @@ int record_user_session_in_db(MYSQL *ms)
     return 0;
 }
 
-int  update_usercenter_session(MYSQL *ms, struct user_session *session)
+int overwrite_existed_session_in_db(MYSQL *ms, struct user_session *session)
 {
     char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE %s SET ticket=\'%s\',lastoperatetime=NOW() WHERE caredearid=%ld AND session=\'%s\'",
+            USER_SESSION_TABLE, session->us_token,
+            session->us_cid, session->us_sessionid);
+
+    LOCK_CDS(uls_mutex);
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_CDS(uls_mutex);
+        ERR("Failed overwrite existed session(cid=%ld):%s\n", session->us_cid, mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+    mresult = mysql_store_result(ms);
+    UNLOCK_CDS(uls_mutex);
+
+    if(mresult)
+    {
+        ERR("Warning, UPDATE should NEVER return non-NULL result!\n");
+    }
+    else
+    {
+        LOG("overwrite existed session(cid-%ld) [OK]\n", session->us_cid);
+    }
+
+    return 0;
+}
+
+int insert_new_session_in_db(MYSQL *ms, struct user_session *session)
+{
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "INSERT INTO %s (caredearid,ticket,session,lastoperatetime) VALUES "
+            "(%ld,\'%s\',\'%s\',NOW())",
+            USER_SESSION_TABLE,
+            session->us_cid, session->us_token, session->us_sessionid);
+
+    LOCK_CDS(uls_mutex);
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_CDS(uls_mutex);
+        ERR("Failed insert new session(cid=%ld):%s\n", session->us_cid, mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+    mresult = mysql_store_result(ms);
+    UNLOCK_CDS(uls_mutex);
+
+    if(mresult)
+    {
+        ERR("Warning, INSERT should NEVER return non-NULL result!\n");
+    }
+    else
+    {
+        LOG("insert the new session(cid-%ld) [OK]\n", session->us_cid);
+    }
+    return 0;
+}
+
+int update_usercenter_session(MYSQL *ms, struct user_session *session)
+{
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT ticket FROM %s WHERE caredearid=%ld AND session=\'%s\'",
+            USER_SESSION_TABLE,
+            session->us_cid, session->us_sessionid);
+
+    LOCK_CDS(uls_mutex);
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_CDS(uls_mutex);
+        ERR("Failed select session(cid=%ld):%s\n", session->us_cid, mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+    mresult = mysql_store_result(ms);
+    UNLOCK_CDS(uls_mutex);
+
+    if(mresult)
+    {
+        row = mysql_fetch_row(mresult);
+        if(row != NULL)
+        {
+            // Already existed a seesion, should overwrite it!
+            overwrite_existed_session_in_db(ms, session);
+        }
+        else
+        {
+            // A new User Session, insert it
+            insert_new_session_in_db(ms, session);
+        }
+    }
+    else
+    {
+        ERR("Warning, mysql_store_result should NEVER be NULL for SELECT\n");
+    }
+
     return 0;
 }
 //

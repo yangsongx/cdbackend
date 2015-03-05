@@ -39,15 +39,15 @@ class LoginRequest;
 class LoginResponse;
 
 enum Logintype {
-  MOBILE_PHONE = 0,
-  NAME_PASSWD = 1,
+  MOBILE_PHONE = 1,
   EMAIL_PASSWD = 2,
-  CID_PASSWD = 3,
-  OTHERS = 4
+  NAME_PASSWD = 3,
+  OTHERS = 4,
+  CID_PASSWD = 5
 };
 bool Logintype_IsValid(int value);
 const Logintype Logintype_MIN = MOBILE_PHONE;
-const Logintype Logintype_MAX = OTHERS;
+const Logintype Logintype_MAX = CID_PASSWD;
 const int Logintype_ARRAYSIZE = Logintype_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* Logintype_descriptor();
@@ -326,7 +326,7 @@ inline void LoginRequest::clear_has_login_type() {
   _has_bits_[0] &= ~0x00000001u;
 }
 inline void LoginRequest::clear_login_type() {
-  login_type_ = 0;
+  login_type_ = 1;
   clear_has_login_type();
 }
 inline ::com::caredear::Logintype LoginRequest::login_type() const {

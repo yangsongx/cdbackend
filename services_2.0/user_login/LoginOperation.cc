@@ -38,11 +38,19 @@ int LoginOperation::do_login(LoginRequest *reqobj, LoginResponse *respobj, int *
     {
         // login info data is correct.
         INFO("%s ==> %ld,[Login OK]\n", reqobj->login_name().c_str(), cid);
+        char uuiddata[64]; // string like '3ab554e6-1533-4cea-9f6d-26edfd869c6e'
+        gen_uuid(uuiddata);
+        struct user_session us;
+        us.us_cid = cid;
+        us.us_sessionid = reqobj->login_session().c_str();
+        us.us_token = uuiddata;
+        update_usercenter_session(m_cfgInfo->m_Sql, &us);
         //...
     }
     else
     {
         // failure case...
+        ERR("User login is incorrect!\n");
     }
 
     if(compose_result(ret, NULL, respobj, len_resp, resp) != 0)

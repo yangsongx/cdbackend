@@ -17,10 +17,13 @@
 using namespace com::caredear;
 
 struct user_session {
-    unsigned long  us_cid; /**< caredear ID */
+    unsigned long  us_cid;       /**< caredear ID(unique for all users) */
     const char    *us_sessionid; /**< Session id description */
+    const char    *us_token;     /**< This session's token string */
 };
 
 extern int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *p_cid);
+extern int update_usercenter_session(MYSQL *ms, struct user_session *session);
+extern int gen_uuid(char *result);
 
 #endif
