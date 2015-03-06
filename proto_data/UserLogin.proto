@@ -2,16 +2,10 @@
 
 package com.caredear;
 
-enum Logintype{
-    MOBILE_PHONE = 1;
-    EMAIL_PASSWD = 2;
-    NAME_PASSWD = 3;
-    OTHERS = 4;
-    CID_PASSWD = 5; // using caredear ID login
-}
+import "CommonUserCenter.proto";
 
 message LoginRequest{
-    required Logintype login_type = 1;  // reg via mobile/email/name/etc..
+    required RegLoginType login_type = 1;  // reg via mobile/email/name/etc..
     required string    login_session = 2;
     required string    login_name = 3;
     required string    login_password = 4;  // it will be token for mobile case

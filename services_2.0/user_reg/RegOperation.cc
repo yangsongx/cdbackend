@@ -108,8 +108,8 @@ int RegOperation::process_register_req(RegisterRequest *reqobj, RegisterResponse
         }
 
         if( ret == CDS_OK
-                && (reqobj->reg_type() == Regtype::MOBILE_PHONE
-                        || reqobj->reg_type() == Regtype::EMAIL))
+                && (reqobj->reg_type() == RegLoginType::MOBILE_PHONE
+                        || reqobj->reg_type() == RegLoginType::EMAIL_PASSWD))
         {
             // tell a verification code here
             char verifycode[12] = {'8'};

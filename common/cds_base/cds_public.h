@@ -43,6 +43,7 @@ enum {
     CDS_ERR_FILE_NOTFOUND,
     CDS_ERR_LIBC_FAILURE,
     CDS_ERR_USER_ALREADY_EXISTED,
+    CDS_ERR_REQ_PROTOBUF_INCORRECT,
 
     CDS_GENERIC_ERROR
 };
@@ -96,6 +97,7 @@ extern char *decrypt_token_string(const char *token_str);
 extern char *decrypt_token_string_with_aes(const char *token_str, char *aes_key);
 extern char *encrypt_token_string_with_aes(const char *token_str, char *aes_key);
 
+extern int get_md5(const char *data, int length, char *result);
 extern int current_datetime(char *stored_data, size_t size_data);
 
 #define MAKEWORD(a,b) ((unsigned short) (((unsigned char) (a)) | ((unsigned short) ((unsigned char) (b))) << 8))

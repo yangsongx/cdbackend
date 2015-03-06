@@ -23,8 +23,8 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
-#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
+#include "CommonUserCenter.pb.h"
 // @@protoc_insertion_point(includes)
 
 namespace com {
@@ -38,48 +38,6 @@ void protobuf_ShutdownFile_UserRegister_2eproto();
 class RegisterRequest;
 class RegisterResponse;
 
-enum Regtype {
-  MOBILE_PHONE = 1,
-  EMAIL = 2,
-  USER_NAME = 3,
-  OTHERS = 4
-};
-bool Regtype_IsValid(int value);
-const Regtype Regtype_MIN = MOBILE_PHONE;
-const Regtype Regtype_MAX = OTHERS;
-const int Regtype_ARRAYSIZE = Regtype_MAX + 1;
-
-const ::google::protobuf::EnumDescriptor* Regtype_descriptor();
-inline const ::std::string& Regtype_Name(Regtype value) {
-  return ::google::protobuf::internal::NameOfEnum(
-    Regtype_descriptor(), value);
-}
-inline bool Regtype_Parse(
-    const ::std::string& name, Regtype* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<Regtype>(
-    Regtype_descriptor(), name, value);
-}
-enum DeviceType {
-  ANDROID = 0,
-  IOS = 1,
-  CAREDEAROS = 2,
-  PC = 3
-};
-bool DeviceType_IsValid(int value);
-const DeviceType DeviceType_MIN = ANDROID;
-const DeviceType DeviceType_MAX = PC;
-const int DeviceType_ARRAYSIZE = DeviceType_MAX + 1;
-
-const ::google::protobuf::EnumDescriptor* DeviceType_descriptor();
-inline const ::std::string& DeviceType_Name(DeviceType value) {
-  return ::google::protobuf::internal::NameOfEnum(
-    DeviceType_descriptor(), value);
-}
-inline bool DeviceType_Parse(
-    const ::std::string& name, DeviceType* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<DeviceType>(
-    DeviceType_descriptor(), name, value);
-}
 // ===================================================================
 
 class RegisterRequest : public ::google::protobuf::Message {
@@ -135,19 +93,19 @@ class RegisterRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required .com.caredear.Regtype reg_type = 1;
+  // required .RegLoginType reg_type = 1;
   inline bool has_reg_type() const;
   inline void clear_reg_type();
   static const int kRegTypeFieldNumber = 1;
-  inline ::com::caredear::Regtype reg_type() const;
-  inline void set_reg_type(::com::caredear::Regtype value);
+  inline ::RegLoginType reg_type() const;
+  inline void set_reg_type(::RegLoginType value);
 
-  // required .com.caredear.DeviceType reg_device = 2;
+  // required .DeviceType reg_device = 2;
   inline bool has_reg_device() const;
   inline void clear_reg_device();
   static const int kRegDeviceFieldNumber = 2;
-  inline ::com::caredear::DeviceType reg_device() const;
-  inline void set_reg_device(::com::caredear::DeviceType value);
+  inline ::DeviceType reg_device() const;
+  inline void set_reg_device(::DeviceType value);
 
   // required string reg_source = 3;
   inline bool has_reg_source() const;
@@ -197,6 +155,13 @@ class RegisterRequest : public ::google::protobuf::Message {
   inline ::std::string* release_reg_devbrand();
   inline void set_allocated_reg_devbrand(::std::string* reg_devbrand);
 
+  // optional int32 bypass_activation = 7;
+  inline bool has_bypass_activation() const;
+  inline void clear_bypass_activation();
+  static const int kBypassActivationFieldNumber = 7;
+  inline ::google::protobuf::int32 bypass_activation() const;
+  inline void set_bypass_activation(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:com.caredear.RegisterRequest)
  private:
   inline void set_has_reg_type();
@@ -211,6 +176,8 @@ class RegisterRequest : public ::google::protobuf::Message {
   inline void clear_has_reg_password();
   inline void set_has_reg_devbrand();
   inline void clear_has_reg_devbrand();
+  inline void set_has_bypass_activation();
+  inline void clear_has_bypass_activation();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -222,6 +189,7 @@ class RegisterRequest : public ::google::protobuf::Message {
   ::std::string* reg_name_;
   ::std::string* reg_password_;
   ::std::string* reg_devbrand_;
+  ::google::protobuf::int32 bypass_activation_;
   friend void  protobuf_AddDesc_UserRegister_2eproto();
   friend void protobuf_AssignDesc_UserRegister_2eproto();
   friend void protobuf_ShutdownFile_UserRegister_2eproto();
@@ -360,7 +328,7 @@ class RegisterResponse : public ::google::protobuf::Message {
 
 // RegisterRequest
 
-// required .com.caredear.Regtype reg_type = 1;
+// required .RegLoginType reg_type = 1;
 inline bool RegisterRequest::has_reg_type() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -374,18 +342,18 @@ inline void RegisterRequest::clear_reg_type() {
   reg_type_ = 1;
   clear_has_reg_type();
 }
-inline ::com::caredear::Regtype RegisterRequest::reg_type() const {
+inline ::RegLoginType RegisterRequest::reg_type() const {
   // @@protoc_insertion_point(field_get:com.caredear.RegisterRequest.reg_type)
-  return static_cast< ::com::caredear::Regtype >(reg_type_);
+  return static_cast< ::RegLoginType >(reg_type_);
 }
-inline void RegisterRequest::set_reg_type(::com::caredear::Regtype value) {
-  assert(::com::caredear::Regtype_IsValid(value));
+inline void RegisterRequest::set_reg_type(::RegLoginType value) {
+  assert(::RegLoginType_IsValid(value));
   set_has_reg_type();
   reg_type_ = value;
   // @@protoc_insertion_point(field_set:com.caredear.RegisterRequest.reg_type)
 }
 
-// required .com.caredear.DeviceType reg_device = 2;
+// required .DeviceType reg_device = 2;
 inline bool RegisterRequest::has_reg_device() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -399,12 +367,12 @@ inline void RegisterRequest::clear_reg_device() {
   reg_device_ = 0;
   clear_has_reg_device();
 }
-inline ::com::caredear::DeviceType RegisterRequest::reg_device() const {
+inline ::DeviceType RegisterRequest::reg_device() const {
   // @@protoc_insertion_point(field_get:com.caredear.RegisterRequest.reg_device)
-  return static_cast< ::com::caredear::DeviceType >(reg_device_);
+  return static_cast< ::DeviceType >(reg_device_);
 }
-inline void RegisterRequest::set_reg_device(::com::caredear::DeviceType value) {
-  assert(::com::caredear::DeviceType_IsValid(value));
+inline void RegisterRequest::set_reg_device(::DeviceType value) {
+  assert(::DeviceType_IsValid(value));
   set_has_reg_device();
   reg_device_ = value;
   // @@protoc_insertion_point(field_set:com.caredear.RegisterRequest.reg_device)
@@ -714,6 +682,30 @@ inline void RegisterRequest::set_allocated_reg_devbrand(::std::string* reg_devbr
   // @@protoc_insertion_point(field_set_allocated:com.caredear.RegisterRequest.reg_devbrand)
 }
 
+// optional int32 bypass_activation = 7;
+inline bool RegisterRequest::has_bypass_activation() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void RegisterRequest::set_has_bypass_activation() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void RegisterRequest::clear_has_bypass_activation() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void RegisterRequest::clear_bypass_activation() {
+  bypass_activation_ = 0;
+  clear_has_bypass_activation();
+}
+inline ::google::protobuf::int32 RegisterRequest::bypass_activation() const {
+  // @@protoc_insertion_point(field_get:com.caredear.RegisterRequest.bypass_activation)
+  return bypass_activation_;
+}
+inline void RegisterRequest::set_bypass_activation(::google::protobuf::int32 value) {
+  set_has_bypass_activation();
+  bypass_activation_ = value;
+  // @@protoc_insertion_point(field_set:com.caredear.RegisterRequest.bypass_activation)
+}
+
 // -------------------------------------------------------------------
 
 // RegisterResponse
@@ -980,16 +972,6 @@ inline void RegisterResponse::set_allocated_caredear_id(::std::string* caredear_
 namespace google {
 namespace protobuf {
 
-template <> struct is_proto_enum< ::com::caredear::Regtype> : ::google::protobuf::internal::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::Regtype>() {
-  return ::com::caredear::Regtype_descriptor();
-}
-template <> struct is_proto_enum< ::com::caredear::DeviceType> : ::google::protobuf::internal::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::DeviceType>() {
-  return ::com::caredear::DeviceType_descriptor();
-}
 
 }  // namespace google
 }  // namespace protobuf

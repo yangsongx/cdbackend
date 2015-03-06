@@ -2,18 +2,23 @@
 #
 DEBUG=true
 CDSBASE = ../../common/cds_base/
+LOGINBASE=../user_login/
 
 CC = g++
 
 SRC = usr_reg_service.cc \
       data_access.cc \
+      CommonUserCenter.pb.cc \
       UserRegister.pb.cc \
       RegOperation.cc \
       UserRegConfig.cc
 
+TESTSRC = test_client.cc UserRegister.pb.cc \
+          CommonUserCenter.pb.cc \
+          $(LOGINBASE)UserLogin.pb.cc
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = -I$(CDSBASE) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
+CXXFLAGS = -I$(LOGINBASE) -I$(CDSBASE) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
 
 # Release should use -O2
 
@@ -24,6 +29,7 @@ CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
 LDFLAGS = -L . -L $(CDSBASE) -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs` -luuid-static
+TESTLDFLAGS = -lprotobuf -lxml2 `mysql_config --libs` -lssl -lcrypto
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
@@ -32,16 +38,20 @@ LDFLAGS += -lm -ldl -lz -lrt -static
 endif
 
 OBJS = $(SRC:.cc=.o)
+TESTOBJS = $(TESTSRC:.cc=.o)
 
-all:urs
+all:urs test_reg
 
 urs:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
+
+test_reg:$(TESTOBJS)
+	$(CC) -o $@ $^ $(TESTLDFLAGS)
 
 .cc.o:
 	$(CC) $(CXXFLAGS) -c $< -o $@
 
 .PHONY:clean
 clean:
-	rm -rf *.o urs a.out
+	rm -rf *.o urs test_reg a.out
 	find . -name '*.o' -exec rm -rf {} ";"

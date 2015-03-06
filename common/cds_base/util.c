@@ -9,6 +9,7 @@
 #include <openssl/evp.h>
 #include <openssl/engine.h>
 #include <openssl/pem.h>
+#include <openssl/md5.h>
 
 #include "memcached.h"
 #include "cds_public.h"
@@ -543,6 +544,31 @@ void vperror(const char *fmt, ...) {
     perror(buf);
 }
 
+/**
+ * Calculate the MD5 on @data, which is @length.
+ *
+ */
+int get_md5(const char *data, int length, char *result)
+{
+    size_t i;
+    char md5[16];
+    char tmp[10];
+
+    MD5_CTX ctx;
+
+    MD5_Init(&ctx);
+    MD5_Update(&ctx, data, length);
+    MD5_Final((unsigned char *)md5, &ctx);
+
+    result[0] = '\0';
+    for(i = 0; i < sizeof(md5); i++)
+    {
+        sprintf(tmp, "%02x", (unsigned char)md5[i]);
+        strcat(result, tmp);
+    }
+
+    return 0;
+}
 
 /**
  * Get date time format string, like 'yyyy-mm-dd hh:mm:ss'

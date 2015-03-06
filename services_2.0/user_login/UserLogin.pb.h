@@ -23,8 +23,8 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
-#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
+#include "CommonUserCenter.pb.h"
 // @@protoc_insertion_point(includes)
 
 namespace com {
@@ -38,28 +38,6 @@ void protobuf_ShutdownFile_UserLogin_2eproto();
 class LoginRequest;
 class LoginResponse;
 
-enum Logintype {
-  MOBILE_PHONE = 1,
-  EMAIL_PASSWD = 2,
-  NAME_PASSWD = 3,
-  OTHERS = 4,
-  CID_PASSWD = 5
-};
-bool Logintype_IsValid(int value);
-const Logintype Logintype_MIN = MOBILE_PHONE;
-const Logintype Logintype_MAX = CID_PASSWD;
-const int Logintype_ARRAYSIZE = Logintype_MAX + 1;
-
-const ::google::protobuf::EnumDescriptor* Logintype_descriptor();
-inline const ::std::string& Logintype_Name(Logintype value) {
-  return ::google::protobuf::internal::NameOfEnum(
-    Logintype_descriptor(), value);
-}
-inline bool Logintype_Parse(
-    const ::std::string& name, Logintype* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<Logintype>(
-    Logintype_descriptor(), name, value);
-}
 // ===================================================================
 
 class LoginRequest : public ::google::protobuf::Message {
@@ -115,12 +93,12 @@ class LoginRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required .com.caredear.Logintype login_type = 1;
+  // required .RegLoginType login_type = 1;
   inline bool has_login_type() const;
   inline void clear_login_type();
   static const int kLoginTypeFieldNumber = 1;
-  inline ::com::caredear::Logintype login_type() const;
-  inline void set_login_type(::com::caredear::Logintype value);
+  inline ::RegLoginType login_type() const;
+  inline void set_login_type(::RegLoginType value);
 
   // required string login_session = 2;
   inline bool has_login_session() const;
@@ -315,7 +293,7 @@ class LoginResponse : public ::google::protobuf::Message {
 
 // LoginRequest
 
-// required .com.caredear.Logintype login_type = 1;
+// required .RegLoginType login_type = 1;
 inline bool LoginRequest::has_login_type() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -329,12 +307,12 @@ inline void LoginRequest::clear_login_type() {
   login_type_ = 1;
   clear_has_login_type();
 }
-inline ::com::caredear::Logintype LoginRequest::login_type() const {
+inline ::RegLoginType LoginRequest::login_type() const {
   // @@protoc_insertion_point(field_get:com.caredear.LoginRequest.login_type)
-  return static_cast< ::com::caredear::Logintype >(login_type_);
+  return static_cast< ::RegLoginType >(login_type_);
 }
-inline void LoginRequest::set_login_type(::com::caredear::Logintype value) {
-  assert(::com::caredear::Logintype_IsValid(value));
+inline void LoginRequest::set_login_type(::RegLoginType value) {
+  assert(::RegLoginType_IsValid(value));
   set_has_login_type();
   login_type_ = value;
   // @@protoc_insertion_point(field_set:com.caredear.LoginRequest.login_type)
@@ -834,11 +812,6 @@ inline void LoginResponse::set_allocated_token(::std::string* token) {
 namespace google {
 namespace protobuf {
 
-template <> struct is_proto_enum< ::com::caredear::Logintype> : ::google::protobuf::internal::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::Logintype>() {
-  return ::com::caredear::Logintype_descriptor();
-}
 
 }  // namespace google
 }  // namespace protobuf

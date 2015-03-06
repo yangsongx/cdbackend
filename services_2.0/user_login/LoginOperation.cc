@@ -11,7 +11,18 @@ int LoginOperation::compose_result(int code, const char *errmsg, LoginResponse *
 {
     unsigned short len;
 
+    p_obj->set_result_code(code);
+    if(code != CDS_OK && errmsg != NULL)
+    {
+        p_obj->set_extra_msg(errmsg);
+    }
+
     len = p_obj->ByteSize();
+    if(len >= DATA_BUFFER_SIZE)
+    {
+        ERR("Attention, exceed the max len, set it to a safe len\n");
+        len = 4;
+    }
 
     *p_resplen = (len + 2);
     ArrayOutputStream aos(p_respdata, *p_resplen);
@@ -45,6 +56,8 @@ int LoginOperation::do_login(LoginRequest *reqobj, LoginResponse *respobj, int *
         us.us_sessionid = reqobj->login_session().c_str();
         us.us_token = uuiddata;
         update_usercenter_session(m_cfgInfo->m_Sql, &us);
+
+        respobj->set_token(uuiddata);
         //...
     }
     else

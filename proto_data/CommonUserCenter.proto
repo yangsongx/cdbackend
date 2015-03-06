@@ -1,0 +1,17 @@
+// Common Def
+
+enum RegLoginType{
+    MOBILE_PHONE = 1;
+    EMAIL_PASSWD = 2;
+    NAME_PASSWD = 3;
+    PHONE_PASSWD = 4;
+    OTHERS = 5;
+    CID_PASSWD = 6; // using caredear ID login
+}
+
+enum DeviceType{
+    ANDROID = 0;
+    IOS = 1;
+    CAREDEAROS = 2;
+    PC = 3;
+}

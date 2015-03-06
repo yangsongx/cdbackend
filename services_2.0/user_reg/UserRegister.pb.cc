@@ -27,8 +27,6 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* RegisterResponse_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   RegisterResponse_reflection_ = NULL;
-const ::google::protobuf::EnumDescriptor* Regtype_descriptor_ = NULL;
-const ::google::protobuf::EnumDescriptor* DeviceType_descriptor_ = NULL;
 
 }  // namespace
 
@@ -40,13 +38,14 @@ void protobuf_AssignDesc_UserRegister_2eproto() {
       "UserRegister.proto");
   GOOGLE_CHECK(file != NULL);
   RegisterRequest_descriptor_ = file->message_type(0);
-  static const int RegisterRequest_offsets_[6] = {
+  static const int RegisterRequest_offsets_[7] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_device_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_source_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_password_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, reg_devbrand_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RegisterRequest, bypass_activation_),
   };
   RegisterRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -77,8 +76,6 @@ void protobuf_AssignDesc_UserRegister_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(RegisterResponse));
-  Regtype_descriptor_ = file->enum_type(0);
-  DeviceType_descriptor_ = file->enum_type(1);
 }
 
 namespace {
@@ -112,19 +109,17 @@ void protobuf_AddDesc_UserRegister_2eproto() {
   already_here = true;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
+  ::protobuf_AddDesc_CommonUserCenter_2eproto();
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\022UserRegister.proto\022\014com.caredear\"\272\001\n\017R"
-    "egisterRequest\022\'\n\010reg_type\030\001 \002(\0162\025.com.c"
-    "aredear.Regtype\022,\n\nreg_device\030\002 \002(\0162\030.co"
-    "m.caredear.DeviceType\022\022\n\nreg_source\030\003 \002("
-    "\t\022\020\n\010reg_name\030\004 \002(\t\022\024\n\014reg_password\030\005 \001("
-    "\t\022\024\n\014reg_devbrand\030\006 \001(\t\"g\n\020RegisterRespo"
-    "nse\022\023\n\013result_code\030\001 \002(\005\022\021\n\textra_msg\030\002 "
-    "\001(\t\022\026\n\016reg_verifycode\030\003 \001(\t\022\023\n\013caredear_"
-    "id\030\004 \001(\t*A\n\007Regtype\022\020\n\014MOBILE_PHONE\020\001\022\t\n"
-    "\005EMAIL\020\002\022\r\n\tUSER_NAME\020\003\022\n\n\006OTHERS\020\004*:\n\nD"
-    "eviceType\022\013\n\007ANDROID\020\000\022\007\n\003IOS\020\001\022\016\n\nCARED"
-    "EAROS\020\002\022\006\n\002PC\020\003", 455);
+    "\n\022UserRegister.proto\022\014com.caredear\032\026Comm"
+    "onUserCenter.proto\"\300\001\n\017RegisterRequest\022\037"
+    "\n\010reg_type\030\001 \002(\0162\r.RegLoginType\022\037\n\nreg_d"
+    "evice\030\002 \002(\0162\013.DeviceType\022\022\n\nreg_source\030\003"
+    " \002(\t\022\020\n\010reg_name\030\004 \002(\t\022\024\n\014reg_password\030\005"
+    " \001(\t\022\024\n\014reg_devbrand\030\006 \001(\t\022\031\n\021bypass_act"
+    "ivation\030\007 \001(\005\"g\n\020RegisterResponse\022\023\n\013res"
+    "ult_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t\022\026\n\016reg"
+    "_verifycode\030\003 \001(\t\022\023\n\013caredear_id\030\004 \001(\t", 358);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserRegister.proto", &protobuf_RegisterTypes);
   RegisterRequest::default_instance_ = new RegisterRequest();
@@ -140,38 +135,6 @@ struct StaticDescriptorInitializer_UserRegister_2eproto {
     protobuf_AddDesc_UserRegister_2eproto();
   }
 } static_descriptor_initializer_UserRegister_2eproto_;
-const ::google::protobuf::EnumDescriptor* Regtype_descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return Regtype_descriptor_;
-}
-bool Regtype_IsValid(int value) {
-  switch(value) {
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-      return true;
-    default:
-      return false;
-  }
-}
-
-const ::google::protobuf::EnumDescriptor* DeviceType_descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return DeviceType_descriptor_;
-}
-bool DeviceType_IsValid(int value) {
-  switch(value) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-      return true;
-    default:
-      return false;
-  }
-}
-
 
 // ===================================================================
 
@@ -182,6 +145,7 @@ const int RegisterRequest::kRegSourceFieldNumber;
 const int RegisterRequest::kRegNameFieldNumber;
 const int RegisterRequest::kRegPasswordFieldNumber;
 const int RegisterRequest::kRegDevbrandFieldNumber;
+const int RegisterRequest::kBypassActivationFieldNumber;
 #endif  // !_MSC_VER
 
 RegisterRequest::RegisterRequest()
@@ -209,6 +173,7 @@ void RegisterRequest::SharedCtor() {
   reg_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   reg_password_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   reg_devbrand_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  bypass_activation_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -256,7 +221,7 @@ RegisterRequest* RegisterRequest::New() const {
 }
 
 void RegisterRequest::Clear() {
-  if (_has_bits_[0 / 32] & 63) {
+  if (_has_bits_[0 / 32] & 127) {
     reg_type_ = 1;
     reg_device_ = 0;
     if (has_reg_source()) {
@@ -279,6 +244,7 @@ void RegisterRequest::Clear() {
         reg_devbrand_->clear();
       }
     }
+    bypass_activation_ = 0;
   }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -294,15 +260,15 @@ bool RegisterRequest::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required .com.caredear.Regtype reg_type = 1;
+      // required .RegLoginType reg_type = 1;
       case 1: {
         if (tag == 8) {
           int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          if (::com::caredear::Regtype_IsValid(value)) {
-            set_reg_type(static_cast< ::com::caredear::Regtype >(value));
+          if (::RegLoginType_IsValid(value)) {
+            set_reg_type(static_cast< ::RegLoginType >(value));
           } else {
             mutable_unknown_fields()->AddVarint(1, value);
           }
@@ -313,7 +279,7 @@ bool RegisterRequest::MergePartialFromCodedStream(
         break;
       }
 
-      // required .com.caredear.DeviceType reg_device = 2;
+      // required .DeviceType reg_device = 2;
       case 2: {
         if (tag == 16) {
          parse_reg_device:
@@ -321,8 +287,8 @@ bool RegisterRequest::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          if (::com::caredear::DeviceType_IsValid(value)) {
-            set_reg_device(static_cast< ::com::caredear::DeviceType >(value));
+          if (::DeviceType_IsValid(value)) {
+            set_reg_device(static_cast< ::DeviceType >(value));
           } else {
             mutable_unknown_fields()->AddVarint(2, value);
           }
@@ -397,6 +363,21 @@ bool RegisterRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(56)) goto parse_bypass_activation;
+        break;
+      }
+
+      // optional int32 bypass_activation = 7;
+      case 7: {
+        if (tag == 56) {
+         parse_bypass_activation:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &bypass_activation_)));
+          set_has_bypass_activation();
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -426,13 +407,13 @@ failure:
 void RegisterRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:com.caredear.RegisterRequest)
-  // required .com.caredear.Regtype reg_type = 1;
+  // required .RegLoginType reg_type = 1;
   if (has_reg_type()) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       1, this->reg_type(), output);
   }
 
-  // required .com.caredear.DeviceType reg_device = 2;
+  // required .DeviceType reg_device = 2;
   if (has_reg_device()) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       2, this->reg_device(), output);
@@ -478,6 +459,11 @@ void RegisterRequest::SerializeWithCachedSizes(
       6, this->reg_devbrand(), output);
   }
 
+  // optional int32 bypass_activation = 7;
+  if (has_bypass_activation()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(7, this->bypass_activation(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -488,13 +474,13 @@ void RegisterRequest::SerializeWithCachedSizes(
 ::google::protobuf::uint8* RegisterRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // @@protoc_insertion_point(serialize_to_array_start:com.caredear.RegisterRequest)
-  // required .com.caredear.Regtype reg_type = 1;
+  // required .RegLoginType reg_type = 1;
   if (has_reg_type()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       1, this->reg_type(), target);
   }
 
-  // required .com.caredear.DeviceType reg_device = 2;
+  // required .DeviceType reg_device = 2;
   if (has_reg_device()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       2, this->reg_device(), target);
@@ -544,6 +530,11 @@ void RegisterRequest::SerializeWithCachedSizes(
         6, this->reg_devbrand(), target);
   }
 
+  // optional int32 bypass_activation = 7;
+  if (has_bypass_activation()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(7, this->bypass_activation(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -556,13 +547,13 @@ int RegisterRequest::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required .com.caredear.Regtype reg_type = 1;
+    // required .RegLoginType reg_type = 1;
     if (has_reg_type()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->reg_type());
     }
 
-    // required .com.caredear.DeviceType reg_device = 2;
+    // required .DeviceType reg_device = 2;
     if (has_reg_device()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->reg_device());
@@ -594,6 +585,13 @@ int RegisterRequest::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->reg_devbrand());
+    }
+
+    // optional int32 bypass_activation = 7;
+    if (has_bypass_activation()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->bypass_activation());
     }
 
   }
@@ -641,6 +639,9 @@ void RegisterRequest::MergeFrom(const RegisterRequest& from) {
     if (from.has_reg_devbrand()) {
       set_reg_devbrand(from.reg_devbrand());
     }
+    if (from.has_bypass_activation()) {
+      set_bypass_activation(from.bypass_activation());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -671,6 +672,7 @@ void RegisterRequest::Swap(RegisterRequest* other) {
     std::swap(reg_name_, other->reg_name_);
     std::swap(reg_password_, other->reg_password_);
     std::swap(reg_devbrand_, other->reg_devbrand_);
+    std::swap(bypass_activation_, other->bypass_activation_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

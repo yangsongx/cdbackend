@@ -1,15 +1,16 @@
-# Makefile for User Registration Service(URS)
+# Makefile for User Auth Service(UAS)
 #
 DEBUG=true
 CDSBASE = ../../common/cds_base/
 
 CC = g++
 
-SRC = usr_reg_service.cc \
-      data_access.cc \
-      UserRegister.pb.cc \
-      RegOperation.cc \
-      UserRegConfig.cc
+SRC = usr_auth_service.cc \
+      UserAuth.pb.cc \
+      AuthOperation.cc \
+      UserAuthConfig.cc \
+      usr_auth_db.cc \
+      usr_auth_mem.cc
 
 
 #include ../../common/caredear_service_lib/common.mk
@@ -23,7 +24,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L . -L $(CDSBASE) -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs` -luuid-static
+LDFLAGS = -L $(CDSBASE) -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
@@ -33,9 +34,9 @@ endif
 
 OBJS = $(SRC:.cc=.o)
 
-all:urs
+all:uauth
 
-urs:$(OBJS)
+uauth:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 .cc.o:
@@ -43,5 +44,5 @@ urs:$(OBJS)
 
 .PHONY:clean
 clean:
-	rm -rf *.o urs a.out
+	rm -rf *.o uauth a.out
 	find . -name '*.o' -exec rm -rf {} ";"

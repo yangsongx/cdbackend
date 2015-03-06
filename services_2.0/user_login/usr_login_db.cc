@@ -43,27 +43,27 @@ int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *
 
     switch(reqobj->login_type())
     {
-        case Logintype::MOBILE_PHONE:
+        case RegLoginType::MOBILE_PHONE:
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "SELECT id FROM %s WHERE",
                     USER_MAIN_TABLE);
             break;
 
-        case Logintype::NAME_PASSWD:
+        case RegLoginType::NAME_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "SELECT id FROM %s WHERE username=\'%s\' AND loginpassword=\'%s\'",
                     USER_MAIN_TABLE,
                     reqobj->login_name().c_str(), reqobj->login_password().c_str());
             break;
 
-        case Logintype::EMAIL_PASSWD:
+        case RegLoginType::EMAIL_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "SELECT id FROM %s WHERE email=\'%s\' AND loginpassword=\'%s\'",
                     USER_MAIN_TABLE,
                     reqobj->login_name().c_str(), reqobj->login_password().c_str());
             break;
 
-        case CID_PASSWD:
+        case RegLoginType::CID_PASSWD:
             // TODO how to handle with CareDear ID login?
             break;
 

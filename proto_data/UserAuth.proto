@@ -1,0 +1,14 @@
+
+package com.caredear;
+
+
+message AuthRequest{
+    required string  auth_token = 1;
+    required string  auth_session = 2;
+    required int32   auth_sysid = 3; // which apk trigger this(bbs?netdisk?qinliang? etc...)
+}
+
+message AuthResponse{
+    required int32 result_code = 1; // CDS_XXX code
+    optional string extra_msg = 2; // further error msg if it has
+}

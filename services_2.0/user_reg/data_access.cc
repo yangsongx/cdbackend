@@ -60,11 +60,49 @@ int keep_urs_db_connected(MYSQL *ms)
     return ret;
 }
 
+/**
+ * user's register passwd is md5(passwd), we need do md5(CID+md5(passwd) again, then input
+ * that md5 into DB, can't directly save the user's request's password.
+ *
+ */
+int add_user_password_to_db(MYSQL *ms, RegisterRequest *pRegInfo, unsigned long user_id, const char *passwd)
+{
+    int ret = CDS_OK;
+    char sqlcmd[1024];
+
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE %s SET loginpassword=\'%s\' WHERE id=%ld",
+            NEW_REG_TABLE, passwd, user_id);
+
+    LOCK_CDS(urs_mutex);
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_CDS(urs_mutex);
+        ERR("failed execute add usr passwd sql cmd:%s\n", mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    if(mysql_store_result(ms) == NULL)
+    {
+        INFO("add user passwd in DB [OK]\n");
+    }
+
+    UNLOCK_CDS(urs_mutex);
+
+    return ret;
+}
+
+/**
+ * Add a new user in the DB.
+ *
+ */
 int add_new_user_entry(MYSQL *ms, RegisterRequest *pRegInfo)
 {
     int ret = CDS_OK;
     char sqlcmd[1024];
     char current[32]; // date '1990-12-12 12:12:12' is 20 len
+    bool bypassactivate = false;
 
     if(current_datetime(current, sizeof(current)) != 0)
     {
@@ -73,40 +111,57 @@ int add_new_user_entry(MYSQL *ms, RegisterRequest *pRegInfo)
         strcpy(current, "1990-12-12 12:12:12");
     }
 
+    if(pRegInfo->has_bypass_activation() && pRegInfo->bypass_activation() == 1)
+    {
+        bypassactivate = true;
+    }
+
     switch(pRegInfo->reg_type())
     {
-        case MOBILE_PHONE:
+        case RegLoginType::MOBILE_PHONE:
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "INSERT INTO %s (usermobile,device,source,createtime,status) "
-                    "VALUES (\'%s\',%d,\'%s\',\'%s\',0)",
+                    "VALUES (\'%s\',%d,\'%s\',\'%s\',%d)",
                     NEW_REG_TABLE,
                     pRegInfo->reg_name().c_str(), pRegInfo->reg_device(),
-                    pRegInfo->reg_source().c_str(), current);
+                    pRegInfo->reg_source().c_str(), current,
+                    bypassactivate == true ? 1 : 0);
             break;
 
-        case USER_NAME:
+        case RegLoginType::PHONE_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "INSERT INTO %s (username,loginpassword,device,source,createtime,status) "
-                    "VALUES (\'%s\',%s,%d,\'%s\',\'%s\',1)",
+                    "INSERT INTO %s (usermobile,device,source,createtime,status) "
+                    "VALUES (\'%s\',%d,\'%s\',\'%s\',%d)",
                     NEW_REG_TABLE,
                     pRegInfo->reg_name().c_str(),
-                    pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "",
+                    pRegInfo->reg_device(),
+                    pRegInfo->reg_source().c_str(), current,
+                    bypassactivate == true ? 1 : 0);
+            break;
+
+        case RegLoginType::NAME_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "INSERT INTO %s (username,device,source,createtime,status) "
+                    "VALUES (\'%s\',%d,\'%s\',\'%s\',1)",
+                    NEW_REG_TABLE,
+                    pRegInfo->reg_name().c_str(),
                     pRegInfo->reg_device(),
                     pRegInfo->reg_source().c_str(),current);
             break;
 
-        case EMAIL:
+        case RegLoginType::EMAIL_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "INSERT INTO %s (email,loginpassword,device,source,createtime,status) "
-                    "VALUES (\'%s\',%s,%d,\'%s\',\'%s\',0)",
+                    "INSERT INTO %s (email,device,source,createtime,status) "
+                    "VALUES (\'%s\',%d,\'%s\',\'%s\',%d)",
                     NEW_REG_TABLE,
                     pRegInfo->reg_name().c_str(),
-                    pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "",
                     pRegInfo->reg_device(),
-                    pRegInfo->reg_source().c_str(), current);
+                    pRegInfo->reg_source().c_str(), current,
+                    bypassactivate == true ? 1 : 0);
             break;
 
         default:
+            ERR("**Warning, unknow reg type\n");
             break;
     }
 
@@ -119,15 +174,40 @@ int add_new_user_entry(MYSQL *ms, RegisterRequest *pRegInfo)
         return CDS_ERR_SQL_EXECUTE_FAILED;
     }
 
-    if(mysql_store_result(ms) == NULL)
+    MYSQL_RES *mresult;
+    mresult = mysql_store_result(ms);
+    UNLOCK_CDS(urs_mutex);
+
+    if(mresult == NULL)
     {
         INFO("mysql_store_result()==NULL, new reg usr insertion [OK]\n");
-    }
 
-    UNLOCK_CDS(urs_mutex);
+        // Note here, we still need do a SQL query again, to get User's CID,
+        // after get this CID, we can update the password finally!
+        unsigned long cid = 0;
+        int active_flag;
+        if(user_already_exist(ms, pRegInfo, &active_flag, &cid))
+        {
+            INFO("this new user's CID=%ld\n", cid);
+            char finaly_passwd[64];
+            // re-use the long sqlcmd buff
+            sprintf(sqlcmd, "%ld-%s",
+                    cid, pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "");
+            get_md5(sqlcmd, strlen(sqlcmd), finaly_passwd);
+            LOG("%s --MD5--> %s\n", sqlcmd, finaly_passwd);
+
+            ret = add_user_password_to_db(ms, pRegInfo, cid, finaly_passwd);
+        }
+        else
+        {
+            ERR("SHOULD NEVER Happend as we already insert right now!\n");
+            ret = CDS_ERR_SQL_EXECUTE_FAILED;
+        }
+    }
 
     return ret;
 }
+
 
 /**
  *
@@ -136,21 +216,45 @@ int add_new_user_entry(MYSQL *ms, RegisterRequest *pRegInfo)
 int overwrite_inactive_user_entry(MYSQL *ms, RegisterRequest *pRegInfo, unsigned long user_id)
 {
     char sqlcmd[1024];
+    bool bypassactivate = false;
+
+    if(pRegInfo->has_bypass_activation() && pRegInfo->bypass_activation() == 1)
+    {
+        bypassactivate = true;
+    }
+
+    // as we already knew the CID, calculate the password here.
+    char finaly_passwd[64];
+    char temp_buf[128];
+    snprintf(temp_buf, sizeof(temp_buf), "%ld-%s",
+            user_id, pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "");
+    get_md5(temp_buf, strlen(temp_buf), finaly_passwd);
+    LOG("%s --MD5--> %s\n", temp_buf, finaly_passwd);
+
 
     switch(pRegInfo->reg_type())
     {
-        case Regtype::MOBILE_PHONE:
+        case RegLoginType::MOBILE_PHONE:
+        case RegLoginType::PHONE_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "UPDATE %s SET usermobile=\'%s\',device=%d,source=\'%s\',createtime=NOW(),status=0 WHERE id=%ld",
+                    "UPDATE %s SET usermobile=\'%s\',loginpassword=\'%s\',device=%d,source=\'%s\',createtime=NOW(),status=%d WHERE id=%ld",
                     NEW_REG_TABLE,
-                    pRegInfo->reg_name().c_str(), pRegInfo->reg_device(), pRegInfo->reg_source().c_str(), user_id);
+                    pRegInfo->reg_name().c_str(), 
+                    finaly_passwd,
+                    pRegInfo->reg_device(), pRegInfo->reg_source().c_str(),
+                    bypassactivate == true ? 1 : 0,
+                    user_id);
             break;
 
-        case Regtype::EMAIL:
+        case RegLoginType::EMAIL_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "UPDATE %s SET email=\'%s\',device=%d,source=\'%s\',createtime=NOW(),status=0 WHERE id=%ld",
+                    "UPDATE %s SET email=\'%s\',loginpassword=\'%s\',device=%d,source=\'%s\',createtime=NOW(),status=%d WHERE id=%ld",
                     NEW_REG_TABLE,
-                    pRegInfo->reg_name().c_str(), pRegInfo->reg_device(), pRegInfo->reg_source().c_str(), user_id);
+                    pRegInfo->reg_name().c_str(),
+                    finaly_passwd,
+                    pRegInfo->reg_device(), pRegInfo->reg_source().c_str(),
+                    bypassactivate == true ? 1 : 0,
+                    user_id);
             break;
 
         default:
@@ -189,19 +293,20 @@ bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj, int *p_active_status
 
     switch(reqobj->reg_type())
     {
-        case MOBILE_PHONE:
+        case RegLoginType::MOBILE_PHONE:
+        case RegLoginType::PHONE_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "SELECT id,status FROM %s WHERE usermobile=\'%s\'",
                     NEW_REG_TABLE, reqobj->reg_name().c_str());
             break;
 
-        case USER_NAME:
+        case RegLoginType::NAME_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "SELECT id,status FROM %s WHERE username=\'%s\'",
                     NEW_REG_TABLE, reqobj->reg_name().c_str());
             break;
 
-        case EMAIL:
+        case RegLoginType::EMAIL_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "SELECT id,status FROM %s WHERE email=\'%s\'",
                     NEW_REG_TABLE, reqobj->reg_name().c_str());
@@ -226,6 +331,7 @@ bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj, int *p_active_status
 
     mresult = mysql_store_result(ms);
     UNLOCK_CDS(urs_mutex);
+
     if(mresult)
     {
         row = mysql_fetch_row(mresult);
@@ -260,7 +366,7 @@ int record_user_verifiy_code(MYSQL *ms, RegisterRequest *reqobj, RegisterRespons
 
     switch(reqobj->reg_type())
     {
-        case Regtype::MOBILE_PHONE:
+        case RegLoginType::MOBILE_PHONE:
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "UPDATE %s SET code=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
                     "WHERE usermobile=\'%s\'",
@@ -270,7 +376,7 @@ int record_user_verifiy_code(MYSQL *ms, RegisterRequest *reqobj, RegisterRespons
                     reqobj->reg_name().c_str());
             break;
 
-        case Regtype::EMAIL:
+        case RegLoginType::EMAIL_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "UPDATE %s SET code=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
                     "WHERE email=\'%s\'",
