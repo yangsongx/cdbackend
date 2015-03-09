@@ -218,6 +218,12 @@ int overwrite_inactive_user_entry(MYSQL *ms, RegisterRequest *pRegInfo, unsigned
     char sqlcmd[1024];
     bool bypassactivate = false;
 
+    if(pRegInfo->reg_type() == RegLoginType::MOBILE_PHONE)
+    {
+        INFO("For SMS verify case, DO NOT overwrite the DB!\n");
+        return 0;
+    }
+
     if(pRegInfo->has_bypass_activation() && pRegInfo->bypass_activation() == 1)
     {
         bypassactivate = true;
@@ -234,7 +240,6 @@ int overwrite_inactive_user_entry(MYSQL *ms, RegisterRequest *pRegInfo, unsigned
 
     switch(pRegInfo->reg_type())
     {
-        case RegLoginType::MOBILE_PHONE:
         case RegLoginType::PHONE_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "UPDATE %s SET usermobile=\'%s\',loginpassword=\'%s\',device=%d,source=\'%s\',createtime=NOW(),status=%d WHERE id=%ld",
@@ -258,6 +263,7 @@ int overwrite_inactive_user_entry(MYSQL *ms, RegisterRequest *pRegInfo, unsigned
             break;
 
         default:
+            // DO nothing here
             break;
     }
 
@@ -344,7 +350,18 @@ bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj, int *p_active_status
             INFO("the %s record existed in DB(id=%s)!\n",
                     reqobj->reg_name().c_str(), row[0]);
             *p_index = (unsigned long) atol(row[0]);
-            *p_active_status = atoi(row[1]);
+
+            if(reqobj->reg_type() != RegLoginType::MOBILE_PHONE)
+            {
+                *p_active_status = atoi(row[1]);
+            }
+            else
+            {
+                // here it is mobile verify SMS case, we don't need the active flag,
+                // so set it 0.
+                *p_active_status = 0;
+            }
+
             return true;
         }
     }

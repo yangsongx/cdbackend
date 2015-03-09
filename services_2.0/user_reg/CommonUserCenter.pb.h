@@ -25,6 +25,9 @@
 #include <google/protobuf/generated_enum_reflection.h>
 // @@protoc_insertion_point(includes)
 
+namespace com {
+namespace caredear {
+
 // Internal implementation detail -- do not call these.
 void  protobuf_AddDesc_CommonUserCenter_2eproto();
 void protobuf_AssignDesc_CommonUserCenter_2eproto();
@@ -86,19 +89,22 @@ inline bool DeviceType_Parse(
 
 // @@protoc_insertion_point(namespace_scope)
 
+}  // namespace caredear
+}  // namespace com
+
 #ifndef SWIG
 namespace google {
 namespace protobuf {
 
-template <> struct is_proto_enum< ::RegLoginType> : ::google::protobuf::internal::true_type {};
+template <> struct is_proto_enum< ::com::caredear::RegLoginType> : ::google::protobuf::internal::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::RegLoginType>() {
-  return ::RegLoginType_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::RegLoginType>() {
+  return ::com::caredear::RegLoginType_descriptor();
 }
-template <> struct is_proto_enum< ::DeviceType> : ::google::protobuf::internal::true_type {};
+template <> struct is_proto_enum< ::com::caredear::DeviceType> : ::google::protobuf::internal::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::DeviceType>() {
-  return ::DeviceType_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::DeviceType>() {
+  return ::com::caredear::DeviceType_descriptor();
 }
 
 }  // namespace google

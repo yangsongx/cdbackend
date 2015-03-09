@@ -93,19 +93,19 @@ class RegisterRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required .RegLoginType reg_type = 1;
+  // required .com.caredear.RegLoginType reg_type = 1;
   inline bool has_reg_type() const;
   inline void clear_reg_type();
   static const int kRegTypeFieldNumber = 1;
-  inline ::RegLoginType reg_type() const;
-  inline void set_reg_type(::RegLoginType value);
+  inline ::com::caredear::RegLoginType reg_type() const;
+  inline void set_reg_type(::com::caredear::RegLoginType value);
 
-  // required .DeviceType reg_device = 2;
+  // required .com.caredear.DeviceType reg_device = 2;
   inline bool has_reg_device() const;
   inline void clear_reg_device();
   static const int kRegDeviceFieldNumber = 2;
-  inline ::DeviceType reg_device() const;
-  inline void set_reg_device(::DeviceType value);
+  inline ::com::caredear::DeviceType reg_device() const;
+  inline void set_reg_device(::com::caredear::DeviceType value);
 
   // required string reg_source = 3;
   inline bool has_reg_source() const;
@@ -328,7 +328,7 @@ class RegisterResponse : public ::google::protobuf::Message {
 
 // RegisterRequest
 
-// required .RegLoginType reg_type = 1;
+// required .com.caredear.RegLoginType reg_type = 1;
 inline bool RegisterRequest::has_reg_type() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -342,18 +342,18 @@ inline void RegisterRequest::clear_reg_type() {
   reg_type_ = 1;
   clear_has_reg_type();
 }
-inline ::RegLoginType RegisterRequest::reg_type() const {
+inline ::com::caredear::RegLoginType RegisterRequest::reg_type() const {
   // @@protoc_insertion_point(field_get:com.caredear.RegisterRequest.reg_type)
-  return static_cast< ::RegLoginType >(reg_type_);
+  return static_cast< ::com::caredear::RegLoginType >(reg_type_);
 }
-inline void RegisterRequest::set_reg_type(::RegLoginType value) {
-  assert(::RegLoginType_IsValid(value));
+inline void RegisterRequest::set_reg_type(::com::caredear::RegLoginType value) {
+  assert(::com::caredear::RegLoginType_IsValid(value));
   set_has_reg_type();
   reg_type_ = value;
   // @@protoc_insertion_point(field_set:com.caredear.RegisterRequest.reg_type)
 }
 
-// required .DeviceType reg_device = 2;
+// required .com.caredear.DeviceType reg_device = 2;
 inline bool RegisterRequest::has_reg_device() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -367,12 +367,12 @@ inline void RegisterRequest::clear_reg_device() {
   reg_device_ = 0;
   clear_has_reg_device();
 }
-inline ::DeviceType RegisterRequest::reg_device() const {
+inline ::com::caredear::DeviceType RegisterRequest::reg_device() const {
   // @@protoc_insertion_point(field_get:com.caredear.RegisterRequest.reg_device)
-  return static_cast< ::DeviceType >(reg_device_);
+  return static_cast< ::com::caredear::DeviceType >(reg_device_);
 }
-inline void RegisterRequest::set_reg_device(::DeviceType value) {
-  assert(::DeviceType_IsValid(value));
+inline void RegisterRequest::set_reg_device(::com::caredear::DeviceType value) {
+  assert(::com::caredear::DeviceType_IsValid(value));
   set_has_reg_device();
   reg_device_ = value;
   // @@protoc_insertion_point(field_set:com.caredear.RegisterRequest.reg_device)

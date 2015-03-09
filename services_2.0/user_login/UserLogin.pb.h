@@ -93,12 +93,12 @@ class LoginRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required .RegLoginType login_type = 1;
+  // required .com.caredear.RegLoginType login_type = 1;
   inline bool has_login_type() const;
   inline void clear_login_type();
   static const int kLoginTypeFieldNumber = 1;
-  inline ::RegLoginType login_type() const;
-  inline void set_login_type(::RegLoginType value);
+  inline ::com::caredear::RegLoginType login_type() const;
+  inline void set_login_type(::com::caredear::RegLoginType value);
 
   // required string login_session = 2;
   inline bool has_login_session() const;
@@ -293,7 +293,7 @@ class LoginResponse : public ::google::protobuf::Message {
 
 // LoginRequest
 
-// required .RegLoginType login_type = 1;
+// required .com.caredear.RegLoginType login_type = 1;
 inline bool LoginRequest::has_login_type() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -307,12 +307,12 @@ inline void LoginRequest::clear_login_type() {
   login_type_ = 1;
   clear_has_login_type();
 }
-inline ::RegLoginType LoginRequest::login_type() const {
+inline ::com::caredear::RegLoginType LoginRequest::login_type() const {
   // @@protoc_insertion_point(field_get:com.caredear.LoginRequest.login_type)
-  return static_cast< ::RegLoginType >(login_type_);
+  return static_cast< ::com::caredear::RegLoginType >(login_type_);
 }
-inline void LoginRequest::set_login_type(::RegLoginType value) {
-  assert(::RegLoginType_IsValid(value));
+inline void LoginRequest::set_login_type(::com::caredear::RegLoginType value) {
+  assert(::com::caredear::RegLoginType_IsValid(value));
   set_has_login_type();
   login_type_ = value;
   // @@protoc_insertion_point(field_set:com.caredear.LoginRequest.login_type)

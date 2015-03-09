@@ -109,17 +109,18 @@ void protobuf_AddDesc_UserRegister_2eproto() {
   already_here = true;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-  ::protobuf_AddDesc_CommonUserCenter_2eproto();
+  ::com::caredear::protobuf_AddDesc_CommonUserCenter_2eproto();
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\022UserRegister.proto\022\014com.caredear\032\026Comm"
-    "onUserCenter.proto\"\300\001\n\017RegisterRequest\022\037"
-    "\n\010reg_type\030\001 \002(\0162\r.RegLoginType\022\037\n\nreg_d"
-    "evice\030\002 \002(\0162\013.DeviceType\022\022\n\nreg_source\030\003"
-    " \002(\t\022\020\n\010reg_name\030\004 \002(\t\022\024\n\014reg_password\030\005"
-    " \001(\t\022\024\n\014reg_devbrand\030\006 \001(\t\022\031\n\021bypass_act"
-    "ivation\030\007 \001(\005\"g\n\020RegisterResponse\022\023\n\013res"
-    "ult_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t\022\026\n\016reg"
-    "_verifycode\030\003 \001(\t\022\023\n\013caredear_id\030\004 \001(\t", 358);
+    "onUserCenter.proto\"\332\001\n\017RegisterRequest\022,"
+    "\n\010reg_type\030\001 \002(\0162\032.com.caredear.RegLogin"
+    "Type\022,\n\nreg_device\030\002 \002(\0162\030.com.caredear."
+    "DeviceType\022\022\n\nreg_source\030\003 \002(\t\022\020\n\010reg_na"
+    "me\030\004 \002(\t\022\024\n\014reg_password\030\005 \001(\t\022\024\n\014reg_de"
+    "vbrand\030\006 \001(\t\022\031\n\021bypass_activation\030\007 \001(\005\""
+    "g\n\020RegisterResponse\022\023\n\013result_code\030\001 \002(\005"
+    "\022\021\n\textra_msg\030\002 \001(\t\022\026\n\016reg_verifycode\030\003 "
+    "\001(\t\022\023\n\013caredear_id\030\004 \001(\t", 384);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserRegister.proto", &protobuf_RegisterTypes);
   RegisterRequest::default_instance_ = new RegisterRequest();
@@ -260,15 +261,15 @@ bool RegisterRequest::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required .RegLoginType reg_type = 1;
+      // required .com.caredear.RegLoginType reg_type = 1;
       case 1: {
         if (tag == 8) {
           int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          if (::RegLoginType_IsValid(value)) {
-            set_reg_type(static_cast< ::RegLoginType >(value));
+          if (::com::caredear::RegLoginType_IsValid(value)) {
+            set_reg_type(static_cast< ::com::caredear::RegLoginType >(value));
           } else {
             mutable_unknown_fields()->AddVarint(1, value);
           }
@@ -279,7 +280,7 @@ bool RegisterRequest::MergePartialFromCodedStream(
         break;
       }
 
-      // required .DeviceType reg_device = 2;
+      // required .com.caredear.DeviceType reg_device = 2;
       case 2: {
         if (tag == 16) {
          parse_reg_device:
@@ -287,8 +288,8 @@ bool RegisterRequest::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          if (::DeviceType_IsValid(value)) {
-            set_reg_device(static_cast< ::DeviceType >(value));
+          if (::com::caredear::DeviceType_IsValid(value)) {
+            set_reg_device(static_cast< ::com::caredear::DeviceType >(value));
           } else {
             mutable_unknown_fields()->AddVarint(2, value);
           }
@@ -407,13 +408,13 @@ failure:
 void RegisterRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:com.caredear.RegisterRequest)
-  // required .RegLoginType reg_type = 1;
+  // required .com.caredear.RegLoginType reg_type = 1;
   if (has_reg_type()) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       1, this->reg_type(), output);
   }
 
-  // required .DeviceType reg_device = 2;
+  // required .com.caredear.DeviceType reg_device = 2;
   if (has_reg_device()) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       2, this->reg_device(), output);
@@ -474,13 +475,13 @@ void RegisterRequest::SerializeWithCachedSizes(
 ::google::protobuf::uint8* RegisterRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // @@protoc_insertion_point(serialize_to_array_start:com.caredear.RegisterRequest)
-  // required .RegLoginType reg_type = 1;
+  // required .com.caredear.RegLoginType reg_type = 1;
   if (has_reg_type()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       1, this->reg_type(), target);
   }
 
-  // required .DeviceType reg_device = 2;
+  // required .com.caredear.DeviceType reg_device = 2;
   if (has_reg_device()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       2, this->reg_device(), target);
@@ -547,13 +548,13 @@ int RegisterRequest::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required .RegLoginType reg_type = 1;
+    // required .com.caredear.RegLoginType reg_type = 1;
     if (has_reg_type()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->reg_type());
     }
 
-    // required .DeviceType reg_device = 2;
+    // required .com.caredear.DeviceType reg_device = 2;
     if (has_reg_device()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->reg_device());

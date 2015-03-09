@@ -1,50 +1,46 @@
 /**
- * User Login Service (ULS)
+ * main entry for Activation Service(acts)
  *
  */
 #ifdef CHECK_MEM_LEAK
 #include <mcheck.h>
 #endif
 
-#include "LoginOperation.h"
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
 
 #include "cds_public.h"
-#include "UserLoginConfig.h"
 
-#if 0
-#ifdef __cplusplus
-#undef min
-#undef max
-#endif
-
-#endif
+#include "UserActivation.pb.h"
+#include "ActivationConfig.h"
+#include "ActivateOperation.h"
 
 using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
-pthread_mutex_t  uls_mutex;
-UserLoginConfig  g_info;
+pthread_mutex_t  acts_mutex;
+
+ActivationConfig g_info;
 
 /**
- * Login handler entry
+ * Handler entry for a user registration request
  *
  */
-int uls_handler(int size, void *req, int *len_resp, void *resp)
+int activate_handler(int size, void *req, int *len_resp, void *resp)
 {
-    bool ok = false;
     int ret = CDS_OK;
-    LoginOperation opr;
-    LoginRequest  reqobj;
-    LoginResponse respobj;
+    bool ok;
+    ActivateOperation opr;
+    ActivateRequest   reqobj;
+    ActivateResponse  respobj;
 
     opr.set_conf(&g_info);
 
     if(size >= DATA_BUFFER_SIZE)
     {
-        ERR("Too much long data, ignore it\n");
+        ERR("Too much long data, drop it!\n");
+
         if(opr.compose_result(CDS_ERR_REQ_TOOLONG, "too much long",
                     &respobj, len_resp, resp) != 0)
         {
@@ -54,40 +50,47 @@ int uls_handler(int size, void *req, int *len_resp, void *resp)
         return CDS_ERR_REQ_TOOLONG;
     }
 
-
     ArrayInputStream in(req, size);
     CodedInputStream is(&in);
 
     ok = reqobj.ParseFromCodedStream(&is);
     if(ok)
     {
-        //....
-        ret = opr.do_login(&reqobj, &respobj, len_resp, resp);
+        // Parse the request OK. drop into
+        // the handling world...
+        ret = opr.begin_activation(&reqobj, &respobj, len_resp, resp);
     }
     else
     {
         ERR("***Failed pare reqobj in protobuf!\n");
-        if(opr.compose_result(CDS_GENERIC_ERROR, "failed parse in protobuf",
+        ret = CDS_ERR_REQ_PROTOBUF_INCORRECT;
+
+        if(opr.compose_result(CDS_ERR_REQ_PROTOBUF_INCORRECT, "failed parse in protobuf",
                 &respobj, len_resp, resp) != 0)
         {
             ERR("** failed seriliaze for the error case\n");
         }
+
     }
 
     return ret;
 }
 
-int uls_ping_handler(int size, void *req, int *len_resp, void *resp)
+int ping_reg_handler(int size, void *req, int *len_resp, void *resp)
 {
     return 0;
 }
 
+/**
+ * World entry point.
+ *
+ */
 int main(int argc, char **argv)
 {
     struct addition_config cfg;
 
 #ifdef CHECK_MEM_LEAK
-    setenv("MALLOC_TRACE", "/tmp/uls.memleak", 1);
+    setenv("MALLOC_TRACE", "/tmp/acts.memleak", 1);
     mtrace();
 #endif
 
@@ -96,14 +99,15 @@ int main(int argc, char **argv)
         ERR("*** Warning Failed init the whole service!\n");
     }
 
-    if(pthread_mutex_init(&uls_mutex, NULL) != 0)
+    if(pthread_mutex_init(&acts_mutex, NULL) != 0)
     {
        ERR("*** Warning, failed create mutex IPC objs:%d\n", errno);
     }
 
+
     cfg.ac_cfgfile = NULL;
-    cfg.ac_handler = uls_handler;
-    cfg.ping_handler = uls_ping_handler;
+    cfg.ac_handler = activate_handler;
+    cfg.ping_handler = ping_reg_handler;
 	cfg.ac_lentype = LEN_TYPE_BIN; /* we use binary leading type */
 
     cds_init(&cfg, argc, argv);

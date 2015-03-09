@@ -18,6 +18,8 @@ int gen_uuid(char *result)
     uuid_t id;
         
     uuid_generate(id);
+
+    /* FIXME - actually, we can call uuid_unparse() to below code line! */
     sprintf(result,
            "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
            id[0], id[1], id[2], id[3],
@@ -30,7 +32,54 @@ int gen_uuid(char *result)
 }
 
 /**
+ * Compare @targetdata with DB, which id is @cid.
+ *
+ */
+int compare_user_password_wth_cid(MYSQL *ms, const char *targetdata, unsigned long cid)
+{
+    int ret = CDS_GENERIC_ERROR;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT id FROM %s WHERE id=%ld AND loginpassword=\'%s\'",
+            USER_MAIN_TABLE, cid, targetdata);
+
+    LOCK_CDS(uls_mutex);
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_CDS(uls_mutex);
+        ERR("Failed check the login password:%s\n", mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+    mresult = mysql_store_result(ms);
+    UNLOCK_CDS(uls_mutex);
+
+    if(mresult)
+    {
+        if(mysql_fetch_row(mresult) != NULL)
+        {
+            if(mysql_num_fields(mresult) != 1)
+            {
+                INFO("Warning, this SHOULD NEVER HAPPEND, as only unique-ID queryed!\n");
+            }
+            // set as login with password correctly.
+            ret = CDS_OK;
+        }
+    }
+
+    return ret;
+}
+
+/**
  * Check the user's login info is confirmed by DB data, i.e, login correctly
+ *
+ * This including two steps:
+ * - get user's CID
+ * - try compose MD5 together with the request's password,
+ * - compare it within DB's
  *
  * @p_cid: Caredear ID(CID) of the valid user if his login is successful.
  *
@@ -44,23 +93,25 @@ int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *
     switch(reqobj->login_type())
     {
         case RegLoginType::MOBILE_PHONE:
+        case RegLoginType::PHONE_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "SELECT id FROM %s WHERE",
-                    USER_MAIN_TABLE);
+                    "SELECT id FROM %s WHERE usermobile=\'%s\'",
+                    USER_MAIN_TABLE,
+                    reqobj->login_name().c_str());
             break;
 
         case RegLoginType::NAME_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "SELECT id FROM %s WHERE username=\'%s\' AND loginpassword=\'%s\'",
+                    "SELECT id FROM %s WHERE username=\'%s\'",
                     USER_MAIN_TABLE,
-                    reqobj->login_name().c_str(), reqobj->login_password().c_str());
+                    reqobj->login_name().c_str());
             break;
 
         case RegLoginType::EMAIL_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "SELECT id FROM %s WHERE email=\'%s\' AND loginpassword=\'%s\'",
+                    "SELECT id FROM %s WHERE email=\'%s\'",
                     USER_MAIN_TABLE,
-                    reqobj->login_name().c_str(), reqobj->login_password().c_str());
+                    reqobj->login_name().c_str());
             break;
 
         case RegLoginType::CID_PASSWD:
@@ -75,7 +126,7 @@ int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *
     if(mysql_query(ms, sqlcmd))
     {
         UNLOCK_CDS(uls_mutex);
-        ERR("Failed check the login password:%s\n", mysql_error(ms));
+        ERR("Failed check the login cid:%s\n", mysql_error(ms));
         return CDS_ERR_SQL_EXECUTE_FAILED;
     }
 
@@ -97,7 +148,23 @@ int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *
         {
             // here means User's Login is confirmed by DB data.
             // set CID
-            *p_cid = atol(row[0]);
+            if(mysql_num_rows(mresult) != 1)
+            {
+                INFO("Warning, CID matching returned NON-1 result, please check the DB!\n");
+            }
+            *p_cid = atol(row[0]); // take first-match if meet multiple result...
+            LOG("name[%s] ==> cid[%ld]\n",
+                    reqobj->login_name().c_str(), *p_cid);
+
+            char md5data[64];
+            // can re-use the sqlcmd here.
+            sprintf(sqlcmd, "%ld-%s",
+                    *p_cid, reqobj->login_password().c_str());
+            get_md5(sqlcmd, strlen(sqlcmd), md5data);
+            LOG("phase-I cipher[%s] ==> phase-II cipher[%s]\n",
+                    sqlcmd, md5data);
+
+            ret = compare_user_password_wth_cid(ms, md5data, *p_cid);
         }
     }
     else

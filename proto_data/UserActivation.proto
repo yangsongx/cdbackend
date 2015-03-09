@@ -1,0 +1,17 @@
+// IDL for user activation(Email, phone verify SMS)
+//
+package com.caredear;
+
+import "CommonUserCenter.proto";
+
+message ActivateRequest{
+    required RegLoginType activate_type = 1;  // EMAIL? PHONE?
+    required string    activate_name = 2; // Email address? Phone Number ?
+    required string    activate_code = 3; // the verification code number ?
+}
+
+// FIXME - result code be consistent with Web defination?
+message ActivateResponse{
+    required int32  result_code = 1; //CDS_XXX error code
+    optional string extra_msg = 2;
+}

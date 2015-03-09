@@ -36,6 +36,19 @@ else
   echo "User Auth proto IDL generation [**failed]"
 fi
 
+# For user activation
+protoc --cpp_out="../services_2.0/user_activate/" CommonUserCenter.proto 
+if [ $? -eq 0 ]; then
+  echo "CommonUserCenter proto IDL generation [OK]"
+else
+  echo "CommonUserCenter proto IDL generation [**failed]"
+fi
+protoc --cpp_out="../services_2.0/user_activate/" UserActivation.proto
+if [ $? -eq 0 ]; then
+  echo "User Activation proto IDL generation [OK]"
+else
+  echo "User Activation proto IDL generation [**failed]"
+fi
 
 # For opensips authentication
 protoc --cpp_out="../services_2.0/opensips_account/" SipAccount.proto

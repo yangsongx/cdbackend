@@ -1,4 +1,5 @@
 // Common Def
+package com.caredear;
 
 enum RegLoginType{
     MOBILE_PHONE = 1;

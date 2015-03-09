@@ -7,6 +7,7 @@
 #include <google/protobuf/io/coded_stream.h>
 #include "UserRegister.pb.h"
 #include "UserLogin.pb.h"
+#include "UserActivation.pb.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -57,6 +58,8 @@ int     mSock;
 int     gPass = 0;
 int     gFail = 0;
 char    gBuffer[1024];
+
+char    g_phone_sms_verifycode[64]; // store SMS verify code
 
 // copy code from CDS to avoid dependent on that package
 int the_md5(const char *data, int length, char *result)
@@ -177,6 +180,84 @@ int prepare_db_test_data()
     fclose(p);
 
     return 0;
+}
+
+/////////////////////////////////////////////////////////////////////
+//  Phone + SMS/password code reg case (later will try verify this via activation service for SMS)
+/////////////////////////////////////////////////////////////////////
+int _phone_reg_testing(RegLoginType type, DeviceType dt, const char *source, const char *name, const char *code, int passflag)
+{
+    int ret = -1;
+    RegisterRequest  req;
+    RegisterResponse resp;
+
+    req.set_reg_type(type);
+    req.set_reg_device(dt);
+    req.set_reg_source(source);
+
+    req.set_reg_name(name);
+    // SMS won't contain such password
+    if(type == RegLoginType::PHONE_PASSWD) {
+        req.set_reg_password(code);
+    }
+
+    size_t size;
+    unsigned short len = req.ByteSize();
+    printf("    the reqobj's len = %d\n", len);
+
+    char *b = (char *)malloc(len + 2);
+    if(!b) {
+        printf("***malloc return NULL\n");
+        return -1;
+    }
+
+    ArrayOutputStream aos(b, len + 2);
+    CodedOutputStream cos(&aos);
+    cos.WriteRaw(&len, sizeof(len));
+    if(req.SerializeToCodedStream(&cos)) {
+        size = write(mSock, b, (len + 2));
+        printf("    ===>Server wrote with %ld byte\n", size);
+    }
+    free(b);
+   
+    // Now, waiting for response..
+    size = read(mSock, gBuffer, sizeof(gBuffer));
+    printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
+    if(*(unsigned short *)gBuffer > 0) {
+        ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
+        CodedInputStream is(&in);
+        if(resp.ParseFromCodedStream(&is)) {
+            printf("     result_code = %d\n", resp.result_code());
+            if(resp.has_extra_msg()) {
+                printf("   extra msg = %s\n", resp.extra_msg().c_str());
+            }
+
+            if(resp.has_reg_verifycode()) {
+                printf("   SMS verify code = %s\n", resp.reg_verifycode().c_str());
+                if(!strcmp(name, "17705164171")) {
+                    printf("    prebuilt test number, store the code...\n");
+                    strcpy(g_phone_sms_verifycode, resp.reg_verifycode().c_str());
+                }
+            }
+
+            if(resp.result_code() == passflag) {
+                ret = 0;
+            }
+        }
+    }
+
+    return ret;
+}
+
+// a normal phone, with SMS code
+// NOTE - will tested later via activation service...
+int test_phone_sms_reg() {
+    return _phone_reg_testing(RegLoginType::MOBILE_PHONE,
+            DeviceType::ANDROID,
+            "2",
+            "17705164171", // DO NOT modify!
+            NULL, // password not handled here
+            CDS_OK);
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -362,8 +443,262 @@ int test_email_overwrite_inactive_toolong_source() {
 /////////////////////////////////////////////////////////////////////
 //  User + Password Login case
 /////////////////////////////////////////////////////////////////////
+int _usr_passwd_testing(RegLoginType type, const char *source, const char *name, const char *password, int passflag) {
+    int ret = -1;
+    LoginRequest req;
+    LoginResponse resp;
+
+    req.set_login_type(RegLoginType::NAME_PASSWD);
+    req.set_login_name(name);
+    req.set_login_password(password);
+
+    // NOTE, how to handle with below two items?
+    req.set_login_sysid("2");
+    req.set_login_session("2");
+
+    size_t size;
+    unsigned short len = req.ByteSize();
+    printf("    the reqobj's len = %d\n", len);
+
+    char *b = (char *)malloc(len + 2);
+    if(!b) {
+        printf("***malloc return NULL\n");
+        return -1;
+    }
+
+    ArrayOutputStream aos(b, len + 2);
+    CodedOutputStream cos(&aos);
+    cos.WriteRaw(&len, sizeof(len));
+    if(req.SerializeToCodedStream(&cos)) {
+        size = write(mSock, b, (len + 2));
+        printf("    ===>Server wrote with %ld byte\n", size);
+    }
+    free(b);
+   
+    // Now, waiting for response..
+    size = read(mSock, gBuffer, sizeof(gBuffer));
+    printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
+    if(*(unsigned short *)gBuffer > 0) {
+        ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
+        CodedInputStream is(&in);
+        if(resp.ParseFromCodedStream(&is)) {
+            printf("     result_code = %d\n", resp.result_code());
+            if(resp.has_extra_msg()) {
+                printf("   extra msg = %s\n", resp.extra_msg().c_str());
+            }
+
+            if(resp.has_token()) {
+                printf("   LOGIN [OK], token msg = %s\n", resp.token().c_str());
+            }
+
+            if(resp.result_code() == passflag) {
+                ret = 0;
+            }
+        }
+    }
+
+    return ret;
+}
+
+// this is testing a normal user+password case, based on previous
+// new registered normal user.
 int test_normal_user_login() {
-    return 0;
+    const char *password="anamepassword"; //DO NOT change
+    char md5str[36];
+    //memset(md5str, 0x00, sizeof(md5str));
+    the_md5(password, strlen(password), md5str);
+
+    printf("%s --MD5--> %s\n",
+            password, md5str);
+
+    return _usr_passwd_testing(NAME_PASSWD,
+            "1",         // source
+            "a_name", // DO NOT modify,tested by previous case
+            md5str,
+            CDS_OK);
+}
+
+// this is testing an incorrect user+password case, based on previous
+// new registered normal user.
+int test_normal_user_login_bad_passwd() {
+    const char *password="badpassword"; //DO NOT change
+    char md5str[36];
+    //memset(md5str, 0x00, sizeof(md5str));
+    the_md5(password, strlen(password), md5str);
+
+    printf("%s --MD5--> %s\n",
+            password, md5str);
+
+    return _usr_passwd_testing(NAME_PASSWD,
+            "1",         // source
+            "a_name", // DO NOT modify,tested by previous case
+            md5str,
+            CDS_OK);
+}
+
+
+/////////////////////////////////////////////////////////////////////
+//  EMail + Password Login case
+/////////////////////////////////////////////////////////////////////
+int _email_passwd_testing(RegLoginType type, const char *source, const char *name, const char *password, int passflag) {
+    int ret = -1;
+    LoginRequest req;
+    LoginResponse resp;
+
+    req.set_login_type(RegLoginType::EMAIL_PASSWD);
+    req.set_login_name(name);
+    req.set_login_password(password);
+
+    // NOTE, how to handle with below two items?
+    req.set_login_sysid("2");
+    req.set_login_session("2");
+
+    size_t size;
+    unsigned short len = req.ByteSize();
+    printf("    the reqobj's len = %d\n", len);
+
+    char *b = (char *)malloc(len + 2);
+    if(!b) {
+        printf("***malloc return NULL\n");
+        return -1;
+    }
+
+    ArrayOutputStream aos(b, len + 2);
+    CodedOutputStream cos(&aos);
+    cos.WriteRaw(&len, sizeof(len));
+    if(req.SerializeToCodedStream(&cos)) {
+        size = write(mSock, b, (len + 2));
+        printf("    ===>Server wrote with %ld byte\n", size);
+    }
+    free(b);
+   
+    // Now, waiting for response..
+    size = read(mSock, gBuffer, sizeof(gBuffer));
+    printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
+    if(*(unsigned short *)gBuffer > 0) {
+        ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
+        CodedInputStream is(&in);
+        if(resp.ParseFromCodedStream(&is)) {
+            printf("     result_code = %d\n", resp.result_code());
+            if(resp.has_extra_msg()) {
+                printf("   extra msg = %s\n", resp.extra_msg().c_str());
+            }
+
+            if(resp.has_token()) {
+                printf("   LOGIN [OK], token msg = %s\n", resp.token().c_str());
+            }
+
+            if(resp.result_code() == passflag) {
+                ret = 0;
+            }
+        }
+    }
+
+    return ret;
+}
+int test_normal_email_login() {
+    const char *password="anamepassword"; //DO NOT change
+    char md5str[36];
+    //memset(md5str, 0x00, sizeof(md5str));
+    the_md5(password, strlen(password), md5str);
+
+    printf("%s --MD5--> %s\n",
+            password, md5str);
+
+    return _email_passwd_testing(NAME_PASSWD,
+            "1",         // source
+            "a_name", // DO NOT modify,tested by previous case
+            md5str,
+            CDS_OK);
+}
+
+
+
+
+/////////////////////////////////////////////////////////////////////
+// activation/login case
+/////////////////////////////////////////////////////////////////////
+int _activation_testing(RegLoginType type, const char *name, const char *code, int passflag) {
+    int ret = -1;
+    ActivateRequest req;
+    ActivateResponse resp;
+
+    req.set_activate_type(type);
+    req.set_activate_name(name);
+    req.set_activate_code(code);
+
+    size_t size;
+    unsigned short len = req.ByteSize();
+    printf("    the reqobj's len = %d\n", len);
+
+    char *b = (char *)malloc(len + 2);
+    if(!b) {
+        printf("***malloc return NULL\n");
+        return -1;
+    }
+
+    ArrayOutputStream aos(b, len + 2);
+    CodedOutputStream cos(&aos);
+    cos.WriteRaw(&len, sizeof(len));
+    if(req.SerializeToCodedStream(&cos)) {
+        size = write(mSock, b, (len + 2));
+        printf("    ===>Server wrote with %ld byte\n", size);
+    }
+    free(b);
+   
+    // Now, waiting for response..
+    size = read(mSock, gBuffer, sizeof(gBuffer));
+    printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
+    if(*(unsigned short *)gBuffer > 0) {
+        ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
+        CodedInputStream is(&in);
+        if(resp.ParseFromCodedStream(&is)) {
+            printf("     result_code = %d\n", resp.result_code());
+            if(resp.has_extra_msg()) {
+                printf("   extra msg = %s\n", resp.extra_msg().c_str());
+            }
+
+            if(resp.result_code() == passflag) {
+                ret = 0;
+            }
+        }
+    }
+
+    return ret;
+}
+
+
+
+// normal case
+int test_activation_phone_smscode() {
+    return _activation_testing(RegLoginType::MOBILE_PHONE,
+            "13022593515", // DO NOT MODIFY
+            "123456", // DO NOT MODIFY
+            CDS_OK);
+}
+
+// correct code + expiration
+int test_activation_phone_smscode2() {
+    return _activation_testing(RegLoginType::MOBILE_PHONE,
+            "13022593516", // DO NOT MODIFY
+            "567890", // DO NOT MODIFY
+            CDS_ERR_CODE_EXPIRED);
+}
+
+// incorrect code
+int test_activation_phone_smscode3() {
+    return _activation_testing(RegLoginType::MOBILE_PHONE,
+            "13022593517", // DO NOT MODIFY
+            "567843", // DO NOT MODIFY
+            CDS_ERR_INCORRECT_CODE);
+}
+
+// verify with previous register created SMS code
+int test_activation_phone_smscode4() {
+    return _activation_testing(RegLoginType::MOBILE_PHONE,
+            "17705164171", // DO NOT MODIFY
+            g_phone_sms_verifycode, // DO NOT MODIFY
+            CDS_OK);
 }
 
 /**
@@ -413,7 +748,10 @@ int main(int argc, char **argv)
         getchar();
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next begin testing one-by one....
+    // First, Registration
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     execute_ut_case(test_insert_already_existed_user_password);
     execute_ut_case(test_insert_new_user_password);
     execute_ut_case(test_insert_new_user_password2);
@@ -423,9 +761,11 @@ int main(int argc, char **argv)
     execute_ut_case(test_email_overwrite_inactive);
     execute_ut_case(test_email_overwrite_inactive_toolong_source);
 
+    execute_ut_case(test_phone_sms_reg); // normal phone+SMS case, will test SMS code later in activation service
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next will try testing the login feature...
-    //
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     close(mSock);
 
     mSock = socket(AF_INET, SOCK_STREAM, 0);
@@ -445,6 +785,34 @@ int main(int argc, char **argv)
         getchar();
     }
 
+    execute_ut_case(test_normal_user_login);
+    execute_ut_case(test_normal_user_login_bad_passwd);
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // next will try testing the activation feature...
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+    close(mSock);
+    mSock = socket(AF_INET, SOCK_STREAM, 0);
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = inet_addr(TESTING_SERVER_IP);
+    addr.sin_port = htons(13002);
+
+    if(connect(mSock, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
+        printf("***failed connect to Activation server:%d\n", errno);
+        return -1;
+    }
+
+    printf("Connecting to Activation service...[OK]\n");
+
+    if(confirm) {
+        printf("Now, Activation testing is ready, will you want to begin?\n");
+        getchar();
+    }
+
+    execute_ut_case(test_activation_phone_smscode);
+    execute_ut_case(test_activation_phone_smscode2);
+    execute_ut_case(test_activation_phone_smscode3);
+    execute_ut_case(test_activation_phone_smscode4); // SMS geneared via @test_phone_sms_reg
 
     //
     // summary

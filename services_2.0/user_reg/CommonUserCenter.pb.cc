@@ -16,6 +16,9 @@
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 
+namespace com {
+namespace caredear {
+
 namespace {
 
 const ::google::protobuf::EnumDescriptor* RegLoginType_descriptor_ = NULL;
@@ -58,11 +61,12 @@ void protobuf_AddDesc_CommonUserCenter_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\026CommonUserCenter.proto*q\n\014RegLoginType"
-    "\022\020\n\014MOBILE_PHONE\020\001\022\020\n\014EMAIL_PASSWD\020\002\022\017\n\013"
-    "NAME_PASSWD\020\003\022\020\n\014PHONE_PASSWD\020\004\022\n\n\006OTHER"
-    "S\020\005\022\016\n\nCID_PASSWD\020\006*:\n\nDeviceType\022\013\n\007AND"
-    "ROID\020\000\022\007\n\003IOS\020\001\022\016\n\nCAREDEAROS\020\002\022\006\n\002PC\020\003", 199);
+    "\n\026CommonUserCenter.proto\022\014com.caredear*q"
+    "\n\014RegLoginType\022\020\n\014MOBILE_PHONE\020\001\022\020\n\014EMAI"
+    "L_PASSWD\020\002\022\017\n\013NAME_PASSWD\020\003\022\020\n\014PHONE_PAS"
+    "SWD\020\004\022\n\n\006OTHERS\020\005\022\016\n\nCID_PASSWD\020\006*:\n\nDev"
+    "iceType\022\013\n\007ANDROID\020\000\022\007\n\003IOS\020\001\022\016\n\nCAREDEA"
+    "ROS\020\002\022\006\n\002PC\020\003", 213);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "CommonUserCenter.proto", &protobuf_RegisterTypes);
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_CommonUserCenter_2eproto);
@@ -110,5 +114,8 @@ bool DeviceType_IsValid(int value) {
 
 
 // @@protoc_insertion_point(namespace_scope)
+
+}  // namespace caredear
+}  // namespace com
 
 // @@protoc_insertion_point(global_scope)

@@ -43,7 +43,9 @@ enum {
     CDS_ERR_FILE_NOTFOUND,
     CDS_ERR_LIBC_FAILURE,
     CDS_ERR_USER_ALREADY_EXISTED,
-    CDS_ERR_REQ_PROTOBUF_INCORRECT,
+    CDS_ERR_REQ_PROTOBUF_INCORRECT, /**< 15 - failed parse incoming protobuf data */
+    CDS_ERR_INCORRECT_CODE,
+    CDS_ERR_CODE_EXPIRED,   /**< verify code is expired */
 
     CDS_GENERIC_ERROR
 };

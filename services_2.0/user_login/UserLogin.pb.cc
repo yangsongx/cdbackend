@@ -106,15 +106,15 @@ void protobuf_AddDesc_UserLogin_2eproto() {
   already_here = true;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-  ::protobuf_AddDesc_CommonUserCenter_2eproto();
+  ::com::caredear::protobuf_AddDesc_CommonUserCenter_2eproto();
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\017UserLogin.proto\022\014com.caredear\032\026CommonU"
-    "serCenter.proto\"\211\001\n\014LoginRequest\022!\n\nlogi"
-    "n_type\030\001 \002(\0162\r.RegLoginType\022\025\n\rlogin_ses"
-    "sion\030\002 \002(\t\022\022\n\nlogin_name\030\003 \002(\t\022\026\n\016login_"
-    "password\030\004 \002(\t\022\023\n\013login_sysid\030\005 \002(\t\"F\n\rL"
-    "oginResponse\022\023\n\013result_code\030\001 \002(\005\022\021\n\text"
-    "ra_msg\030\002 \001(\t\022\r\n\005token\030\003 \001(\t", 267);
+    "serCenter.proto\"\226\001\n\014LoginRequest\022.\n\nlogi"
+    "n_type\030\001 \002(\0162\032.com.caredear.RegLoginType"
+    "\022\025\n\rlogin_session\030\002 \002(\t\022\022\n\nlogin_name\030\003 "
+    "\002(\t\022\026\n\016login_password\030\004 \002(\t\022\023\n\013login_sys"
+    "id\030\005 \002(\t\"F\n\rLoginResponse\022\023\n\013result_code"
+    "\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t\022\r\n\005token\030\003 \001(\t", 280);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserLogin.proto", &protobuf_RegisterTypes);
   LoginRequest::default_instance_ = new LoginRequest();
@@ -249,15 +249,15 @@ bool LoginRequest::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required .RegLoginType login_type = 1;
+      // required .com.caredear.RegLoginType login_type = 1;
       case 1: {
         if (tag == 8) {
           int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          if (::RegLoginType_IsValid(value)) {
-            set_login_type(static_cast< ::RegLoginType >(value));
+          if (::com::caredear::RegLoginType_IsValid(value)) {
+            set_login_type(static_cast< ::com::caredear::RegLoginType >(value));
           } else {
             mutable_unknown_fields()->AddVarint(1, value);
           }
@@ -361,7 +361,7 @@ failure:
 void LoginRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:com.caredear.LoginRequest)
-  // required .RegLoginType login_type = 1;
+  // required .com.caredear.RegLoginType login_type = 1;
   if (has_login_type()) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       1, this->login_type(), output);
@@ -417,7 +417,7 @@ void LoginRequest::SerializeWithCachedSizes(
 ::google::protobuf::uint8* LoginRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // @@protoc_insertion_point(serialize_to_array_start:com.caredear.LoginRequest)
-  // required .RegLoginType login_type = 1;
+  // required .com.caredear.RegLoginType login_type = 1;
   if (has_login_type()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       1, this->login_type(), target);
@@ -479,7 +479,7 @@ int LoginRequest::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required .RegLoginType login_type = 1;
+    // required .com.caredear.RegLoginType login_type = 1;
     if (has_login_type()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->login_type());
