@@ -14,7 +14,7 @@ SRC = usr_login_service.cc \
 
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = -I$(CDSBASE) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x
+CXXFLAGS = -I$(CDSBASE) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
 
 # Release should use -O2
 

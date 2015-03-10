@@ -11,4 +11,5 @@ message AuthRequest{
 message AuthResponse{
     required int32 result_code = 1; // CDS_XXX code
     optional string extra_msg = 2; // further error msg if it has
+    optional uint64 caredear_id = 3; // the user's CID
 }

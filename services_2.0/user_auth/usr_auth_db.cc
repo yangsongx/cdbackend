@@ -3,19 +3,62 @@
 
 extern pthread_mutex_t uas_mutex; // defined in the main()
 
-int auth_token_in_session(MYSQL *ms, AuthRequest *reqobj)
+/**
+ * Modify the session's lastoperatetime if possible
+ *
+ */
+int update_session_lastoperatetime(MYSQL *ms, AuthRequest *reqobj)
 {
     char sqlcmd[1024];
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT lastoperatetime FROM %s WHERE ticket=\'%s\' AND session=\'%s\'",
+            "UPDATE %s SET lastoperatetime=NOW() WHERE ticket=\'%s\'",
+            USER_SESSION_TABLE, reqobj->auth_token().c_str());
+
+    KPI("Will try update last login DB data...\n");
+    LOCK_CDS(uas_mutex);
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_CDS(uas_mutex);
+        ERR("Failed update lastlogin:%s\n", mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    MYSQL_RES *mresult;
+    mresult = mysql_store_result(ms);
+    UNLOCK_CDS(uas_mutex);
+
+    if(mresult)
+    {
+        ERR("**Warning, UPDATE should NEVER got non-NULL csse!\n");
+    }
+    else
+    {
+        KPI("Update the DB ... [OK]\n");
+    }
+
+    return 0;
+}
+
+/**
+ * Check user's token and handle the expiration if possible.
+ *
+ *
+ */
+int auth_token_in_session(MYSQL *ms, AuthRequest *reqobj, AuthResponse *respobj, time_t *p_lastoperatetime)
+{
+    int ret = CDS_OK;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT caredearid,UNIX_TIMESTAMP(lastoperatetime) FROM %s WHERE ticket=\'%s\' AND session=\'%s\'",
             USER_SESSION_TABLE, reqobj->auth_token().c_str(), reqobj->auth_session().c_str());
 
     LOCK_CDS(uas_mutex);
     if(mysql_query(ms, sqlcmd))
     {
         UNLOCK_CDS(uas_mutex);
-        ERR("Failed check the login password:%s\n", mysql_error(ms));
+        ERR("Failed check auth token:%s\n", mysql_error(ms));
         return CDS_ERR_SQL_EXECUTE_FAILED;
     }
 
@@ -29,24 +72,36 @@ int auth_token_in_session(MYSQL *ms, AuthRequest *reqobj)
         int counts = mysql_num_rows(mresult);
         if(counts > 1)
         {
-            // Multiple result
+            ERR("**Warning, multiple hit for token auth!\n");
         }
 
         row = mysql_fetch_row(mresult);
         if(row != NULL)
         {
-            //
+            //Got a lastlogin AND a caredear-ID
+            if(row[0] != NULL)
+            {
+                respobj->set_caredear_id(atol(row[0]));
+            }
+
+            if(row[1] != NULL)
+            {
+                *p_lastoperatetime = atol(row[1]);
+            }
         }
         else
         {
             // didn't find the matching
+            ret = CDS_ERR_UMATCH_USER_INFO;
         }
     }
     else
     {
+        ERR("mysql_store_result() should NEVER got NULL for SELECT!\n");
+        ret = CDS_GENERIC_ERROR;
     }
 
-    return 0;
+    return ret;
 }
 
 int store_db_session_conf(MYSQL *ms, map<int, session_db_cfg_t> *pList)

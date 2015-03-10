@@ -55,9 +55,10 @@ void protobuf_AssignDesc_UserAuth_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(AuthRequest));
   AuthResponse_descriptor_ = file->message_type(1);
-  static const int AuthResponse_offsets_[2] = {
+  static const int AuthResponse_offsets_[3] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AuthResponse, result_code_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AuthResponse, extra_msg_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AuthResponse, caredear_id_),
   };
   AuthResponse_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -106,9 +107,9 @@ void protobuf_AddDesc_UserAuth_2eproto() {
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\016UserAuth.proto\022\014com.caredear\"K\n\013AuthRe"
     "quest\022\022\n\nauth_token\030\001 \002(\t\022\024\n\014auth_sessio"
-    "n\030\002 \002(\t\022\022\n\nauth_sysid\030\003 \002(\005\"6\n\014AuthRespo"
+    "n\030\002 \002(\t\022\022\n\nauth_sysid\030\003 \002(\005\"K\n\014AuthRespo"
     "nse\022\023\n\013result_code\030\001 \002(\005\022\021\n\textra_msg\030\002 "
-    "\001(\t", 163);
+    "\001(\t\022\023\n\013caredear_id\030\003 \001(\004", 184);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserAuth.proto", &protobuf_RegisterTypes);
   AuthRequest::default_instance_ = new AuthRequest();
@@ -474,6 +475,7 @@ void AuthRequest::Swap(AuthRequest* other) {
 #ifndef _MSC_VER
 const int AuthResponse::kResultCodeFieldNumber;
 const int AuthResponse::kExtraMsgFieldNumber;
+const int AuthResponse::kCaredearIdFieldNumber;
 #endif  // !_MSC_VER
 
 AuthResponse::AuthResponse()
@@ -497,6 +499,7 @@ void AuthResponse::SharedCtor() {
   _cached_size_ = 0;
   result_code_ = 0;
   extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  caredear_id_ = GOOGLE_ULONGLONG(0);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -535,14 +538,28 @@ AuthResponse* AuthResponse::New() const {
 }
 
 void AuthResponse::Clear() {
-  if (_has_bits_[0 / 32] & 3) {
-    result_code_ = 0;
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<AuthResponse*>(16)->f) - \
+   reinterpret_cast<char*>(16))
+
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
+  } while (0)
+
+  if (_has_bits_[0 / 32] & 7) {
+    ZR_(caredear_id_, result_code_);
     if (has_extra_msg()) {
       if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         extra_msg_->clear();
       }
     }
   }
+
+#undef OFFSET_OF_FIELD_
+#undef ZR_
+
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -581,6 +598,21 @@ bool AuthResponse::MergePartialFromCodedStream(
             this->extra_msg().data(), this->extra_msg().length(),
             ::google::protobuf::internal::WireFormat::PARSE,
             "extra_msg");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(24)) goto parse_caredear_id;
+        break;
+      }
+
+      // optional uint64 caredear_id = 3;
+      case 3: {
+        if (tag == 24) {
+         parse_caredear_id:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &caredear_id_)));
+          set_has_caredear_id();
         } else {
           goto handle_unusual;
         }
@@ -628,6 +660,11 @@ void AuthResponse::SerializeWithCachedSizes(
       2, this->extra_msg(), output);
   }
 
+  // optional uint64 caredear_id = 3;
+  if (has_caredear_id()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(3, this->caredear_id(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -654,6 +691,11 @@ void AuthResponse::SerializeWithCachedSizes(
         2, this->extra_msg(), target);
   }
 
+  // optional uint64 caredear_id = 3;
+  if (has_caredear_id()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(3, this->caredear_id(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -678,6 +720,13 @@ int AuthResponse::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->extra_msg());
+    }
+
+    // optional uint64 caredear_id = 3;
+    if (has_caredear_id()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt64Size(
+          this->caredear_id());
     }
 
   }
@@ -713,6 +762,9 @@ void AuthResponse::MergeFrom(const AuthResponse& from) {
     if (from.has_extra_msg()) {
       set_extra_msg(from.extra_msg());
     }
+    if (from.has_caredear_id()) {
+      set_caredear_id(from.caredear_id());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -739,6 +791,7 @@ void AuthResponse::Swap(AuthResponse* other) {
   if (other != this) {
     std::swap(result_code_, other->result_code_);
     std::swap(extra_msg_, other->extra_msg_);
+    std::swap(caredear_id_, other->caredear_id_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

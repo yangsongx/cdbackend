@@ -23,6 +23,10 @@ using namespace google::protobuf::io;
 pthread_mutex_t  uas_mutex;
 UserAuthConfig  g_info;
 
+/**
+ * Auth handling entry point
+ *
+ */
 int uas_handler(int size, void *req, int *len_resp, void *resp)
 {
     bool ok = false;
@@ -37,6 +41,12 @@ int uas_handler(int size, void *req, int *len_resp, void *resp)
     {
         ERR("Too much long data, ignore it\n");
 
+        if(opr.compose_result(CDS_ERR_REQ_TOOLONG, "too much long",
+                    &respobj, len_resp, resp) != 0)
+        {
+            ERR("***Failed Serialize the too-long error data\n");
+        }
+
         return CDS_ERR_REQ_TOOLONG;
     }
 
@@ -47,19 +57,19 @@ int uas_handler(int size, void *req, int *len_resp, void *resp)
     ok = reqobj.ParseFromCodedStream(&is);
     if(ok)
     {
-        //....
+        // take final auth action!
         ret = opr.auth_user(&reqobj, &respobj, len_resp, resp);
     }
     else
     {
         ERR("***Failed pare reqobj in protobuf!\n");
-        /*&
-        if(opr.compose_result(CDS_GENERIC_ERROR, "failed parse in protobuf",
+
+        ret = CDS_ERR_REQ_PROTOBUF_INCORRECT;
+        if(opr.compose_result(CDS_ERR_REQ_PROTOBUF_INCORRECT, "failed parse in protobuf",
                 &respobj, len_resp, resp) != 0)
         {
             ERR("** failed seriliaze for the error case\n");
         }
-        */
     }
 
     return ret;

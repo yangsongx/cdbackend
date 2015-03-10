@@ -4,6 +4,7 @@ DEBUG=true
 CDSBASE = ../../common/cds_base/
 LOGINBASE=../user_login/
 ACTIVATEBASE=../user_activate/
+AUTHBASE=../user_auth/
 
 CC = g++
 
@@ -17,10 +18,11 @@ SRC = usr_reg_service.cc \
 TESTSRC = test_client.cc UserRegister.pb.cc \
           CommonUserCenter.pb.cc \
           $(LOGINBASE)UserLogin.pb.cc \
-          $(ACTIVATEBASE)UserActivation.pb.cc
+          $(ACTIVATEBASE)UserActivation.pb.cc \
+          $(AUTHBASE)UserAuth.pb.cc
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = -I$(LOGINBASE) -I$(ACTIVATEBASE) -I$(CDSBASE) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
+CXXFLAGS = -I$(AUTHBASE) -I$(LOGINBASE) -I$(ACTIVATEBASE) -I$(CDSBASE) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
 
 # Release should use -O2
 

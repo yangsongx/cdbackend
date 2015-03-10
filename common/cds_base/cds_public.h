@@ -46,6 +46,8 @@ enum {
     CDS_ERR_REQ_PROTOBUF_INCORRECT, /**< 15 - failed parse incoming protobuf data */
     CDS_ERR_INCORRECT_CODE,
     CDS_ERR_CODE_EXPIRED,   /**< verify code is expired */
+    CDS_ERR_INACTIVATED,    /**< For Email/Phone + Password case */
+    CDS_ERR_REJECT_LOGIN,   /**< not allow user to login/auth */
 
     CDS_GENERIC_ERROR
 };

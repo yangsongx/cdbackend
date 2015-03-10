@@ -35,13 +35,13 @@ int gen_uuid(char *result)
  * Compare @targetdata with DB, which id is @cid.
  *
  */
-int compare_user_password_wth_cid(MYSQL *ms, const char *targetdata, unsigned long cid)
+int compare_user_password_wth_cid(MYSQL *ms, LoginRequest *reqobj, const char *targetdata, unsigned long cid)
 {
     int ret = CDS_GENERIC_ERROR;
     char sqlcmd[1024];
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT id FROM %s WHERE id=%ld AND loginpassword=\'%s\'",
+            "SELECT id,status FROM %s WHERE id=%ld AND loginpassword=\'%s\'",
             USER_MAIN_TABLE, cid, targetdata);
 
     LOCK_CDS(uls_mutex);
@@ -59,15 +59,34 @@ int compare_user_password_wth_cid(MYSQL *ms, const char *targetdata, unsigned lo
 
     if(mresult)
     {
-        if(mysql_fetch_row(mresult) != NULL)
+        row = mysql_fetch_row(mresult);
+        if(row != NULL)
         {
-            if(mysql_num_fields(mresult) != 1)
+            if(mysql_num_rows(mresult) != 1)
             {
                 INFO("Warning, this SHOULD NEVER HAPPEND, as only unique-ID queryed!\n");
             }
             // set as login with password correctly.
-            ret = CDS_OK;
+            if(row[1] != NULL && atoi(row[1]) == 0)
+            {
+                // not activated yet
+                INFO("You Login correctly, but still activated yet!\n");
+                ret = CDS_ERR_INACTIVATED;
+            }
+            else
+            {
+                ret = CDS_OK;
+            }
         }
+        else
+        {
+            // don't match any password
+            ret = CDS_ERR_UMATCH_USER_INFO;
+        }
+    }
+    else
+    {
+        ERR("compare passwd SQL should NEVER meet NULL result!\n");
     }
 
     return ret;
@@ -164,7 +183,7 @@ int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *
             LOG("phase-I cipher[%s] ==> phase-II cipher[%s]\n",
                     sqlcmd, md5data);
 
-            ret = compare_user_password_wth_cid(ms, md5data, *p_cid);
+            ret = compare_user_password_wth_cid(ms, reqobj, md5data, *p_cid);
         }
     }
     else
@@ -179,7 +198,8 @@ int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *
 
 int record_user_session_in_db(MYSQL *ms)
 {
-    char sqlcmd[1024];
+    //char sqlcmd[1024];
+    /* TODO */
     return 0;
 }
 
@@ -201,7 +221,6 @@ int overwrite_existed_session_in_db(MYSQL *ms, struct user_session *session)
     }
 
     MYSQL_RES *mresult;
-    MYSQL_ROW  row;
     mresult = mysql_store_result(ms);
     UNLOCK_CDS(uls_mutex);
 
