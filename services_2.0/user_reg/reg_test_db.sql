@@ -15,9 +15,9 @@ INSERT INTO uc_passport (username,loginpassword,device,source,createtime,status)
 INSERT INTO uc_passport (email,loginpassword,device,source,createtime,status) VALUES ('499528974@qq.com','YUANsu1',0,2,NOW(),0);
 INSERT INTO uc_passport (email,loginpassword,device,source,createtime,status) VALUES ('active@mail.com','passwd',0,2,NOW(),1);
 /* Phone SMS verify case */
-INSERT INTO uc_passport (usermobile,code,codetime) VALUES ('13022593515','123456',UNIX_TIMESTAMP(NOW())+3600);
-INSERT INTO uc_passport (usermobile,code,codetime) VALUES ('13022593516','567890',UNIX_TIMESTAMP(NOW())-10);
-INSERT INTO uc_passport (usermobile,code,codetime) VALUES ('13022593517','123456',UNIX_TIMESTAMP(NOW())+3600);
+INSERT INTO uc_passport (usermobile,accode,codetime) VALUES ('13022593515','123456',UNIX_TIMESTAMP(NOW())+3600);
+INSERT INTO uc_passport (usermobile,accode,codetime) VALUES ('13022593516','567890',UNIX_TIMESTAMP(NOW())-10);
+INSERT INTO uc_passport (usermobile,accode,codetime) VALUES ('13022593517','123456',UNIX_TIMESTAMP(NOW())+3600);
 /* Auth case */
 INSERT INTO uc_session (caredearid,ticket,session,lastoperatetime) VALUES (100,'aa776f46-cc18-4c44-a7c5-124c7afc45bf',2,NOW());
 INSERT INTO uc_session (caredearid,ticket,session,lastoperatetime) VALUES (100,'11776f46-cc18-4c44-a7c5-124c7afc45bf',2,FROM_UNIXTIME(UNIX_TIMESTAMP(NOW())-2593999));

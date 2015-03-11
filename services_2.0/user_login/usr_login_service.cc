@@ -61,7 +61,7 @@ int uls_handler(int size, void *req, int *len_resp, void *resp)
     ok = reqobj.ParseFromCodedStream(&is);
     if(ok)
     {
-        //....
+        // drop into the handling world...
         ret = opr.do_login(&reqobj, &respobj, len_resp, resp);
     }
     else

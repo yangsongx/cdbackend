@@ -7,7 +7,7 @@ extern pthread_mutex_t uas_mutex; // defined in the main()
  * Modify the session's lastoperatetime if possible
  *
  */
-int update_session_lastoperatetime(MYSQL *ms, AuthRequest *reqobj)
+int set_token_info_to_db(MYSQL *ms, AuthRequest *reqobj)
 {
     char sqlcmd[1024];
 
@@ -45,13 +45,14 @@ int update_session_lastoperatetime(MYSQL *ms, AuthRequest *reqobj)
  *
  *
  */
-int auth_token_in_session(MYSQL *ms, AuthRequest *reqobj, AuthResponse *respobj, time_t *p_lastoperatetime)
+int get_token_info_from_db(MYSQL *ms, AuthRequest *reqobj, AuthResponse *respobj, struct auth_data_wrapper *w)
 {
     int ret = CDS_OK;
     char sqlcmd[1024];
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT caredearid,UNIX_TIMESTAMP(lastoperatetime) FROM %s WHERE ticket=\'%s\' AND session=\'%s\'",
+            "SELECT caredearid,UNIX_TIMESTAMP(lastoperatetime) FROM %s "
+            "WHERE ticket=\'%s\' AND session=\'%s\'",
             USER_SESSION_TABLE, reqobj->auth_token().c_str(), reqobj->auth_session().c_str());
 
     LOCK_CDS(uas_mutex);
@@ -82,12 +83,16 @@ int auth_token_in_session(MYSQL *ms, AuthRequest *reqobj, AuthResponse *respobj,
             if(row[0] != NULL)
             {
                 respobj->set_caredear_id(atol(row[0]));
+                w->adw_cid = atol(row[0]);
             }
 
             if(row[1] != NULL)
             {
-                *p_lastoperatetime = atol(row[1]);
+                w->adw_lastlogin = atol(row[1]);
             }
+
+            /* TODO - didn't set the adw_sysid here,
+             * did this needed in our use case? */
         }
         else
         {

@@ -98,6 +98,15 @@ int ActivationConfig::prepare_job()
     if(m_Memcached != NULL)
     {
         INFO("Connecting to Memcached ... [OK]\n");
+        if(memcached_behavior_set(m_Memcached,
+                MEMCACHED_BEHAVIOR_SUPPORT_CAS, 1) == MEMCACHED_SUCCESS)
+        {
+            INFO("Set CAS Support... [OK]\n");
+        }
+        else
+        {
+            ERR("Set CAS Support... [Failed]\n");
+        }
     }
     else
     {

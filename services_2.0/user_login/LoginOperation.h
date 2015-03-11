@@ -15,6 +15,8 @@ class LoginOperation {
 
     UserLoginConfig *m_cfgInfo;
 
+    int update_usercenter_session(LoginRequest *reqobj, struct user_session *u);
+
 public:
     int set_conf(UserLoginConfig *c);
     int compose_result(int code, const char *errmsg, LoginResponse *p_obj, int *p_resplen, void *p_respdata);

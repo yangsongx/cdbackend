@@ -7,6 +7,29 @@ int LoginOperation::set_conf(UserLoginConfig *c)
     return 0;
 }
 
+/**
+ * Inner wrapper util for mem+DB set
+ *
+ */
+int LoginOperation::update_usercenter_session(LoginRequest *reqobj, struct user_session *u)
+{
+    memcached_return_t rc;
+
+    //MEM
+    rc = set_session_info_to_mem(m_cfgInfo->m_Memcached, reqobj, u);
+    if(rc != MEMCACHED_SUCCESS)
+    {
+        // FIXME as login set mem won't be the same as all existed mem key,
+        // so we don't need CAS here.
+        ERR("***Failed update token info to mem:%d\n", rc);
+    }
+
+    // SQL
+    set_session_info_to_db(m_cfgInfo->m_Sql, u);
+
+    return 0;
+}
+
 int LoginOperation::compose_result(int code, const char *errmsg, LoginResponse *p_obj, int *p_resplen, void *p_respdata)
 {
     unsigned short len;
@@ -45,6 +68,7 @@ int LoginOperation::do_login(LoginRequest *reqobj, LoginResponse *respobj, int *
     unsigned long cid = -1;
 
     ret = match_user_credential_in_db(m_cfgInfo->m_Sql, reqobj, &cid);
+
     if(ret == CDS_OK)
     {
         // login info data is correct.
@@ -55,10 +79,10 @@ int LoginOperation::do_login(LoginRequest *reqobj, LoginResponse *respobj, int *
         us.us_cid = cid;
         us.us_sessionid = reqobj->login_session().c_str();
         us.us_token = uuiddata;
-        update_usercenter_session(m_cfgInfo->m_Sql, &us);
+
+        update_usercenter_session(reqobj, &us);
 
         respobj->set_token(uuiddata);
-        //...
     }
     else
     {

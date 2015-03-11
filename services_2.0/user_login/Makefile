@@ -8,6 +8,7 @@ CC = g++
 SRC = usr_login_service.cc \
       CommonUserCenter.pb.cc \
       usr_login_db.cc \
+      usr_login_mem.cc \
       UserLogin.pb.cc \
       UserLoginConfig.cc \
       LoginOperation.cc

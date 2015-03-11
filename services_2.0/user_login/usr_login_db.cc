@@ -270,7 +270,7 @@ int insert_new_session_in_db(MYSQL *ms, struct user_session *session)
     return 0;
 }
 
-int update_usercenter_session(MYSQL *ms, struct user_session *session)
+int set_session_info_to_db(MYSQL *ms, struct user_session *session)
 {
     char sqlcmd[1024];
 

@@ -8,14 +8,14 @@
  * return 0 means don'd update time, 1 means need update time, -1 means
  * user's token expired
  */
-int AuthOperation::check_token(AuthRequest *reqobj, time_t last_login)
+int AuthOperation::check_token(AuthRequest *reqobj, struct auth_data_wrapper *w)
 {
     time_t current;
     session_db_cfg_t c;
     map<int, session_db_cfg_t>::iterator it;
 
     time(&current);
-    if((current - last_login) <= MAX_FREQUENT_VISIT)
+    if((current - w->adw_lastlogin) <= MAX_FREQUENT_VISIT)
     {
         INFO("too frequently change on lastoperatetime, dont' update any time\n");
         return 0;
@@ -35,7 +35,7 @@ int AuthOperation::check_token(AuthRequest *reqobj, time_t last_login)
         return 1; // FIXME for such error, need update time?
     }
 
-    if((current - last_login) >= c.sfg_expiration)
+    if((current - w->adw_lastlogin) >= c.sfg_expiration)
     {
         INFO("Wow, your last login happen longlong ago...\n");
         return -1;
@@ -71,11 +71,72 @@ int AuthOperation::set_conf(UserAuthConfig *c)
     return 0;
 }
 
+/**
+ * Wrapper util, including memcached+DB
+ *
+ */
+int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *respobj, struct auth_data_wrapper *w)
+{
+    int ret = CDS_OK;
+    char  *p_val;
+    size_t val_len;
 
+
+    p_val = get_token_info_from_mem(m_cfgInfo->m_Memcached, reqobj->auth_token().c_str(), &val_len);
+    if(p_val)
+    {
+        // got value from mem, parse it...
+        split_val_into_fields(p_val, w);
+
+        free(p_val);
+    }
+    else
+    {
+        // didn't get the mem val, try on DB...
+        INFO("not found in mem, go to DB...\n");
+        ret = get_token_info_from_db(m_cfgInfo->m_Sql, reqobj, respobj, w);
+    }
+
+    return ret;
+}
+
+/**
+ * Update both Mem and Sql
+ *
+ */
+int AuthOperation::update_session_lastoperatetime(AuthRequest *reqobj, struct auth_data_wrapper *w)
+{
+    memcached_return_t rc;
+
+    // mem
+    rc = set_token_info_to_mem(m_cfgInfo->m_Memcached, reqobj->auth_token().c_str(), w);
+    if(rc != MEMCACHED_SUCCESS)
+    {
+        if(rc == MEMCACHED_DATA_EXISTS)
+        {
+            INFO("WOW, CAS found target already modified by others, need retry CAS again...\n");
+            rc = set_token_info_to_mem(m_cfgInfo->m_Memcached, reqobj->auth_token().c_str(), w);
+            INFO("try again result:%d\n", rc);
+        }
+        else
+        {
+            ERR("***Failed update token info to mem:%d\n", rc);
+        }
+    }
+
+    // SQL
+
+    return 0;
+}
+
+/**
+ * entry of a user auth procedure.
+ *
+ */
 int AuthOperation::auth_user(AuthRequest *reqobj, AuthResponse *respobj, int *len_resp, void *resp)
 {
     int ret;
-    time_t last_login;
+    struct auth_data_wrapper fields;
 
     if(!is_allowed_access(reqobj))
     {
@@ -84,13 +145,16 @@ int AuthOperation::auth_user(AuthRequest *reqobj, AuthResponse *respobj, int *le
     }
     else
     {
-        ret = auth_token_in_session(m_cfgInfo->m_Sql, reqobj, respobj, &last_login);
+        ret = auth_token_in_session(reqobj, respobj, &fields);
+
         if(ret == CDS_OK)
         {
-        // do further time check and update if possible
-        ret = check_token(reqobj, last_login);
-        switch(ret)
-        {
+            LOG("user token info get [OK]\n");
+
+            // do further time check and update if possible
+            ret = check_token(reqobj, &fields);
+            switch(ret)
+            {
             case 0:
                 // as too short visit time, don't update time
                 ret = CDS_OK;
@@ -98,7 +162,11 @@ int AuthOperation::auth_user(AuthRequest *reqobj, AuthResponse *respobj, int *le
 
             case 1:
                 // update time
+                // TODO below API need re-direct to MEM+DB
+#if 1
+#else
                 update_session_lastoperatetime(m_cfgInfo->m_Sql, reqobj);
+#endif
                 ret = CDS_OK;
                 break;
 
@@ -108,7 +176,7 @@ int AuthOperation::auth_user(AuthRequest *reqobj, AuthResponse *respobj, int *le
 
             default:
                 break;
-        }
+            }
         }
     }
 
@@ -145,3 +213,4 @@ int AuthOperation::compose_result(int code, const char *errmsg, AuthResponse *p_
 
     return ((p_obj->SerializeToCodedStream(&cos) == true) ? 0 : -1);
 }
+

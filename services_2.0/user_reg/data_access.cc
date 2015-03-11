@@ -384,8 +384,9 @@ int record_user_verifiy_code(MYSQL *ms, RegisterRequest *reqobj, RegisterRespons
     switch(reqobj->reg_type())
     {
         case RegLoginType::MOBILE_PHONE:
+        case RegLoginType::PHONE_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "UPDATE %s SET code=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
+                    "UPDATE %s SET accode=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
                     "WHERE usermobile=\'%s\'",
                     NEW_REG_TABLE,
                     respobj->reg_verifycode().c_str(),
@@ -395,7 +396,7 @@ int record_user_verifiy_code(MYSQL *ms, RegisterRequest *reqobj, RegisterRespons
 
         case RegLoginType::EMAIL_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
-                    "UPDATE %s SET code=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
+                    "UPDATE %s SET accode=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
                     "WHERE email=\'%s\'",
                     NEW_REG_TABLE,
                     respobj->reg_verifycode().c_str(),

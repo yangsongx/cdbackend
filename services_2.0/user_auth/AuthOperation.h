@@ -15,8 +15,10 @@ using namespace google::protobuf::io;
 class AuthOperation{
     UserAuthConfig *m_cfgInfo;
 
-    int check_token(AuthRequest *reqobj, time_t last_login);
+    int check_token(AuthRequest *reqobj, struct auth_data_wrapper *w);
     bool is_allowed_access(AuthRequest *reqobj);
+    int auth_token_in_session(AuthRequest *reqobj, AuthResponse *respobj, struct auth_data_wrapper *w);
+    int update_session_lastoperatetime(AuthRequest *reqobj, struct auth_data_wrapper *w);
 
 public:
     int set_conf(UserAuthConfig *c);

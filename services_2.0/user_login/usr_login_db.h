@@ -10,6 +10,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <libmemcached/memcached.h>
+
 // database
 #define USER_MAIN_TABLE      "uc.uc_passport"
 #define USER_SESSION_TABLE   "uc.uc_session"
@@ -23,7 +25,10 @@ struct user_session {
 };
 
 extern int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *p_cid);
-extern int update_usercenter_session(MYSQL *ms, struct user_session *session);
+extern int set_session_info_to_db(MYSQL *ms, struct user_session *session);
+
 extern int gen_uuid(char *result);
+
+extern memcached_return_t set_session_info_to_mem(memcached_st *memc, LoginRequest *reqobj, struct user_session *u);
 
 #endif
