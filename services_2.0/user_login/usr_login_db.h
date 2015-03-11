@@ -25,10 +25,11 @@ struct user_session {
 };
 
 extern int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *p_cid);
-extern int set_session_info_to_db(MYSQL *ms, struct user_session *session);
+extern int set_session_info_to_db(MYSQL *ms, struct user_session *session, char *old);
 
 extern int gen_uuid(char *result);
 
+extern memcached_return_t rm_session_info_from_mem(memcached_st *memc, const char *key);
 extern memcached_return_t set_session_info_to_mem(memcached_st *memc, LoginRequest *reqobj, struct user_session *u);
 
 #endif

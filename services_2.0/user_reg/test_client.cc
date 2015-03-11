@@ -54,13 +54,18 @@ using namespace com::caredear;
 using namespace google::protobuf::io;
 
 MYSQL  *mSql;
-int     mSock;
+int     mSockReg;
+int     mSockLogin;
+int     mSockAct;
+int     mSockAuth;
 
 int     gPass = 0;
 int     gFail = 0;
 char    gBuffer[1024];
 
 char    g_phone_sms_verifycode[64]; // store SMS verify code
+char    g_aname_first_token[64];
+char    g_bname_first_token[64];
 
 // copy code from CDS to avoid dependent on that package
 int the_md5(const char *data, int length, char *result)
@@ -216,13 +221,13 @@ int _phone_reg_testing(RegLoginType type, DeviceType dt, const char *source, con
     CodedOutputStream cos(&aos);
     cos.WriteRaw(&len, sizeof(len));
     if(req.SerializeToCodedStream(&cos)) {
-        size = write(mSock, b, (len + 2));
+        size = write(mSockReg, b, (len + 2));
         printf("    ===>Server wrote with %ld byte\n", size);
     }
     free(b);
    
     // Now, waiting for response..
-    size = read(mSock, gBuffer, sizeof(gBuffer));
+    size = read(mSockReg, gBuffer, sizeof(gBuffer));
     printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
     if(*(unsigned short *)gBuffer > 0) {
         ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
@@ -302,13 +307,13 @@ int _user_testing(DeviceType dt, const char *source, const char *name, const cha
     CodedOutputStream cos(&aos);
     cos.WriteRaw(&len, sizeof(len));
     if(req.SerializeToCodedStream(&cos)) {
-        size = write(mSock, b, (len + 2));
+        size = write(mSockReg, b, (len + 2));
         printf("    ===>Server wrote with %ld byte\n", size);
     }
     free(b);
    
     // Now, waiting for response..
-    size = read(mSock, gBuffer, sizeof(gBuffer));
+    size = read(mSockReg, gBuffer, sizeof(gBuffer));
     printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
     if(*(unsigned short *)gBuffer > 0) {
         ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
@@ -373,6 +378,22 @@ int test_insert_already_existed_user_password() {
 }
 
 
+// a preparation for session id mis-match case testing...
+int test_insert_new_user_password4() {
+    const char *password="bnamepassword"; //DO NOT change
+    char md5str[36];
+    //memset(md5str, 0x00, sizeof(md5str));
+    the_md5(password, strlen(password), md5str);
+    printf("%s --MD5--> %s\n",
+            password, md5str);
+
+    return _user_testing(DeviceType::ANDROID,
+            "11", // SHOULD within 2-digit
+            "b_name", //DO NOT MODIFY THIS, name using the email format.
+            md5str,
+            CDS_OK);
+}
+
 /////////////////////////////////////////////////////////////////////
 //  EMail + Password case
 /////////////////////////////////////////////////////////////////////
@@ -401,13 +422,13 @@ int _email_testing(DeviceType dt, const char *source, const char *name, const ch
     CodedOutputStream cos(&aos);
     cos.WriteRaw(&len, sizeof(len));
     if(req.SerializeToCodedStream(&cos)) {
-        size = write(mSock, b, (len + 2));
+        size = write(mSockReg, b, (len + 2));
         printf("    ===>Server wrote with %ld byte\n", size);
     }
     free(b);
    
     // Now, waiting for response..
-    size = read(mSock, gBuffer, sizeof(gBuffer));
+    size = read(mSockReg, gBuffer, sizeof(gBuffer));
     printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
     if(*(unsigned short *)gBuffer > 0) {
         ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
@@ -457,7 +478,7 @@ int test_email_overwrite_inactive_toolong_source() {
 /////////////////////////////////////////////////////////////////////
 //  User + Password Login case
 /////////////////////////////////////////////////////////////////////
-int _usr_passwd_testing(RegLoginType type, const char *source, const char *name, const char *password, int passflag) {
+int _usr_passwd_testing(RegLoginType type, const char *session, const char *name, const char *password, int passflag) {
     int ret = -1;
     LoginRequest req;
     LoginResponse resp;
@@ -465,10 +486,10 @@ int _usr_passwd_testing(RegLoginType type, const char *source, const char *name,
     req.set_login_type(RegLoginType::NAME_PASSWD);
     req.set_login_name(name);
     req.set_login_password(password);
+    req.set_login_session(session); // this is like device id
 
-    // NOTE, how to handle with below two items?
+    // NOTE, how to handle with below items?
     req.set_login_sysid("2");
-    req.set_login_session("2");
 
     size_t size;
     unsigned short len = req.ByteSize();
@@ -484,13 +505,13 @@ int _usr_passwd_testing(RegLoginType type, const char *source, const char *name,
     CodedOutputStream cos(&aos);
     cos.WriteRaw(&len, sizeof(len));
     if(req.SerializeToCodedStream(&cos)) {
-        size = write(mSock, b, (len + 2));
+        size = write(mSockLogin, b, (len + 2));
         printf("    ===>Server wrote with %ld byte\n", size);
     }
     free(b);
    
     // Now, waiting for response..
-    size = read(mSock, gBuffer, sizeof(gBuffer));
+    size = read(mSockLogin, gBuffer, sizeof(gBuffer));
     printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
     if(*(unsigned short *)gBuffer > 0) {
         ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
@@ -503,6 +524,17 @@ int _usr_passwd_testing(RegLoginType type, const char *source, const char *name,
 
             if(resp.has_token()) {
                 printf("   LOGIN [OK], token msg = %s\n", resp.token().c_str());
+                if(!strcmp(name, "a_name")) {
+                    strcpy(g_aname_first_token, resp.token().c_str());
+                    printf("    store it into a global buffer which is:%s\n",
+                            g_aname_first_token);
+                }
+
+                if(!strcmp(name, "b_name")) {
+                    strcpy(g_bname_first_token, resp.token().c_str());
+                    printf("    b_name case, store it into a global buffer which is:%s\n",
+                            g_bname_first_token);
+                }
             }
 
             if(resp.result_code() == passflag) {
@@ -551,6 +583,21 @@ int test_normal_user_login_bad_passwd() {
 }
 
 
+int test_normal_user_login2() {
+    const char *password="bnamepassword"; //DO NOT change
+    char md5str[36];
+    the_md5(password, strlen(password), md5str);
+
+    printf("%s --MD5--> %s\n",
+            password, md5str);
+
+    return _usr_passwd_testing(NAME_PASSWD,
+            "bdev",         // DO NOT MODIFY session
+            "b_name", // DO NOT modify,tested by previous case
+            md5str,
+            CDS_OK);
+}
+
 /////////////////////////////////////////////////////////////////////
 //  EMail + Password Login case
 /////////////////////////////////////////////////////////////////////
@@ -581,13 +628,13 @@ int _email_passwd_testing(RegLoginType type, const char *source, const char *nam
     CodedOutputStream cos(&aos);
     cos.WriteRaw(&len, sizeof(len));
     if(req.SerializeToCodedStream(&cos)) {
-        size = write(mSock, b, (len + 2));
+        size = write(mSockLogin, b, (len + 2));
         printf("    ===>Server wrote with %ld byte\n", size);
     }
     free(b);
    
     // Now, waiting for response..
-    size = read(mSock, gBuffer, sizeof(gBuffer));
+    size = read(mSockLogin, gBuffer, sizeof(gBuffer));
     printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
     if(*(unsigned short *)gBuffer > 0) {
         ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
@@ -656,13 +703,13 @@ int _phone_passwd_login_testing(const char *source, const char *name, const char
     CodedOutputStream cos(&aos);
     cos.WriteRaw(&len, sizeof(len));
     if(req.SerializeToCodedStream(&cos)) {
-        size = write(mSock, b, (len + 2));
+        size = write(mSockLogin, b, (len + 2));
         printf("    ===>Server wrote with %ld byte\n", size);
     }
     free(b);
    
     // Now, waiting for response..
-    size = read(mSock, gBuffer, sizeof(gBuffer));
+    size = read(mSockLogin, gBuffer, sizeof(gBuffer));
     printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
     if(*(unsigned short *)gBuffer > 0) {
         ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
@@ -768,13 +815,13 @@ int _activation_testing(RegLoginType type, const char *name, const char *code, i
     CodedOutputStream cos(&aos);
     cos.WriteRaw(&len, sizeof(len));
     if(req.SerializeToCodedStream(&cos)) {
-        size = write(mSock, b, (len + 2));
+        size = write(mSockAct, b, (len + 2));
         printf("    ===>Server wrote with %ld byte\n", size);
     }
     free(b);
    
     // Now, waiting for response..
-    size = read(mSock, gBuffer, sizeof(gBuffer));
+    size = read(mSockAct, gBuffer, sizeof(gBuffer));
     printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
     if(*(unsigned short *)gBuffer > 0) {
         ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
@@ -854,13 +901,13 @@ int _auth_testing(const char *token, const char *session, int sysid, int passfla
     CodedOutputStream cos(&aos);
     cos.WriteRaw(&len, sizeof(len));
     if(req.SerializeToCodedStream(&cos)) {
-        size = write(mSock, b, (len + 2));
+        size = write(mSockAuth, b, (len + 2));
         printf("    ===>Server wrote with %ld byte\n", size);
     }
     free(b);
    
     // Now, waiting for response..
-    size = read(mSock, gBuffer, sizeof(gBuffer));
+    size = read(mSockAuth, gBuffer, sizeof(gBuffer));
     printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
     if(*(unsigned short *)gBuffer > 0) {
         ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
@@ -955,6 +1002,73 @@ int test_auth_normal_case4() {
             99, // sys ID, DO NOT MODIFY, this is for REJECT case!
             CDS_ERR_REJECT_LOGIN);
 }
+
+// this is a complicated test for:
+//  - Login to get a new token
+//  - Old token should be obsoleted!
+int test_auth_normal_case5() {
+
+    // frist, try log-in with "a_name" again!
+    int r;
+    const char *password="anamepassword"; //DO NOT change
+    char md5str[36];
+    the_md5(password, strlen(password), md5str);
+
+    printf("%s --MD5--> %s\n",
+            password, md5str);
+
+    char first[64];
+    char second[64];
+    strcpy(first, g_aname_first_token);
+    printf("before relogin, token=%s\n", first);
+    r =  _usr_passwd_testing(NAME_PASSWD,
+            "relogdev-a",         // DO NOT MODIFY Session
+            "a_name", // DO NOT modify,tested by previous case
+            md5str,
+            CDS_OK);
+    if(r == 0) {
+        printf("    Re-Login with \'a_name\' OK\n");
+        printf("    the new token:%s\n", g_aname_first_token);
+        strcpy(second, g_aname_first_token);
+        r = _auth_testing(
+            second,  // DO NOT MODIFY
+            "relogdev-a", // DO NOT MODIFY, session
+            2, // sys ID, DO NOT MODIFY
+            CDS_OK);
+        if(r == 0) {
+            printf("    Re-auth with new token [OK]\n");
+
+            r =  _auth_testing(
+                first,  // DO NOT MODIFY
+                "2", // DO NOT MODIFY
+                2, // sys ID, DO NOT MODIFY
+                CDS_ERR_UMATCH_USER_INFO);
+
+        } else {
+            printf("-->SHIT, new token failed auth!\n");
+        }
+    }
+
+    return r;
+}
+
+// try auth with the same session ID
+int test_auth_normal_case6() {
+    return _auth_testing(
+            g_bname_first_token,  // DO NOT MODIFY, it is previously allocated token
+            "bdev", // DO NOT MODIFY, a previusly session ID
+            2, // sys ID,
+            CDS_OK);
+}
+
+// try auth with a different session ID
+int test_auth_normal_case7() {
+    return _auth_testing(
+            g_bname_first_token,  // DO NOT MODIFY, it is previously allocated token
+            "1", // DO NOT MODIFY, a wrong session ID
+            2, // sys ID,
+            CDS_ERR_UMATCH_USER_INFO);
+}
 /////////////////////////////////////////////////////////////////////
 // misc test
 /////////////////////////////////////////////////////////////////////
@@ -977,12 +1091,12 @@ int main(int argc, char **argv)
     printf("Begin Unit Testing....\n\n");
 
     struct sockaddr_in addr;
-    mSock = socket(AF_INET, SOCK_STREAM, 0);
+    mSockReg = socket(AF_INET, SOCK_STREAM, 0);
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr(TESTING_SERVER_IP);
     addr.sin_port = htons(13000);
 
-    if(connect(mSock, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
+    if(connect(mSockReg, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         printf("***failed connect to register server:%d\n", errno);
         return -1;
     }
@@ -1018,6 +1132,7 @@ int main(int argc, char **argv)
     execute_ut_case(test_insert_new_user_password);
     execute_ut_case(test_insert_new_user_password2);
     execute_ut_case(test_insert_new_user_password3);
+    execute_ut_case(test_insert_new_user_password4); //2015-3-12 added for verify different sessioin auth case...
 
     execute_ut_case(test_email_already_existed);
     execute_ut_case(test_email_overwrite_inactive);
@@ -1029,14 +1144,14 @@ int main(int argc, char **argv)
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next will try testing the login feature...
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-    close(mSock);
+    //close(mSock);
 
-    mSock = socket(AF_INET, SOCK_STREAM, 0);
+    mSockLogin = socket(AF_INET, SOCK_STREAM, 0);
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr(TESTING_SERVER_IP);
     addr.sin_port = htons(13001);
 
-    if(connect(mSock, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
+    if(connect(mSockLogin, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         printf("***failed connect to Login server:%d\n", errno);
         return -1;
     }
@@ -1050,6 +1165,7 @@ int main(int argc, char **argv)
 
     execute_ut_case(test_normal_user_login);
     execute_ut_case(test_normal_user_login_bad_passwd);
+    execute_ut_case(test_normal_user_login2);
     execute_ut_case(test_phone_passwd_login);
     execute_ut_case(test_phone_passwd_login2);
     execute_ut_case(test_phone_passwd_login3);
@@ -1059,13 +1175,13 @@ int main(int argc, char **argv)
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next will try testing the activation feature...
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-    close(mSock);
-    mSock = socket(AF_INET, SOCK_STREAM, 0);
+    //close(mSock);
+    mSockAct = socket(AF_INET, SOCK_STREAM, 0);
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr(TESTING_SERVER_IP);
     addr.sin_port = htons(13002);
 
-    if(connect(mSock, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
+    if(connect(mSockAct, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         printf("***failed connect to Activation server:%d\n", errno);
         return -1;
     }
@@ -1085,13 +1201,13 @@ int main(int argc, char **argv)
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next will try testing the auth feature...
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-    close(mSock);
-    mSock = socket(AF_INET, SOCK_STREAM, 0);
+    //close(mSock);
+    mSockAuth = socket(AF_INET, SOCK_STREAM, 0);
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr(TESTING_SERVER_IP);
     addr.sin_port = htons(13003);
 
-    if(connect(mSock, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
+    if(connect(mSockAuth, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         printf("***failed connect to Auth server:%d\n", errno);
         return -1;
     }
@@ -1102,6 +1218,9 @@ int main(int argc, char **argv)
     execute_ut_case(test_auth_normal_case2);
     execute_ut_case(test_auth_normal_case3);
     execute_ut_case(test_auth_normal_case4);
+    execute_ut_case(test_auth_normal_case5);
+    execute_ut_case(test_auth_normal_case6);
+    execute_ut_case(test_auth_normal_case7);
 
 
     //misc testing...
@@ -1113,7 +1232,7 @@ int main(int argc, char **argv)
     printf("\nEnd of Unit Testing\n");
     printf("Totally %d case tested, %d [OK], %d [Failed]\n",
             gPass + gFail, gPass, gFail);
-    close(mSock);
+    //close(mSock);
 
     return 0;
 }

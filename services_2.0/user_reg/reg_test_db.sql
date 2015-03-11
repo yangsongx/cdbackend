@@ -1,12 +1,13 @@
 DELETE FROM uc_passport WHERE username='TianFeng' OR username='CSS';
 DELETE FROM uc_passport WHERE email='ilovecss@email.com' OR username='ilovecss@email.com';
-DELETE FROM uc_passport WHERE username='a_name';
+DELETE FROM uc_passport WHERE username='a_name' OR username='b_name';
 DELETE FROM uc_passport WHERE username='abcdefghijklmnopqr';
 DELETE FROM uc_passport WHERE email='499528974@qq.com';
 DELETE FROM uc_passport WHERE email='active@mail.com';
 DELETE FROM uc_passport WHERE usermobile='13022593515' OR usermobile='13022593516' OR usermobile='13022593517';
 DELETE FROM uc_passport WHERE usermobile='17705164171' OR usermobile='18911112222';
 DELETE FROM uc_session WHERE ticket='aa776f46-cc18-4c44-a7c5-124c7afc45bf' OR ticket='11776f46-cc18-4c44-a7c5-124c7afc45bf' OR ticket='22776f46-cc18-4c44-a7c5-124c7afc45bf';
+DELETE FROM uc_session WHERE ticket='33776f46-cc18-4c44-a7c5-124c7afc45bf';
 DELETE FROM uc_sys_sessionconf WHERE sysid=2 OR sysid=99 OR sysid=1;
 /* User + Name case */
 INSERT INTO uc_passport (username,loginpassword,device,source,createtime,status) VALUES ('TianFeng','123456',0,2,NOW(),1);

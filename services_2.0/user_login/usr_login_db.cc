@@ -133,6 +133,13 @@ int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *
                     reqobj->login_name().c_str());
             break;
 
+        case RegLoginType::OTHERS:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id FROM %s WHERE third=\'%s\'",
+                    USER_MAIN_TABLE,
+                    reqobj->login_name().c_str());
+            break;
+
         case RegLoginType::CID_PASSWD:
             // TODO how to handle with CareDear ID login?
             break;
@@ -255,7 +262,6 @@ int insert_new_session_in_db(MYSQL *ms, struct user_session *session)
     }
 
     MYSQL_RES *mresult;
-    MYSQL_ROW  row;
     mresult = mysql_store_result(ms);
     UNLOCK_CDS(uls_mutex);
 
@@ -270,8 +276,13 @@ int insert_new_session_in_db(MYSQL *ms, struct user_session *session)
     return 0;
 }
 
-int set_session_info_to_db(MYSQL *ms, struct user_session *session)
+/**
+ *
+ * return 1 will store the old session ticket(token) to @old.
+ */
+int set_session_info_to_db(MYSQL *ms, struct user_session *session, char *old)
 {
+    int ret = 0;
     char sqlcmd[1024];
 
     snprintf(sqlcmd, sizeof(sqlcmd),
@@ -298,7 +309,11 @@ int set_session_info_to_db(MYSQL *ms, struct user_session *session)
         if(row != NULL)
         {
             // Already existed a seesion, should overwrite it!
+            // And DO NOT forget to remove memcached later
+            INFO("Will obsolete token(%s)...\n", row[0]);
+            strcpy(old, row[0]);
             overwrite_existed_session_in_db(ms, session);
+            ret = 1;
         }
         else
         {
@@ -311,6 +326,6 @@ int set_session_info_to_db(MYSQL *ms, struct user_session *session)
         ERR("Warning, mysql_store_result should NEVER be NULL for SELECT\n");
     }
 
-    return 0;
+    return ret;
 }
 //

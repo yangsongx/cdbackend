@@ -21,7 +21,7 @@
  */
 struct auth_data_wrapper{
     unsigned long adw_cid;
-    int           adw_sysid;
+    char          adw_session[64];  // act like device id
     time_t        adw_lastlogin;
 };
 

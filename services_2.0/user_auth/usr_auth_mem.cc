@@ -5,7 +5,7 @@
  *
  *     Key         |        Value
  * ----------------------------------------------
- *   uuid(token)   | CID   sysid    lastlogin
+ *   uuid(token)   | CID   sessionid    lastlogin
  * ----------------------------------------------
  *
  */
@@ -34,7 +34,7 @@ int split_val_into_fields(char *value, struct auth_data_wrapper *w)
         w->adw_cid = atol(c);
         if((s = strtok_r(NULL, " ", &saveptr)) != NULL)
         {
-            w->adw_sysid = atoi(s);
+            strcpy(w->adw_session, s);
             if((l = strtok_r(NULL, " " , &saveptr)) != NULL)
             {
                 w->adw_lastlogin = atol(l);
@@ -97,8 +97,8 @@ memcached_return_t set_token_info_to_mem(memcached_st *memc, const char *key, st
             char value[128];
             time_t current;
             time(&current);
-            sprintf(value, "%ld %d %ld",
-                    w->adw_cid, w->adw_sysid, current);
+            sprintf(value, "%ld %s %ld",
+                    w->adw_cid, w->adw_session, current);
 
             rc = memcached_cas(memc,
                     key, strlen(key),

@@ -58,8 +58,8 @@ bool AuthOperation::is_allowed_access(AuthRequest *reqobj)
     }
     else
     {
-        ERR("failed found the session conf for SYSID[%d]\n",
-                reqobj->auth_sysid());
+        ERR("failed found the session conf for SESSION[%s] SYSID[%d]\n",
+                reqobj->auth_session().c_str(), reqobj->auth_sysid());
     }
 
     return allowed;
@@ -82,12 +82,21 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
     size_t val_len;
 
 
+    // first try from mem
     p_val = get_token_info_from_mem(m_cfgInfo->m_Memcached, reqobj->auth_token().c_str(), &val_len);
     if(p_val)
     {
         // got value from mem, parse it...
         split_val_into_fields(p_val, w);
 
+        if(strcmp(reqobj->auth_session().c_str(), w->adw_session))
+        {
+            ERR("(%s %s) <---->mem(%s), SESSION-mismacth, re-count on DB..\n",
+                    reqobj->auth_token().c_str(), reqobj->auth_session().c_str(),
+                    w->adw_session);
+
+            ret = get_token_info_from_db(m_cfgInfo->m_Sql, reqobj, respobj, w);
+        }
         free(p_val);
     }
     else
@@ -125,6 +134,7 @@ int AuthOperation::update_session_lastoperatetime(AuthRequest *reqobj, struct au
     }
 
     // SQL
+    set_token_info_to_db(m_cfgInfo->m_Sql, reqobj);
 
     return 0;
 }
@@ -150,6 +160,7 @@ int AuthOperation::auth_user(AuthRequest *reqobj, AuthResponse *respobj, int *le
         if(ret == CDS_OK)
         {
             LOG("user token info get [OK]\n");
+            respobj->set_caredear_id(fields.adw_cid);
 
             // do further time check and update if possible
             ret = check_token(reqobj, &fields);
@@ -162,11 +173,8 @@ int AuthOperation::auth_user(AuthRequest *reqobj, AuthResponse *respobj, int *le
 
             case 1:
                 // update time
-                // TODO below API need re-direct to MEM+DB
-#if 1
-#else
-                update_session_lastoperatetime(m_cfgInfo->m_Sql, reqobj);
-#endif
+                update_session_lastoperatetime(reqobj, &fields);
+
                 ret = CDS_OK;
                 break;
 

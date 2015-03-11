@@ -13,13 +13,6 @@
 #include "cds_public.h"
 #include "UserLoginConfig.h"
 
-#if 0
-#ifdef __cplusplus
-#undef min
-#undef max
-#endif
-
-#endif
 
 using namespace std;
 using namespace com::caredear;

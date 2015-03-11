@@ -7,9 +7,11 @@ int LoginOperation::set_conf(UserLoginConfig *c)
     return 0;
 }
 
+
 /**
  * Inner wrapper util for mem+DB set
  *
+ * Need obsolete existed token if found.
  */
 int LoginOperation::update_usercenter_session(LoginRequest *reqobj, struct user_session *u)
 {
@@ -25,7 +27,21 @@ int LoginOperation::update_usercenter_session(LoginRequest *reqobj, struct user_
     }
 
     // SQL
-    set_session_info_to_db(m_cfgInfo->m_Sql, u);
+    char oldtoken[64];
+    if(set_session_info_to_db(m_cfgInfo->m_Sql, u, oldtoken) == 1)
+    {
+        // need delete old token's memcach
+        memcached_return_t rc = rm_session_info_from_mem(m_cfgInfo->m_Memcached, oldtoken);
+        if(rc != MEMCACHED_SUCCESS)
+        {
+            ERR("**Failed delete key(%s) from mem:%d\n",
+                    oldtoken, rc);
+        }
+        else
+        {
+            LOG("delete key(%s) [OK]\n", oldtoken);
+        }
+    }
 
     return 0;
 }
@@ -73,6 +89,7 @@ int LoginOperation::do_login(LoginRequest *reqobj, LoginResponse *respobj, int *
     {
         // login info data is correct.
         INFO("%s ==> %ld,[Login OK]\n", reqobj->login_name().c_str(), cid);
+
         char uuiddata[64]; // string like '3ab554e6-1533-4cea-9f6d-26edfd869c6e'
         gen_uuid(uuiddata);
         struct user_session us;

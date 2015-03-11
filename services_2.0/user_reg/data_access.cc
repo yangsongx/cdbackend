@@ -160,6 +160,16 @@ int add_new_user_entry(MYSQL *ms, RegisterRequest *pRegInfo)
                     bypassactivate == true ? 1 : 0);
             break;
 
+        case RegLoginType::OTHERS:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "INSERT INTO %s (third,device,source,createtime,status) "
+                    "VALUES (\'%s\',%d,\'%s\',\'%s\',1)",
+                    NEW_REG_TABLE,
+                    pRegInfo->reg_name().c_str(),
+                    pRegInfo->reg_device(),
+                    pRegInfo->reg_source().c_str(), current);
+            break;
+
         default:
             ERR("**Warning, unknow reg type\n");
             break;
@@ -264,6 +274,7 @@ int overwrite_inactive_user_entry(MYSQL *ms, RegisterRequest *pRegInfo, unsigned
 
         default:
             // DO nothing here
+            ERR("unsupport reg type(line %d)\n", __LINE__);
             break;
     }
 
@@ -315,6 +326,13 @@ bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj, int *p_active_status
         case RegLoginType::EMAIL_PASSWD:
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "SELECT id,status FROM %s WHERE email=\'%s\'",
+                    NEW_REG_TABLE, reqobj->reg_name().c_str());
+            break;
+
+        case RegLoginType::OTHERS:
+            // user use QQ/WeiXin/Weibo/etc...
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id,status FROM %s WHERE third=\'%s\'",
                     NEW_REG_TABLE, reqobj->reg_name().c_str());
             break;
 
