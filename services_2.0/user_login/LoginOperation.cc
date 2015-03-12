@@ -27,7 +27,7 @@ int LoginOperation::update_usercenter_session(LoginRequest *reqobj, struct user_
     }
 
     // SQL
-    char oldtoken[64];
+    char oldtoken[64]; // store old token before overwrite the DB
     if(set_session_info_to_db(m_cfgInfo->m_Sql, u, oldtoken) == 1)
     {
         // need delete old token's memcach

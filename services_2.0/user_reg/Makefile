@@ -5,6 +5,8 @@ CDSBASE = ../../common/cds_base/
 LOGINBASE=../user_login/
 ACTIVATEBASE=../user_activate/
 AUTHBASE=../user_auth/
+#base class location
+BASECLS=../
 
 CC = g++
 
@@ -13,7 +15,10 @@ SRC = usr_reg_service.cc \
       CommonUserCenter.pb.cc \
       UserRegister.pb.cc \
       RegOperation.cc \
-      UserRegConfig.cc
+      UserRegConfig.cc \
+      $(BASECLS)Config.cc \
+      $(BASECLS)Operation.cc
+
 
 TESTSRC = test_client.cc UserRegister.pb.cc \
           CommonUserCenter.pb.cc \

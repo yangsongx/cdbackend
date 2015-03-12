@@ -24,6 +24,7 @@ struct user_session {
     const char    *us_token;     /**< This session's token string */
 };
 
+extern int compare_user_smscode_wth_cid(MYSQL *ms, LoginRequest *reqobj, const char *code, unsigned long cid);
 extern int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *p_cid);
 extern int set_session_info_to_db(MYSQL *ms, struct user_session *session, char *old);
 

@@ -22,4 +22,6 @@ $(SUBDIRS):
 subdirs: $(SUBDIRS)
 $(clean_dirs):    
 	$(MAKE) -C $(patsubst _clean_%,%,$@) clean
+	-rm *.o
+	
 clean: $(clean_dirs)    

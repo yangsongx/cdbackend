@@ -187,7 +187,6 @@ int verify_activation_code(MYSQL *ms, ActivateRequest *reqobj)
             // - code incorrect
             // - code correct, but time expired
             ret = check_code_corrrectness(ms, reqobj);
-            LOG("keep on...\n");
         }
         else
         {

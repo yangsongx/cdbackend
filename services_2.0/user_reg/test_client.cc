@@ -279,6 +279,20 @@ int test_phone_passwd_reg() {
             md5str,
             CDS_OK);
 }
+
+int test_phone_passwd_reg2() {
+    const char *password="inactivepasswd"; //DO NOT change
+    char md5str[36];
+
+    the_md5(password, strlen(password), md5str);
+    return _phone_reg_testing(RegLoginType::PHONE_PASSWD,
+            DeviceType::IOS,
+            "1",
+            "testinactive", // DO NOT modify!
+            md5str,
+            CDS_OK);
+}
+
 /////////////////////////////////////////////////////////////////////
 //  User + Password case
 /////////////////////////////////////////////////////////////////////
@@ -759,11 +773,16 @@ int test_phone_passwd_login2()
             CDS_ERR_UMATCH_USER_INFO);
 }
 
-// try add an existed phone number...
+// try add an incorrect-passwd + inactive  phone number...
 int test_phone_passwd_login3()
 {
-    /* TODO */
-    printf("STUB test code\n");
+    const char *password = "bad"; //DO NOT change
+    char md5str[36];
+    the_md5(password, strlen(password), md5str);
+    return _phone_passwd_login_testing("0",
+            "testinactive", // DO NOT MODIFY, this is reged by previous reg case..
+            md5str,
+            CDS_ERR_UMATCH_USER_INFO);
     return -1;
 }
 
@@ -771,8 +790,13 @@ int test_phone_passwd_login3()
 int test_phone_passwd_login4()
 {
     /* TODO */
-    printf("STUB test code\n");
-    return -1;
+    const char *password = "inactivepasswd"; //DO NOT change
+    char md5str[36];
+    the_md5(password, strlen(password), md5str);
+    return _phone_passwd_login_testing("0",
+            "testinactive", // DO NOT MODIFY, this is reged by previous reg case..
+            md5str,
+            CDS_ERR_INACTIVATED);
 }
 
 // try login with non-existed phone numbers..
@@ -867,8 +891,18 @@ int test_activation_phone_smscode3() {
             CDS_ERR_INCORRECT_CODE);
 }
 
-// verify with previous register created SMS code
+// verify with previous register created SMS code(incorrect code case)
 int test_activation_phone_smscode4() {
+    return _activation_testing(RegLoginType::MOBILE_PHONE,
+            "17705164171", // DO NOT MODIFY
+            "11", // DO NOT MODIFY, incorrect code
+            CDS_ERR_INCORRECT_CODE);
+}
+// verify with previous register created SMS code
+int test_activation_phone_smscode5() {
+    printf("    Will try verify SMS code[%s] with phone 17705164171\n",
+            g_phone_sms_verifycode);
+    printf("    Check the status in DB if case pass\n");
     return _activation_testing(RegLoginType::MOBILE_PHONE,
             "17705164171", // DO NOT MODIFY
             g_phone_sms_verifycode, // DO NOT MODIFY
@@ -1140,6 +1174,7 @@ int main(int argc, char **argv)
 
     execute_ut_case(test_phone_sms_reg); // normal phone+SMS case, will test SMS code later in activation service
     execute_ut_case(test_phone_passwd_reg);
+    execute_ut_case(test_phone_passwd_reg2);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next will try testing the login feature...
@@ -1196,7 +1231,8 @@ int main(int argc, char **argv)
     execute_ut_case(test_activation_phone_smscode);
     execute_ut_case(test_activation_phone_smscode2);
     execute_ut_case(test_activation_phone_smscode3);
-    execute_ut_case(test_activation_phone_smscode4); // SMS geneared via @test_phone_sms_reg
+    execute_ut_case(test_activation_phone_smscode4); // SMS geneared via @test_phone_sms_reg(incorrect case)
+    execute_ut_case(test_activation_phone_smscode5); // SMS geneared via @test_phone_sms_reg(correct case)
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next will try testing the auth feature...

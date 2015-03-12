@@ -31,6 +31,63 @@ int gen_uuid(char *result)
     return 0;
 }
 
+int compare_user_smscode_wth_cid(MYSQL *ms, LoginRequest *reqobj, const char *code, unsigned long cid)
+{
+    int ret = CDS_GENERIC_ERROR;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT id,status FROM %s WHERE id=%ld AND accode=\'%s\'",
+            USER_MAIN_TABLE, cid, code);
+
+    LOCK_CDS(uls_mutex);
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_CDS(uls_mutex);
+        ERR("Failed check the accode:%s\n", mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+    mresult = mysql_store_result(ms);
+    UNLOCK_CDS(uls_mutex);
+
+    if(mresult)
+    {
+        row = mysql_fetch_row(mresult);
+        if(row != NULL)
+        {
+            if(mysql_num_rows(mresult) != 1)
+            {
+                INFO("Warning, this SHOULD NEVER HAPPEND, as only unique-ID queryed!\n");
+            }
+            // set as login with password correctly.
+            if(row[1] != NULL && atoi(row[1]) == 0)
+            {
+                // not activated yet
+                INFO("You Login correctly, but still activated yet!\n");
+                ret = CDS_ERR_INACTIVATED;
+            }
+            else
+            {
+                ret = CDS_OK;
+            }
+        }
+        else
+        {
+            // don't match any password
+            ret = CDS_ERR_UMATCH_USER_INFO;
+        }
+    }
+    else
+    {
+        ERR("compare accode SQL should NEVER meet NULL result!\n");
+    }
+
+    return ret;
+}
+
 /**
  * Compare @targetdata with DB, which id is @cid.
  *
@@ -190,15 +247,23 @@ int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *
             LOG("name[%s] ==> cid[%ld]\n",
                     reqobj->login_name().c_str(), *p_cid);
 
-            char md5data[64];
-            // can re-use the sqlcmd here.
-            sprintf(sqlcmd, "%ld-%s",
-                    *p_cid, reqobj->login_password().c_str());
-            get_md5(sqlcmd, strlen(sqlcmd), md5data);
-            LOG("phase-I cipher[%s] ==> phase-II cipher[%s]\n",
-                    sqlcmd, md5data);
+            if(reqobj->login_type() != RegLoginType::MOBILE_PHONE)
+            {
+                char md5data[64];
+                // can re-use the sqlcmd here.
+                sprintf(sqlcmd, "%ld-%s",
+                        *p_cid, reqobj->login_password().c_str());
+                get_md5(sqlcmd, strlen(sqlcmd), md5data);
+                LOG("phase-I cipher[%s] ==> phase-II cipher[%s]\n",
+                        sqlcmd, md5data);
 
-            ret = compare_user_password_wth_cid(ms, reqobj, md5data, *p_cid);
+                ret = compare_user_password_wth_cid(ms, reqobj, md5data, *p_cid);
+            }
+            else
+            {
+                // For phone+SMS, we only compare the accode..., password is SMS code,not encrypt string
+                ret = compare_user_smscode_wth_cid(ms, reqobj, reqobj->login_password().c_str(), *p_cid);
+            }
         }
     }
     else

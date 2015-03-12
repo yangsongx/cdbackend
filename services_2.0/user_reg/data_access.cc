@@ -199,14 +199,18 @@ int add_new_user_entry(MYSQL *ms, RegisterRequest *pRegInfo)
         if(user_already_exist(ms, pRegInfo, &active_flag, &cid))
         {
             INFO("this new user's CID=%ld\n", cid);
-            char finaly_passwd[64];
-            // re-use the long sqlcmd buff
-            sprintf(sqlcmd, "%ld-%s",
-                    cid, pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "");
-            get_md5(sqlcmd, strlen(sqlcmd), finaly_passwd);
-            LOG("%s --MD5--> %s\n", sqlcmd, finaly_passwd);
+            // we don't add password for mobile+SMS verify code case
+            if(pRegInfo->reg_type() != RegLoginType::MOBILE_PHONE)
+            {
+                char finaly_passwd[64];
+                // re-use the long sqlcmd buff
+                sprintf(sqlcmd, "%ld-%s",
+                        cid, pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "");
+                get_md5(sqlcmd, strlen(sqlcmd), finaly_passwd);
+                LOG("%s --MD5--> %s\n", sqlcmd, finaly_passwd);
 
-            ret = add_user_password_to_db(ms, pRegInfo, cid, finaly_passwd);
+                ret = add_user_password_to_db(ms, pRegInfo, cid, finaly_passwd);
+            }
         }
         else
         {
