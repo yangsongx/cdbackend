@@ -345,9 +345,22 @@ bool user_already_exist(MYSQL *ms, RegisterRequest *reqobj, int *p_active_status
     if(mysql_query(ms, sqlcmd))
     {
         UNLOCK_CDS(urs_mutex);
-        ERR("Warning, failed execute the existence check sql cmd:%s\n", mysql_error(ms));
-        /* FIXME - for SQL check failure case, we consider user not existed */
-        return false;
+
+        /* Note - As this function prototype is boolean, we re-use incoming paremeters
+         * to indicate the SQL auto-disconnect case... */
+        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR)
+        {
+            ERR("SQL GONE AWAY after long time, need reconnecting!\n");
+            *p_active_status = -1;
+            *p_index = (unsigned long) -1;
+            return true; /* force it as already existed, and caller check another two paremeters */
+        }
+        else
+        {
+            ERR("Warning, failed execute the existence check sql cmd:%s\n", mysql_error(ms));
+            /* FIXME - for SQL check failure case, we consider user not existed */
+            return false;
+        }
     }
 
     MYSQL_RES *mresult;

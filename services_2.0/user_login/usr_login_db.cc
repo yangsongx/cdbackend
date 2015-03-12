@@ -152,8 +152,16 @@ int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *
     if(mysql_query(ms, sqlcmd))
     {
         UNLOCK_CDS(uls_mutex);
-        ERR("Failed check the login cid:%s\n", mysql_error(ms));
-        return CDS_ERR_SQL_EXECUTE_FAILED;
+        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR)
+        {
+            ERR("SQL GONE AWAY, need re-connecting...\n");
+            return CDS_ERR_SQL_DISCONNECTED;
+        }
+        else
+        {
+            ERR("Failed check the login cid:%s\n", mysql_error(ms));
+            return CDS_ERR_SQL_EXECUTE_FAILED;
+        }
     }
 
     MYSQL_RES *mresult;

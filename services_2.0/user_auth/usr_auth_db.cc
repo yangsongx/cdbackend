@@ -59,8 +59,16 @@ int get_token_info_from_db(MYSQL *ms, AuthRequest *reqobj, AuthResponse *respobj
     if(mysql_query(ms, sqlcmd))
     {
         UNLOCK_CDS(uas_mutex);
-        ERR("Failed check auth token:%s\n", mysql_error(ms));
-        return CDS_ERR_SQL_EXECUTE_FAILED;
+        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR)
+        {
+            ERR("SQL GONE AWAY, need re-connecting...\n");
+            return CDS_ERR_SQL_DISCONNECTED;
+        }
+        else
+        {
+            ERR("Failed check auth token:%s\n", mysql_error(ms));
+            return CDS_ERR_SQL_EXECUTE_FAILED;
+        }
     }
 
     MYSQL_RES *mresult;

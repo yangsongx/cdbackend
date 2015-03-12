@@ -12,6 +12,14 @@ int ActivateOperation::begin_activation(ActivateRequest *reqobj, ActivateRespons
     int ret = CDS_OK;
     LOG("will verify %s(%s)...\n", reqobj->activate_name().c_str(), reqobj->activate_code().c_str());
     ret = verify_activation_code(m_cfgInfo->m_Sql, reqobj);
+    if(ret == CDS_ERR_SQL_DISCONNECTED)
+    {
+        if(m_cfgInfo->reconnect_sql() == 0)
+        {
+            ret = verify_activation_code(m_cfgInfo->m_Sql, reqobj);
+        }
+    }
+
     if(compose_result(ret, NULL, respobj, len_resp, resp) != 0)
     {
         ERR("** failed Serialize result of activation result!\n");

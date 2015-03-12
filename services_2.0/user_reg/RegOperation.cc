@@ -89,6 +89,26 @@ int RegOperation::process_register_req(RegisterRequest *reqobj, RegisterResponse
     int status_flag;
     bool existed = user_already_exist(m_cfgInfo->m_Sql, reqobj, &status_flag, &usr_id);
 
+    // first of all, try re-connect if possible3
+    if(existed && (status_flag == -1 && usr_id == (unsigned long) -1))
+    {
+        ERR("Oh, found MySQL disconnected, try reconnecting...\n");
+        if(m_cfgInfo->reconnect_sql() == 0)
+        {
+            existed = user_already_exist(m_cfgInfo->m_Sql, reqobj, &status_flag, &usr_id);
+        }
+        else
+        {
+            ERR("Very Bad, reconnectiong still failed\n");
+            if(sendback_reg_result(CDS_ERR_SQL_DISCONNECTED, NULL, respobj, len_resp, resp) != 0)
+            {
+                ERR("***failed serialize to resp data\n");
+            }
+            return CDS_ERR_SQL_DISCONNECTED;
+        }
+
+    }
+
     if(existed && status_flag == 1)
     {
         ret = CDS_ERR_USER_ALREADY_EXISTED;

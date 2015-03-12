@@ -46,6 +46,7 @@ public:
     int   m_iEmailVerifyExpir;
 
     int init(const char *config_file);
+    int reconnect_sql();
 };
 
 #endif

@@ -96,6 +96,13 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
                     w->adw_session);
 
             ret = get_token_info_from_db(m_cfgInfo->m_Sql, reqobj, respobj, w);
+            if(ret == CDS_ERR_SQL_DISCONNECTED)
+            {
+                if(m_cfgInfo->reconnect_sql() == 0)
+                {
+                    ret = get_token_info_from_db(m_cfgInfo->m_Sql, reqobj, respobj, w);
+                }
+            }
         }
         free(p_val);
     }
@@ -104,6 +111,13 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
         // didn't get the mem val, try on DB...
         INFO("not found in mem, go to DB...\n");
         ret = get_token_info_from_db(m_cfgInfo->m_Sql, reqobj, respobj, w);
+        if(ret == CDS_ERR_SQL_DISCONNECTED)
+        {
+            if(m_cfgInfo->reconnect_sql() == 0)
+            {
+                ret = get_token_info_from_db(m_cfgInfo->m_Sql, reqobj, respobj, w);
+            }
+        }
     }
 
     return ret;

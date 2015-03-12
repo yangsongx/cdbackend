@@ -85,6 +85,15 @@ int LoginOperation::do_login(LoginRequest *reqobj, LoginResponse *respobj, int *
 
     ret = match_user_credential_in_db(m_cfgInfo->m_Sql, reqobj, &cid);
 
+    if(ret == CDS_ERR_SQL_DISCONNECTED)
+    {
+        ERR("Oh, found MySQL disconnected, try reconnecting...\n");
+        if(m_cfgInfo->reconnect_sql() == 0)
+        {
+            ret = match_user_credential_in_db(m_cfgInfo->m_Sql, reqobj, &cid);
+        }
+    }
+
     if(ret == CDS_OK)
     {
         // login info data is correct.

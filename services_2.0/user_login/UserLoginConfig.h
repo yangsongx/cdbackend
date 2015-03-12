@@ -36,6 +36,7 @@ class UserLoginConfig {
         memcached_st *m_Memcached;
 
         int init(const char *config_file);
+        int reconnect_sql();
 };
 
 #endif

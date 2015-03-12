@@ -116,3 +116,31 @@ int ActivationConfig::prepare_job()
 
     return ret; 
 }
+
+int ActivationConfig::reconnect_sql()
+{
+    int ret = -1;
+
+    mysql_close(m_Sql);
+
+    if(!mysql_real_connect(m_Sql, m_strSqlIP,
+                m_strSqlUserName,
+                m_strSqlUserPassword,
+                "", // db keep blank
+                0,  // port , take default
+                NULL,
+                0))
+    {
+        ERR("**failed re-connecting to MySQL:%s\n",
+                mysql_error(m_Sql));
+        mysql_close(m_Sql);
+        m_Sql = NULL;
+    }
+    else
+    {
+        INFO("Re-Connecting to MySQL ... [OK]\n");
+        ret = 0;
+    }
+
+    return ret;
+}

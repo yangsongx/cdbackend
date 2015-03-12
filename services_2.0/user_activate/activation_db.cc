@@ -161,8 +161,16 @@ int verify_activation_code(MYSQL *ms, ActivateRequest *reqobj)
     if(mysql_query(ms, sqlcmd))
     {
         UNLOCK_CDS(acts_mutex);
-        ERR("Failed verify code:%s\n", mysql_error(ms));
-        return CDS_ERR_SQL_EXECUTE_FAILED;
+        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR)
+        {
+            ERR("SQL GONE AWAY, need reconnecting\n");
+            return CDS_ERR_SQL_DISCONNECTED;
+        }
+        else
+        {
+            ERR("Failed verify code SQL:%s\n", mysql_error(ms));
+            return CDS_ERR_SQL_EXECUTE_FAILED;
+        }
     }
 
     MYSQL_RES *mresult;
