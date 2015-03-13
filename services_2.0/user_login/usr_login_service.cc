@@ -55,7 +55,7 @@ int uls_handler(int size, void *req, int *len_resp, void *resp)
     if(ok)
     {
         // drop into the handling world...
-        ret = opr.do_login(&reqobj, &respobj, len_resp, resp);
+        ret = opr.handling_request(&reqobj, &respobj, len_resp, resp);
     }
     else
     {
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
-    if(g_info.init("/etc/cds_cfg.xml") != 0)
+    if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {
         ERR("*** Warning Failed init the whole service!\n");
     }

@@ -1,12 +1,15 @@
 #!/bin/bash
 
-# For user registeration
-protoc --cpp_out="../services_2.0/user_reg/" CommonUserCenter.proto 
+# TODO only one common code needed, we will delete each common code
+# in each components...
+protoc --cpp_out="../services_2.0/" CommonUserCenter.proto
 if [ $? -eq 0 ]; then
   echo "CommonUserCenter proto IDL generation [OK]"
 else
   echo "CommonUserCenter proto IDL generation [**failed]"
 fi
+
+# For user registeration
 protoc --cpp_out="../services_2.0/user_reg/" UserRegister.proto
 if [ $? -eq 0 ]; then
   echo "User Reg proto IDL generation [OK]"
@@ -15,12 +18,6 @@ else
 fi
 
 # For user login
-protoc --cpp_out="../services_2.0/user_login/" CommonUserCenter.proto 
-if [ $? -eq 0 ]; then
-  echo "CommonUserCenter proto IDL generation [OK]"
-else
-  echo "CommonUserCenter proto IDL generation [**failed]"
-fi
 protoc --cpp_out="../services_2.0/user_login/" UserLogin.proto
 if [ $? -eq 0 ]; then
   echo "User Login proto IDL generation [OK]"
@@ -37,12 +34,6 @@ else
 fi
 
 # For user activation
-protoc --cpp_out="../services_2.0/user_activate/" CommonUserCenter.proto 
-if [ $? -eq 0 ]; then
-  echo "CommonUserCenter proto IDL generation [OK]"
-else
-  echo "CommonUserCenter proto IDL generation [**failed]"
-fi
 protoc --cpp_out="../services_2.0/user_activate/" UserActivation.proto
 if [ $? -eq 0 ]; then
   echo "User Activation proto IDL generation [OK]"

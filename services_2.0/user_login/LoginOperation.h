@@ -6,23 +6,35 @@
 
 #include "UserLogin.pb.h"
 #include "UserLoginConfig.h"
+#include "Operation.h"
 
 using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
-class LoginOperation {
-
-    UserLoginConfig *m_cfgInfo;
+class LoginOperation : public com::caredear::Operation {
 
     int update_usercenter_session(LoginRequest *reqobj, struct user_session *u);
 
 public:
-    int set_conf(UserLoginConfig *c);
+#if 1
+
+    virtual int handling_request(::google::protobuf::Message *reg_req,
+            ::google::protobuf::Message *reg_resp,
+            int *len_resp,
+            void *resp);
+
+    virtual int compose_result(int code, const char *errmsg,
+            ::google::protobuf::Message *obj,
+            int *p_resplen,
+            void *p_respdata);
+
+#else
     int compose_result(int code, const char *errmsg, LoginResponse *p_obj, int *p_resplen, void *p_respdata);
 
 
     int do_login(LoginRequest *reqobj, LoginResponse *respobj, int *len_resp, void *resp);
+#endif
 };
 
 #endif

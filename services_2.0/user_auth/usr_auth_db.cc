@@ -1,7 +1,8 @@
 #include "usr_auth_db.h"
 
 
-extern pthread_mutex_t uas_mutex; // defined in the main()
+extern pthread_mutex_t uas_mutex; // defined in main
+
 
 /**
  * Modify the session's lastoperatetime if possible

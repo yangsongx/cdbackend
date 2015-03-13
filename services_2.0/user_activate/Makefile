@@ -1,20 +1,25 @@
 # Makefile for Activation Service
 #
 DEBUG=true
-CDSBASE = ../../common/cds_base/
+CDSBASE=../../common/cds_base/
+BASECLS=../
 
 CC = g++
 
 SRC = activation_service.cc \
-      CommonUserCenter.pb.cc \
       UserActivation.pb.cc \
       ActivationConfig.cc \
       ActivateOperation.cc \
-      activation_db.cc
+      activation_db.cc \
+      $(BASECLS)CommonUserCenter.pb.cc \
+      $(BASECLS)Config.cc \
+      $(BASECLS)Operation.cc
+
+
 
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = -I$(CDSBASE) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
+CXXFLAGS = -I$(CDSBASE) -I$(BASECLS) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
 
 # Release should use -O2
 

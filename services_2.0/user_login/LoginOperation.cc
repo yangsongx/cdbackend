@@ -1,13 +1,6 @@
 #include "LoginOperation.h"
 #include "usr_login_db.h"
 
-int LoginOperation::set_conf(UserLoginConfig *c)
-{
-    m_cfgInfo = c;
-    return 0;
-}
-
-
 /**
  * Inner wrapper util for mem+DB set
  *
@@ -18,7 +11,7 @@ int LoginOperation::update_usercenter_session(LoginRequest *reqobj, struct user_
     memcached_return_t rc;
 
     //MEM
-    rc = set_session_info_to_mem(m_cfgInfo->m_Memcached, reqobj, u);
+    rc = set_session_info_to_mem(m_pCfg->m_Memc, reqobj, u);
     if(rc != MEMCACHED_SUCCESS)
     {
         // FIXME as login set mem won't be the same as all existed mem key,
@@ -28,10 +21,10 @@ int LoginOperation::update_usercenter_session(LoginRequest *reqobj, struct user_
 
     // SQL
     char oldtoken[64]; // store old token before overwrite the DB
-    if(set_session_info_to_db(m_cfgInfo->m_Sql, u, oldtoken) == 1)
+    if(set_session_info_to_db(m_pCfg->m_Sql, u, oldtoken) == 1)
     {
         // need delete old token's memcach
-        memcached_return_t rc = rm_session_info_from_mem(m_cfgInfo->m_Memcached, oldtoken);
+        memcached_return_t rc = rm_session_info_from_mem(m_pCfg->m_Memc, oldtoken);
         if(rc != MEMCACHED_SUCCESS)
         {
             ERR("**Failed delete key(%s) from mem:%d\n",
@@ -46,9 +39,10 @@ int LoginOperation::update_usercenter_session(LoginRequest *reqobj, struct user_
     return 0;
 }
 
-int LoginOperation::compose_result(int code, const char *errmsg, LoginResponse *p_obj, int *p_resplen, void *p_respdata)
+int LoginOperation::compose_result(int code, const char *errmsg, ::google::protobuf::Message *obj, int *p_resplen, void *p_respdata)
 {
     unsigned short len;
+    LoginResponse *p_obj = (LoginResponse *)obj;
 
     p_obj->set_result_code(code);
     if(code != CDS_OK && errmsg != NULL)
@@ -78,19 +72,21 @@ int LoginOperation::compose_result(int code, const char *errmsg, LoginResponse *
  *
  *
  */
-int LoginOperation::do_login(LoginRequest *reqobj, LoginResponse *respobj, int *len_resp, void *resp)
+int LoginOperation::handling_request(::google::protobuf::Message *login_req, ::google::protobuf::Message *login_resp, int *len_resp, void *resp)
 {
     int ret = -1;
     unsigned long cid = -1;
+    LoginRequest *reqobj = (LoginRequest *)login_req;
+    LoginResponse *respobj = (LoginResponse *) login_resp;
 
-    ret = match_user_credential_in_db(m_cfgInfo->m_Sql, reqobj, &cid);
+    ret = match_user_credential_in_db(m_pCfg->m_Sql, reqobj, &cid);
 
     if(ret == CDS_ERR_SQL_DISCONNECTED)
     {
         ERR("Oh, found MySQL disconnected, try reconnecting...\n");
-        if(m_cfgInfo->reconnect_sql() == 0)
+        if(m_pCfg->reconnect_sql() == 0)
         {
-            ret = match_user_credential_in_db(m_cfgInfo->m_Sql, reqobj, &cid);
+            ret = match_user_credential_in_db(m_pCfg->m_Sql, reqobj, &cid);
         }
     }
 

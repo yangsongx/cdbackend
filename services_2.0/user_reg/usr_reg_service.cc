@@ -39,7 +39,7 @@ int register_handler(int size, void *req, int *len_resp, void *resp)
     if(size >= DATA_BUFFER_SIZE)
     {
         ERR("Too much long data, drop it!\n");
-        if(opr.sendback_reg_result(CDS_ERR_REQ_TOOLONG, "too much long",
+        if(opr.compose_result(CDS_ERR_REQ_TOOLONG, "too much long",
                     &respobj, len_resp, resp) != 0)
         {
             ERR("***Failed Serialize the too-long error data\n");
@@ -56,13 +56,13 @@ int register_handler(int size, void *req, int *len_resp, void *resp)
     {
         // Parse the request OK. drop into
         // the handling world...
-        ret = opr.process_register_req(&reqobj, &respobj, len_resp, resp);
+        ret = opr.handling_request(&reqobj, &respobj, len_resp, resp);
     }
     else
     {
         ERR("***Failed pare reqobj in protobuf!\n");
         ret = CDS_ERR_REQ_PROTOBUF_INCORRECT;
-        if(opr.sendback_reg_result(CDS_ERR_REQ_PROTOBUF_INCORRECT, "failed parse in protobuf",
+        if(opr.compose_result(CDS_ERR_REQ_PROTOBUF_INCORRECT, "failed parse in protobuf",
                 &respobj, len_resp, resp) != 0)
         {
             ERR("** failed seriliaze for the error case\n");
@@ -91,16 +91,15 @@ int main(int argc, char **argv)
 #endif
 
 
-    if(g_info.init("/etc/cds_cfg.xml") != 0)
+    if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {
         ERR("*** Warning Failed init the whole service!\n");
     }
 
     if(pthread_mutex_init(&urs_mutex, NULL) != 0)
     {
-       ERR("*** Warning, failed create mutex IPC objs:%d\n", errno);
+        ERR("*** Warning, failed create mutex IPC objs:%d\n", errno);
     }
-
 
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = register_handler;

@@ -2,6 +2,7 @@
 #
 DEBUG=true
 CDSBASE = ../../common/cds_base/
+BASECLS=../
 
 CC = g++
 
@@ -10,11 +11,13 @@ SRC = usr_auth_service.cc \
       AuthOperation.cc \
       UserAuthConfig.cc \
       usr_auth_db.cc \
+      $(BASECLS)Config.cc \
+      $(BASECLS)Operation.cc \
       usr_auth_mem.cc
 
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = -I$(CDSBASE) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
+CXXFLAGS = -I$(BASECLS) -I$(CDSBASE) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
 
 # Release should use -O2
 

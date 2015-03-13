@@ -7,13 +7,13 @@
 #include "UserAuth.pb.h"
 
 #include "UserAuthConfig.h"
+#include "Operation.h"
 
 using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
-class AuthOperation{
-    UserAuthConfig *m_cfgInfo;
+class AuthOperation : public com::caredear::Operation {
 
     int check_token(AuthRequest *reqobj, struct auth_data_wrapper *w);
     bool is_allowed_access(AuthRequest *reqobj);
@@ -21,11 +21,23 @@ class AuthOperation{
     int update_session_lastoperatetime(AuthRequest *reqobj, struct auth_data_wrapper *w);
 
 public:
-    int set_conf(UserAuthConfig *c);
+
+#if 1
+    virtual int handling_request(::google::protobuf::Message *reqobj,
+            ::google::protobuf::Message *respobj,
+            int *len_resp,
+            void *resp);
+
+    virtual int compose_result(int code, const char *errmsg,
+            ::google::protobuf::Message *obj,
+            int *p_resplen,
+            void *p_respdata);
+#else
 
     int auth_user(AuthRequest *reqobj, AuthResponse *respobj, int *len_resp, void *resp);
 
     int compose_result(int code, const char *errmsg, AuthResponse *p_obj, int *p_resplen, void *p_respdata);
+#endif
 };
 
 #endif

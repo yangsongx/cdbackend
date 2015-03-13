@@ -1,22 +1,22 @@
 #include "ActivateOperation.h"
-#include "activation_db.h"
 
-int ActivateOperation::set_conf(ActivationConfig *c)
-{
-    m_cfgInfo = c;
-    return 0;
-}
 
-int ActivateOperation::begin_activation(ActivateRequest *reqobj, ActivateResponse *respobj, int *len_resp, void *resp)
+/**
+ * Override the handling entry point
+ *
+ */
+int ActivateOperation::handling_request(::google::protobuf::Message *reqobj, ::google::protobuf::Message *respobj, int *len_resp, void *resp)
 {
     int ret = CDS_OK;
-    LOG("will verify %s(%s)...\n", reqobj->activate_name().c_str(), reqobj->activate_code().c_str());
-    ret = verify_activation_code(m_cfgInfo->m_Sql, reqobj);
+    ActivateRequest *req = (ActivateRequest *)reqobj;
+
+    LOG("will verify %s(%s)...\n", req->activate_name().c_str(), req->activate_code().c_str());
+    ret = verify_activation_code(m_pCfg->m_Sql, req);
     if(ret == CDS_ERR_SQL_DISCONNECTED)
     {
-        if(m_cfgInfo->reconnect_sql() == 0)
+        if(m_pCfg->reconnect_sql() == 0)
         {
-            ret = verify_activation_code(m_cfgInfo->m_Sql, reqobj);
+            ret = verify_activation_code(m_pCfg->m_Sql, req);
         }
     }
 
@@ -28,17 +28,18 @@ int ActivateOperation::begin_activation(ActivateRequest *reqobj, ActivateRespons
     return ret;
 }
 
-int ActivateOperation::compose_result(int code, const char *errmsg, ActivateResponse *p_obj, int *p_resplen, void *p_respdata)
+int ActivateOperation::compose_result(int code, const char *errmsg, ::google::protobuf::Message *p_obj, int *p_resplen, void *p_respdata)
 {
     unsigned short len;
+    ActivateResponse *resp = (ActivateResponse *)p_obj;
 
-    p_obj->set_result_code(code);
+    resp->set_result_code(code);
     if(code != CDS_OK && errmsg != NULL)
     {
-        p_obj->set_extra_msg(errmsg);
+        resp->set_extra_msg(errmsg);
     }
 
-    len = p_obj->ByteSize();
+    len = resp->ByteSize();
     if(len >= DATA_BUFFER_SIZE)
     {
         ERR("Attention, exceed the max len, set it to a safe len\n");

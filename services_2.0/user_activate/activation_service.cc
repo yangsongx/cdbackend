@@ -58,7 +58,7 @@ int activate_handler(int size, void *req, int *len_resp, void *resp)
     {
         // Parse the request OK. drop into
         // the handling world...
-        ret = opr.begin_activation(&reqobj, &respobj, len_resp, resp);
+        ret = opr.handling_request(&reqobj, &respobj, len_resp, resp);
     }
     else
     {
@@ -76,9 +76,19 @@ int activate_handler(int size, void *req, int *len_resp, void *resp)
     return ret;
 }
 
-int ping_reg_handler(int size, void *req, int *len_resp, void *resp)
+int ping_acts_handler(int size, void *req, int *len_resp, void *resp)
 {
-    return 0;
+    int ret = 0;
+    ActivateOperation opr;
+    opr.set_conf(&g_info);
+
+    ret = opr.keep_alive(ACTIVATION_MAIN_TABLE);
+    LOG("PING ALIVE result=%d\n", ret);
+
+    *len_resp = 4;
+    *(int *)resp = ret;
+
+    return ret;
 }
 
 /**
@@ -94,7 +104,7 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
-    if(g_info.init("/etc/cds_cfg.xml") != 0)
+    if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {
         ERR("*** Warning Failed init the whole service!\n");
     }
@@ -107,7 +117,7 @@ int main(int argc, char **argv)
 
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = activate_handler;
-    cfg.ping_handler = ping_reg_handler;
+    cfg.ping_handler = ping_acts_handler;
 	cfg.ac_lentype = LEN_TYPE_BIN; /* we use binary leading type */
 
     cds_init(&cfg, argc, argv);

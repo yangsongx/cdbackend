@@ -17,6 +17,8 @@
 #include <mysql.h>
 #include "uuid.h" //libuuid
 
+#include "Operation.h"
+
 using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
@@ -26,16 +28,26 @@ using namespace google::protobuf::io;
  * Define the action for an incoming user reg request
  *
  */
-class RegOperation {
-    UserRegConfig *m_cfgInfo;
+class RegOperation : public com::caredear::Operation{
 
     public:
         int gen_verifycode(char *result);
 
-        int set_conf(UserRegConfig *c);
+#if 1
+    virtual int handling_request(::google::protobuf::Message *reg_req,
+            ::google::protobuf::Message *reg_resp,
+            int *len_resp,
+            void *resp);
+
+    virtual int compose_result(int code, const char *errmsg,
+            ::google::protobuf::Message *obj,
+            int *p_resplen,
+            void *p_respdata);
+#else
         int sendback_reg_result(int code, const char *errmsg, RegisterResponse *p_obj, int *p_resplen, void *p_respdata);
 
         int process_register_req(RegisterRequest *reqobj, RegisterResponse *respobj, int *len_resp, void *resp);
+#endif
 };
 
 #endif

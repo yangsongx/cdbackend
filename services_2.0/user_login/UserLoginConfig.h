@@ -11,6 +11,7 @@
 #include <errno.h>
 
 #include "cds_public.h"
+#include "Config.h"
 
 /* NOTE , below MySQL header MUST NOT put ahead of C++ header,
  * which would cause min/max macro definition confliction! */
@@ -19,24 +20,12 @@
 
 #include <libmemcached/memcached.h>
 
-class UserLoginConfig {
-    char  m_strSqlIP[32];
-    char  m_strSqlUserName[32];
-    char  m_strSqlUserPassword[32];
-
-    char  m_strMemIP[32];
-    int   m_iMemPort;
-
-    int prepare_job();
+class UserLoginConfig : public com::caredear::Config {
 
     public:
         UserLoginConfig();
 
-        MYSQL *m_Sql;
-        memcached_st *m_Memcached;
-
-        int init(const char *config_file);
-        int reconnect_sql();
+        virtual int parse_cfg(const char *config_file);
 };
 
 #endif

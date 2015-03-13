@@ -16,6 +16,7 @@ namespace com{
 namespace caredear{
 
     class Config{
+    protected:
         // SQL related config info...
         char  m_strSqlIP[32];
         char  m_strSqlUserName[32];
@@ -26,17 +27,28 @@ namespace caredear{
         char  m_strMemIP[32];
         int   m_iMemPort;
 
+    protected:
         int   prepare_db_and_mem();
 
     public:
+        ///////////////////////////////////////////
         MYSQL            *m_Sql;
-        pthread_mutex_t  *m_SqlMutex;
+        pthread_mutex_t   m_SqlMutex; // TODO 2015-3-13, currently, we didn't use this mutex as SQL IPC,
+                                      // as it is not proper pass it to separate xxx_db.cc source with this
+                                      // mutex obj.
+                                      //
+                                      // I still use a global mutex in main() to do SQL IPC.
+                                      //
+                                      // I plan re-org the class into a better way future, to embeded this mutex
+                                      // into whole program.
         memcached_st     *m_Memc;
+        ///////////////////////////////////////////
 
         /* each components' config XML path is different,
          * so they MUST override this function */
         virtual int parse_cfg(const char *config_file) = 0;
-        
+
+        int reconnect_sql();
     };
 }   //caredear
 } // com

@@ -38,9 +38,10 @@ int RegOperation::gen_verifycode(char *result)
     return *(int *) a;
 }
 
-int RegOperation::sendback_reg_result(int code, const char *errmsg, RegisterResponse *p_obj, int *p_resplen, void *p_respdata)
+int RegOperation::compose_result(int code, const char *errmsg, ::google::protobuf::Message *obj, int *p_resplen, void *p_respdata)
 {
     unsigned short len;
+    RegisterResponse *p_obj = (RegisterResponse *) obj;
 
     p_obj->set_result_code(code);
     if(code != CDS_OK && errmsg != NULL)
@@ -61,46 +62,42 @@ int RegOperation::sendback_reg_result(int code, const char *errmsg, RegisterResp
     // add the leading-length
     cos.WriteRaw(&len, sizeof(len));
 
-    return ((p_obj->SerializeToCodedStream(&cos) == true) ? 0 : -1);
-}
-
-int RegOperation::set_conf(UserRegConfig *c)
-{
-    m_cfgInfo = c;
-    return 0;
+    return ((obj->SerializeToCodedStream(&cos) == true) ? 0 : -1);
 }
 
 /**
  * After parsed all request fields, begin handle it one-by-one
  *
  */
-int RegOperation::process_register_req(RegisterRequest *reqobj, RegisterResponse *respobj, int *len_resp, void *resp)
+int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::google::protobuf::Message *reg_resp, int *len_resp, void *resp)
 {
     int ret = 0;
+    RegisterRequest *reqobj = (RegisterRequest*)reg_req;
+    RegisterResponse *respobj = (RegisterResponse *) reg_resp;
 
-    if(m_cfgInfo == NULL)
+    if(m_pCfg == NULL)
     {
         ERR("Non-Config info found!\n");
-        sendback_reg_result(CDS_GENERIC_ERROR, "NULL config obj", respobj, len_resp, resp);
+        compose_result(CDS_GENERIC_ERROR, "NULL config obj", respobj, len_resp, resp);
         return CDS_GENERIC_ERROR;
     }
 
     unsigned long usr_id;
     int status_flag;
-    bool existed = user_already_exist(m_cfgInfo->m_Sql, reqobj, &status_flag, &usr_id);
+    bool existed = user_already_exist(m_pCfg->m_Sql, reqobj, &status_flag, &usr_id);
 
     // first of all, try re-connect if possible3
     if(existed && (status_flag == -1 && usr_id == (unsigned long) -1))
     {
         ERR("Oh, found MySQL disconnected, try reconnecting...\n");
-        if(m_cfgInfo->reconnect_sql() == 0)
+        if(m_pCfg->reconnect_sql() == 0)
         {
-            existed = user_already_exist(m_cfgInfo->m_Sql, reqobj, &status_flag, &usr_id);
+            existed = user_already_exist(m_pCfg->m_Sql, reqobj, &status_flag, &usr_id);
         }
         else
         {
             ERR("Very Bad, reconnectiong still failed\n");
-            if(sendback_reg_result(CDS_ERR_SQL_DISCONNECTED, NULL, respobj, len_resp, resp) != 0)
+            if(compose_result(CDS_ERR_SQL_DISCONNECTED, NULL, respobj, len_resp, resp) != 0)
             {
                 ERR("***failed serialize to resp data\n");
             }
@@ -112,19 +109,19 @@ int RegOperation::process_register_req(RegisterRequest *reqobj, RegisterResponse
     if(existed && status_flag == 1)
     {
         ret = CDS_ERR_USER_ALREADY_EXISTED;
-        sendback_reg_result(ret, "User Existed Already", respobj, len_resp, resp);
+        compose_result(ret, "User Existed Already", respobj, len_resp, resp);
     }
     else
     {
         if(existed == false)
         {
             // a new user, record it into DB
-            ret = add_new_user_entry(m_cfgInfo->m_Sql, reqobj);
+            ret = add_new_user_entry(m_pCfg->m_Sql, reqobj);
         }
         else
         {
             INFO("Found an existed user in DB(ID-%ld), but not activated, so overwrite it!\n", usr_id);
-            ret = overwrite_inactive_user_entry(m_cfgInfo->m_Sql, reqobj, usr_id);
+            ret = overwrite_inactive_user_entry(m_pCfg->m_Sql, reqobj, usr_id);
         }
 
         if( ret == CDS_OK
@@ -140,10 +137,10 @@ int RegOperation::process_register_req(RegisterRequest *reqobj, RegisterResponse
             LOG("==>the verification code=%s\n", verifycode);
 
             // need update them into DB for later verification...
-            ret = record_user_verifiy_code(m_cfgInfo->m_Sql, reqobj, respobj, m_cfgInfo);
+            ret = record_user_verifiy_code(m_pCfg->m_Sql, reqobj, respobj, (UserRegConfig *)m_pCfg);
         }
 
-        sendback_reg_result(ret, NULL, respobj, len_resp, resp);
+        compose_result(ret, NULL, respobj, len_resp, resp);
     }
 
 

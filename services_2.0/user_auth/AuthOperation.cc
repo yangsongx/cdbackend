@@ -13,6 +13,7 @@ int AuthOperation::check_token(AuthRequest *reqobj, struct auth_data_wrapper *w)
     time_t current;
     session_db_cfg_t c;
     map<int, session_db_cfg_t>::iterator it;
+    UserAuthConfig *conf = (UserAuthConfig *)m_pCfg;
 
     time(&current);
     if((current - w->adw_lastlogin) <= MAX_FREQUENT_VISIT)
@@ -23,8 +24,8 @@ int AuthOperation::check_token(AuthRequest *reqobj, struct auth_data_wrapper *w)
 
     // map is : <sysid> --> <allow?expire?type?>
     //
-    it = m_cfgInfo->m_sessionCfg.find(reqobj->auth_sysid());
-    if(it != m_cfgInfo->m_sessionCfg.end())
+    it = conf->m_sessionCfg.find(reqobj->auth_sysid());
+    if(it != conf->m_sessionCfg.end())
     {
         c = it->second;
     }
@@ -49,9 +50,10 @@ bool AuthOperation::is_allowed_access(AuthRequest *reqobj)
     bool allowed = false;
     session_db_cfg_t c;
     map<int, session_db_cfg_t>::iterator it;
+    UserAuthConfig *conf = (UserAuthConfig *)m_pCfg;
 
-    it = m_cfgInfo->m_sessionCfg.find(reqobj->auth_sysid());
-    if(it != m_cfgInfo->m_sessionCfg.end())
+    it = conf->m_sessionCfg.find(reqobj->auth_sysid());
+    if(it != conf->m_sessionCfg.end())
     {
         c = it->second;
         allowed = c.sfg_allow_multilogin == 1 ? true : false;
@@ -63,12 +65,6 @@ bool AuthOperation::is_allowed_access(AuthRequest *reqobj)
     }
 
     return allowed;
-}
-
-int AuthOperation::set_conf(UserAuthConfig *c)
-{
-    m_cfgInfo = c;
-    return 0;
 }
 
 /**
@@ -83,7 +79,7 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
 
 
     // first try from mem
-    p_val = get_token_info_from_mem(m_cfgInfo->m_Memcached, reqobj->auth_token().c_str(), &val_len);
+    p_val = get_token_info_from_mem(m_pCfg->m_Memc, reqobj->auth_token().c_str(), &val_len);
     if(p_val)
     {
         // got value from mem, parse it...
@@ -95,12 +91,12 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
                     reqobj->auth_token().c_str(), reqobj->auth_session().c_str(),
                     w->adw_session);
 
-            ret = get_token_info_from_db(m_cfgInfo->m_Sql, reqobj, respobj, w);
+            ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
             if(ret == CDS_ERR_SQL_DISCONNECTED)
             {
-                if(m_cfgInfo->reconnect_sql() == 0)
+                if(m_pCfg->reconnect_sql() == 0)
                 {
-                    ret = get_token_info_from_db(m_cfgInfo->m_Sql, reqobj, respobj, w);
+                    ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
                 }
             }
         }
@@ -110,12 +106,12 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
     {
         // didn't get the mem val, try on DB...
         INFO("not found in mem, go to DB...\n");
-        ret = get_token_info_from_db(m_cfgInfo->m_Sql, reqobj, respobj, w);
+        ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
         if(ret == CDS_ERR_SQL_DISCONNECTED)
         {
-            if(m_cfgInfo->reconnect_sql() == 0)
+            if(m_pCfg->reconnect_sql() == 0)
             {
-                ret = get_token_info_from_db(m_cfgInfo->m_Sql, reqobj, respobj, w);
+                ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
             }
         }
     }
@@ -132,13 +128,13 @@ int AuthOperation::update_session_lastoperatetime(AuthRequest *reqobj, struct au
     memcached_return_t rc;
 
     // mem
-    rc = set_token_info_to_mem(m_cfgInfo->m_Memcached, reqobj->auth_token().c_str(), w);
+    rc = set_token_info_to_mem(m_pCfg->m_Memc, reqobj->auth_token().c_str(), w);
     if(rc != MEMCACHED_SUCCESS)
     {
         if(rc == MEMCACHED_DATA_EXISTS)
         {
             INFO("WOW, CAS found target already modified by others, need retry CAS again...\n");
-            rc = set_token_info_to_mem(m_cfgInfo->m_Memcached, reqobj->auth_token().c_str(), w);
+            rc = set_token_info_to_mem(m_pCfg->m_Memc, reqobj->auth_token().c_str(), w);
             INFO("try again result:%d\n", rc);
         }
         else
@@ -148,7 +144,7 @@ int AuthOperation::update_session_lastoperatetime(AuthRequest *reqobj, struct au
     }
 
     // SQL
-    set_token_info_to_db(m_cfgInfo->m_Sql, reqobj);
+    set_token_info_to_db(m_pCfg->m_Sql, reqobj);
 
     return 0;
 }
@@ -157,10 +153,12 @@ int AuthOperation::update_session_lastoperatetime(AuthRequest *reqobj, struct au
  * entry of a user auth procedure.
  *
  */
-int AuthOperation::auth_user(AuthRequest *reqobj, AuthResponse *respobj, int *len_resp, void *resp)
+int AuthOperation::handling_request(::google::protobuf::Message *auth_req, ::google::protobuf::Message *auth_resp, int *len_resp, void *resp)
 {
     int ret;
     struct auth_data_wrapper fields;
+    AuthRequest *reqobj= (AuthRequest *)auth_req;
+    AuthResponse *respobj = (AuthResponse *)auth_resp;
 
     if(!is_allowed_access(reqobj))
     {
@@ -202,7 +200,7 @@ int AuthOperation::auth_user(AuthRequest *reqobj, AuthResponse *respobj, int *le
         }
     }
 
-    if(compose_result(ret, NULL, respobj, len_resp, resp) != 0)
+    if(compose_result(ret, NULL, auth_resp, len_resp, resp) != 0)
     {
         ERR("**failed serialize data for auth result\n");
     }
@@ -210,9 +208,10 @@ int AuthOperation::auth_user(AuthRequest *reqobj, AuthResponse *respobj, int *le
     return ret;
 }
 
-int AuthOperation::compose_result(int code, const char *errmsg, AuthResponse *p_obj, int *p_resplen, void *p_respdata)
+int AuthOperation::compose_result(int code, const char *errmsg, ::google::protobuf::Message *obj, int *p_resplen, void *p_respdata)
 {
     unsigned short len;
+    AuthResponse *p_obj = (AuthResponse *)obj;
 
     p_obj->set_result_code(code);
     if(code != CDS_OK && errmsg != NULL)
