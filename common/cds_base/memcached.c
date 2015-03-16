@@ -1125,6 +1125,7 @@ static void sendback_result(conn *c) {
  */
 static int try_parse_command(conn *c) {
     int i;
+    //char *_a = c->wbuf;
 
     assert(c != NULL);
     assert(c->rcurr <= (c->rbuf + c->rsize));
@@ -1143,10 +1144,19 @@ static int try_parse_command(conn *c) {
     if(settings.callback_func!= NULL)
     {
         LOG("the client want %d bytes data\n", c->rbytes);
-
+#if 1
         i = settings.callback_func(c->rbytes, c->rbuf, &(c->wbytes), c->wbuf);
         INFO("cb returned %d(%s)\n", i, convert_err_to_str(i));
-
+#else
+        i = settings.callback_func(c->rbytes, c->rbuf, &(c->wbytes), (void **)&_a);
+        INFO("ffcb returned %d(%s)\n", i, convert_err_to_str(i));
+        printf("ff FAKE without cb in...\n");
+        /*
+        c->wbytes = 8;
+        *(int *)c->wbuf = 123;
+        strcpy(c->wbuf + 4, "abc");
+        */
+#endif
         /* FIXME error case also handled in callback,
            should we do anything here? */
         sendback_result(c);

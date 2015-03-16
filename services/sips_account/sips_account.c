@@ -34,6 +34,20 @@
 
 #define COMPOSE_CFG(b,l,prefix) strcpy(b, #prefix, l)
 
+#if 0 // my checking
+
+#ifdef LOCK_SQL
+#undef LOCK_SQL
+#define LOCK_SQL
+#endif
+
+#ifdef UNLOCK_SQL
+#undef UNLOCK_SQL
+#define UNLOCK_SQL
+#endif
+
+#endif
+
 static MYSQL *msql = NULL;
 static int already_reconn = 0; // a flag, which let's reconnecting SQL
 
@@ -167,6 +181,8 @@ int peek_db(MYSQL *ms)
         {
             ERR("warning, peek_db got a NULL row\n");
         }
+
+        mysql_free_result(mresult);
     }
 
     return ret;
@@ -241,14 +257,16 @@ int get_user_token(MYSQL *ms, const char *username, char *token_data)
         row = mysql_fetch_row(mresult);
         if(row != NULL)
         {
-            strcpy(token_data + 4, row[1]);
-            LOG("%s == > %s\n", username, (token_data + 4));
+            strcpy((token_data) + 4, row[1]);
+            LOG("%s == > %s\n", username, ((token_data) + 4));
         }
         else
         {
             // didn't find the user token in DB
             ret = CDS_ERR_SQL_NORECORD_FOUND;
         }
+
+        mysql_free_result(mresult);
     }
     else
     {

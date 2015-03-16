@@ -58,7 +58,7 @@ enum {
 };
 
 typedef int (*cb_func)(int size, void *req, int *len, void *resp);
-//typedef int (*ping_func)(int size, void *req, int *len, void *resp);
+
 /**
  * Config that pass to service framework, this aims to be
  * a config with large data block, not like getopt()'s option
