@@ -77,7 +77,17 @@ int uas_handler(int size, void *req, int *len_resp, void *resp)
 
 int uas_ping_handler(int size, void *req, int *len_resp, void *resp)
 {
-    return 0;
+    int ret = 0;
+    AuthOperation opr;
+    opr.set_conf(&g_info);
+
+    ret = opr.keep_alive("uc.uc_session");
+    LOG("PING ALIVE result=%d\n", ret);
+
+    *len_resp = 4;
+    *(int *)resp = ret;
+
+    return ret;
 }
 
 int main(int argc, char **argv)

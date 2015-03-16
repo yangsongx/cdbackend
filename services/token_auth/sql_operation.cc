@@ -57,6 +57,7 @@ int keep_tauth_db_connected(MYSQL *ms)
         //DO NOTHING HERE, we just call a store result code,
         //since MySQL connection timeout is removed when
         //code come here.
+        mysql_free_result(mresult);
     }
     else
     {
@@ -109,9 +110,9 @@ int find_user_details(MYSQL *ms, struct token_string_info *info)
             }
             LOG("\n");
         }
+        mysql_free_result(mresult);
     }
 
-    mysql_free_result(mresult);
 
     return 0;
 }
@@ -157,6 +158,8 @@ int get_app_pubkey(MYSQL *ms, struct token_string_info *s, char *pk, int pk_size
             ERR("**failed fetch DB row:%s\n",
                     mysql_error(ms));
         }
+
+        mysql_free_result(mresult);
     }
     return 0;
 }
@@ -273,6 +276,8 @@ static int select_user_token_with_specified_id(MYSQL *ms, char *id, char *token_
             ERR("Can't find %s id in DB\n", id);
             return -1;
         }
+
+        mysql_free_result(mresult);
     }
 
     return ret;
@@ -326,6 +331,7 @@ int get_token_from_db(MYSQL *ms, char *uid, char *token_in_db, int token_size)
             ERR("Can't find %s uid in DB\n", uid);
             return -1;
         }
+        mysql_free_result(mresult);
     }
 
     return ret;
@@ -444,6 +450,8 @@ int fetch_tokeninfo_from_db(MYSQL *ms, struct token_string_info *req_info,  char
             /* record not found, we need take a look! */
             ret = CDS_ERR_SQL_EXECUTE_FAILED;
         }
+
+        mysql_free_result(mresult);
     }
 
     return ret;
@@ -490,6 +498,7 @@ int is_contious_day_for_this_login(MYSQL *ms, struct token_data_wrapper *tokenin
                 // YES! I keep loging within 2 days. mark flag as 1
                 return 1;
             }
+            mysql_free_result(mresult);
         }
     }
 
@@ -520,6 +529,7 @@ int is_contious_day_for_this_login(MYSQL *ms, struct token_data_wrapper *tokenin
             {
                 return 2;
             }
+            mysql_free_result(mresult);
         }
     }
 

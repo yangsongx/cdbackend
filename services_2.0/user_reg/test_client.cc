@@ -964,6 +964,28 @@ int _auth_testing(const char *token, const char *session, int sysid, int passfla
     return ret;
 }
 
+int test_ping_auth_service() {
+    size_t rc = 0;
+    int ret = -1;
+    const char ka_ping_payload[2] = {0x34, 0x12};
+
+    rc = write(mSockAuth, ka_ping_payload, 2);
+    if(rc > 0)
+    {
+        rc = read(mSockAuth, &ret, sizeof(ret));
+        if(rc > 0)
+        {
+            printf("req's result = %d\n", ret);
+        }
+    }
+    else
+    {
+        printf("fail write to sock:%d\n", errno);
+    }
+
+    return ret;
+}
+
 // a normal pass auth case
 int test_auth_normal_case() {
     return _auth_testing(
@@ -1250,6 +1272,7 @@ int main(int argc, char **argv)
 
     printf("Connecting to Auth service...[OK]\n");
 
+    execute_ut_case(test_ping_auth_service);
     execute_ut_case(test_auth_normal_case);
     execute_ut_case(test_auth_normal_case2);
     execute_ut_case(test_auth_normal_case3);
