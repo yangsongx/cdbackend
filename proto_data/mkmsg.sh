@@ -48,6 +48,14 @@ if [ $? -eq 0 ]; then
 else
   echo "OpenSIPS auth IDL generation [**failed]"
 fi
+
+# For Password Manager
+protoc --cpp_out="../services_2.0/password_manager/" PasswordManager.proto
+if [ $? -eq 0 ]; then
+  echo "PasswordMgr IDL generation [OK]"
+else
+  echo "PasswordMgr IDL generation [**failed]"
+fi
 #mv *.pb.*  $(NETDISK_DIR)
 #protoc --java_out="/home/yangsongxiang/server/backend/services/netdisk/test/" NetdiskMessage.proto
 #mv *.java $(NETDISK_DIR)test/com/caredear

@@ -21,8 +21,15 @@ class AuthOperation : public com::caredear::Operation {
     int update_session_lastoperatetime(AuthRequest *reqobj, struct auth_data_wrapper *w);
 
 public:
+    AuthOperation() {
+    }
 
-#if 1
+    /**
+     * Helper constructor
+     */
+    AuthOperation(Config *c) : com::caredear::Operation(c) {
+    }
+
     virtual int handling_request(::google::protobuf::Message *reqobj,
             ::google::protobuf::Message *respobj,
             int *len_resp,
@@ -32,12 +39,6 @@ public:
             ::google::protobuf::Message *obj,
             int *p_resplen,
             void *p_respdata);
-#else
-
-    int auth_user(AuthRequest *reqobj, AuthResponse *respobj, int *len_resp, void *resp);
-
-    int compose_result(int code, const char *errmsg, AuthResponse *p_obj, int *p_resplen, void *p_respdata);
-#endif
 };
 
 #endif

@@ -4,13 +4,21 @@
 #include <google/protobuf/message.h>
 #include "Config.h"
 
+// some common definiton, such as DB's table name
+//
+#define USERCENTER_MAIN_TBL     "uc_passport"
+
 using namespace com::caredear;
+
+typedef int (*cb_sqlfunc)(MYSQL_RES *p_result);
 
 namespace com{
 namespace caredear{
 
 
     class Operation {
+            int execute_sql(const char *cmd, cb_sqlfunc sql_cb);
+
         public:
             Config  *m_pCfg;
 
@@ -25,6 +33,8 @@ namespace caredear{
             int set_mem_value();
             int set_mem_value_with_cas(const char *key, uint64_t cas);
             char *get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas);
+
+            int sql_cmd(const char *cmd, cb_sqlfunc sql_cb);
 
             /* each component's xxxOpr need override this API */
             virtual int handling_request(::google::protobuf::Message *reqobj,

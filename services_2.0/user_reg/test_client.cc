@@ -9,6 +9,7 @@
 #include "UserLogin.pb.h"
 #include "UserActivation.pb.h"
 #include "UserAuth.pb.h"
+#include "PasswordManager.pb.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -1125,6 +1126,24 @@ int test_auth_normal_case7() {
             2, // sys ID,
             CDS_ERR_UMATCH_USER_INFO);
 }
+
+/////////////////////////////////////////////////////////////////////
+// modify profile test
+/////////////////////////////////////////////////////////////////////
+int test_change_password() {
+    return -1;
+}
+
+// using new passwod should pass
+int test_change_password2() {
+    return -1;
+}
+
+// Using old password should failed!
+int test_change_password3() {
+    int ret = -1;
+    return -1;
+}
 /////////////////////////////////////////////////////////////////////
 // misc test
 /////////////////////////////////////////////////////////////////////
@@ -1280,6 +1299,16 @@ int main(int argc, char **argv)
     execute_ut_case(test_auth_normal_case5);
     execute_ut_case(test_auth_normal_case6);
     execute_ut_case(test_auth_normal_case7);
+
+
+
+
+
+    ///
+    //TODO need add modify profile test case here...
+    //
+    //execute_ut_case(test_change_password);
+
 
 
     //misc testing...

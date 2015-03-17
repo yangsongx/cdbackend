@@ -1,45 +1,27 @@
-#ifndef _REG_OPERATION_H
-#define _REG_OPERATION_H
-
-
-#include "UserRegister.pb.h"
-#include "UserRegConfig.h"
-#include "uuid.h"
+#ifndef _CDS_PASSWD_OPR_H
+#define _CDS_PASSWD_OPR_H
 
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
-#include "UserRegister.pb.h"
-#include "data_access.h"
 
-/* NOTE , below MySQL header MUST NOT put ahead of C++ header,
- * which would cause min/max macro definition confliction! */
-#include <my_global.h>
-#include <mysql.h>
-#include "uuid.h" //libuuid
-
+#include "PasswordManager.pb.h"
 #include "Operation.h"
 
 using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
+class PasswordOperation : public com::caredear::Operation{
 
-/**
- * Define the action for an incoming user reg request
- *
- */
-class RegOperation : public com::caredear::Operation{
-
+        int modify_existed_password(const char *new_passwd, uint64_t cid);
     public:
         // constructors...
-        RegOperation() {
+        PasswordOperation() {
         }
 
-        RegOperation(Config *c) : com::caredear::Operation(c) {
+        PasswordOperation(Config *c) : com::caredear::Operation(c) {
         }
         // end of constructors...
-
-        int gen_verifycode(char *result);
 
         virtual int handling_request(::google::protobuf::Message *reg_req,
             ::google::protobuf::Message *reg_resp,
