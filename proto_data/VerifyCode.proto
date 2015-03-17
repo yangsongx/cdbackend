@@ -5,16 +5,13 @@ package com.caredear;
 enum Updatetype{
     MOBILE_PHONE = 0;
     EMAIL = 1;
-    USER_NAME = 2;
-    PASSWORD = 3;
-    OTHERS = 4;
+    OTHERS = 2;
 }
 
 message UpdateRequest{
     required Updatetype reg_type = 1;  //
-    required string     reg_data = 2;
-    required string     reg_ticket = 3;
-    optional string     reg_value = 4;  //
+    required string     reg_ticket = 2;
+    optional string     reg_value = 3;  //
 }
 
 // FIXME - result code be consistent with Web defination?

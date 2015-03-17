@@ -19,6 +19,25 @@
             <email_verifycode_expiration>18000</email_verifycode_expiration>
         </user_register_service>
 
+        <verify_code_service>
+            <memcache>
+                <ip>127.0.0.1</ip>
+                <port>11211</port>
+            </memcache>
+            <sqlserver>
+                <ip>192.168.4.198</ip>
+                <user>root</user>
+                <password>root</password>
+                <!-- keep below blank -->
+                <databasename></databasename>
+            </sqlserver>
+
+            <!-- expiration is in second unit -->
+            <mobile_verifycode_expiration>3600</mobile_verifycode_expiration>
+            <email_verifycode_expiration>18000</email_verifycode_expiration>
+        </verify_code_service>
+
+
         <user_login_service>
             <memcache>
                 <ip>127.0.0.1</ip>
