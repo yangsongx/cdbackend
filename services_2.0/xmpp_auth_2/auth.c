@@ -17,14 +17,12 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <ctype.h>
-#include <openssl/rsa.h>
-#include <openssl/engine.h>
-#include <openssl/pem.h>
 #include <time.h>
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 
+#include "UserAuth.pb-c.h"
 
 #ifndef MAX
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
@@ -253,43 +251,39 @@ int auth_token_via_socket(int as, char *user, char * domain, char *password)
 {
     int ret = -1;
 
-    char *c;
     char *req;
+    int   req_len = 0;
     int   valid_size = 0;
-    int   req_len = (strlen(user) + strlen(domain) + strlen(password) + 32);
+    char  buf[512];
+    Com__Caredear__AuthRequest obj = COM__CAREDEAR__AUTH_REQUEST__INIT;
+    Com__Caredear__AuthResponse *resp_obj;
+
+    obj.auth_token = password;
+    obj.auth_session = "XMPP";
+    obj.auth_sysid = 9; //FIXME how to set these fields?
+
+    req_len = com__caredear__auth_request__get_packed_size(&obj) + sizeof(unsigned short);
 
     req = (char *)malloc(req_len);
     if(req != NULL)
     {
-        time_t cur;
-        time(&cur);
-        snprintf(req + 4, (req_len - 4),
-                "%s#%s#%d#%s",
-                user, XMPP_APP_NAME, (int)cur, password);
-        c = (req + 4);
+        *((unsigned short *)req) = req_len - sizeof(unsigned short);
+        com__caredear__auth_request__pack(&obj, req + sizeof(unsigned short));
 
-        valid_size = strlen(c);
-        char buf[16];
-        char leading[5];
-        snprintf(leading, sizeof(leading), "%04x", valid_size);
-        memcpy(req, leading, 4);
-
-        /*
-           The request to Socket is like this:
-           +-------------------------------------------------------------+
-           | len |  uid    #   appid   # login time #  Encrypted  String |
-           +-------------------------------------------------------------+
-         */
-
-        ret = write(as, req, strlen(req)); /* FIXME - the NULL-terminating char
-                                              will be handled by token program */
+        ret = write(as, req, req_len);
         if(ret > 0)
         {
             ret = read(as, buf, sizeof(buf));
             if(ret > 0)
             {
-                int *p = (int *)buf;
-                ret = *p;
+                valid_size = *((unsigned short *)buf);
+                resp_obj = com__caredear__auth_response__unpack(NULL, valid_size, buf + sizeof(unsigned short));
+                if(resp_obj)
+                {
+                    ret = resp_obj->result_code;
+                    INFO("the xmpp auth code:%d\n", ret);
+                    com__caredear__auth_response__free_unpacked(resp_obj, NULL);
+                }
             }
             else
             {
@@ -404,7 +398,7 @@ error:
 /* FIXME - as the final product will use one-single user token,
    whose length will be a little shorter than we used before. */
 #if 1
-#define MIN_TOKEN_LEN 50
+#define MIN_TOKEN_LEN 10
 #else
 #define MIN_TOKEN_LEN 100
 #endif

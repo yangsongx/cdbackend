@@ -15,7 +15,7 @@ CC := gcc
 TARGETS = auth
 
 CFLAGS := -I$(PROJECT_INC_DIR) -Wall -I /usr/include/libxml2/
-LDFLAG := -L$(PROJECT_LIB_DIR)  -lcrypto -lxml2 -std=c99 -lprotobuf-c
+LDFLAG := -L$(PROJECT_LIB_DIR) -lxml2 -std=c99 -lprotobuf-c
 
 ifeq ($(DEBUG),false)
 CFLAGS += -DDEBUG -O2
