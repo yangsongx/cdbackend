@@ -62,6 +62,12 @@
         </user_activation_service>
     </service_2>
 
+    <xmpp_auth_2>
+        <serverip>127.0.0.1</serverip>
+        <serverport>12000</serverport>
+        <goldenkey>nanjing21k</goldenkey>
+    </xmpp_auth_2>
+
     <new_usertoken>
         <memcache>
             <ip>192.168.1.23</ip>
@@ -78,8 +84,8 @@
 
     <!-- for XMPP auth -->
     <tokenserver>
-        <ip>127.8.0.27</ip>
-        <port>0</port>
+        <ip>127.0.0.1</ip>
+        <port>12000</port>
         <goldenkey>nanjing21k</goldenkey>
     </tokenserver>
 
