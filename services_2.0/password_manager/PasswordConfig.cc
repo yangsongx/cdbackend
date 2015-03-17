@@ -22,22 +22,22 @@ int PasswordConfig::parse_cfg(const char *config_file)
                     ctx, buffer, sizeof(buffer));
             strncpy(m_strSqlIP, buffer, sizeof(m_strSqlIP));
 
-            get_node_via_xpath("//service_2/password_managergc/sqlserver/user",
+            get_node_via_xpath("//service_2/password_manager/sqlserver/user",
                     ctx, buffer, sizeof(buffer));
             strncpy(m_strSqlUserName, buffer, sizeof(m_strSqlUserName));
 
-            get_node_via_xpath("//service_2/password_managergc/sqlserver/password",
+            get_node_via_xpath("//service_2/password_manager/sqlserver/password",
                     ctx, buffer, sizeof(buffer));
             strncpy(m_strSqlUserPassword, buffer, sizeof(m_strSqlUserPassword));
 
             LOG("the SQL server ip:%s, user:%s, password:%s\n",
                     m_strSqlIP, m_strSqlUserName, m_strSqlUserPassword);
 
-            get_node_via_xpath("//service_2/password_managergc/memcache/ip",
+            get_node_via_xpath("//service_2/password_manager/memcache/ip",
                     ctx, buffer, sizeof(buffer));
             strncpy(m_strMemIP, buffer, sizeof(m_strMemIP));
 
-            get_node_via_xpath("//service_2/password_managergc/memcache/port",
+            get_node_via_xpath("//service_2/password_manager/memcache/port",
                     ctx, buffer, sizeof(buffer));
             m_iMemPort = atoi(buffer);
 

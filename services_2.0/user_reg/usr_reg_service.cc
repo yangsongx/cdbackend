@@ -74,6 +74,17 @@ int register_handler(int size, void *req, int *len_resp, void *resp)
 
 int ping_reg_handler(int size, void *req, int *len_resp, void *resp)
 {
+    int ret;
+    RegOperation opr(&g_info);
+    /* Above code is the same as:
+     * RegOperation opr;
+     * opr.set_conf(&g_inf);
+     */
+    ret = opr.keep_alive(USERCENTER_MAIN_TBL);
+    LOG("PING ALIVE result=%d\n", ret);
+
+    *len_resp = 4;
+    *(int *)resp = ret;
     return 0;
 }
 

@@ -6,7 +6,7 @@
 
 // some common definiton, such as DB's table name
 //
-#define USERCENTER_MAIN_TBL     "uc_passport"
+#define USERCENTER_MAIN_TBL     "uc.uc_passport"
 
 using namespace com::caredear;
 

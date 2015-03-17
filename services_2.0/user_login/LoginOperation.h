@@ -17,7 +17,11 @@ class LoginOperation : public com::caredear::Operation {
     int update_usercenter_session(LoginRequest *reqobj, struct user_session *u);
 
 public:
-#if 1
+    LoginOperation() {
+    }
+
+    LoginOperation(Config *c) : Operation(c) {
+    }
 
     virtual int handling_request(::google::protobuf::Message *reg_req,
             ::google::protobuf::Message *reg_resp,
@@ -29,12 +33,6 @@ public:
             int *p_resplen,
             void *p_respdata);
 
-#else
-    int compose_result(int code, const char *errmsg, LoginResponse *p_obj, int *p_resplen, void *p_respdata);
-
-
-    int do_login(LoginRequest *reqobj, LoginResponse *respobj, int *len_resp, void *resp);
-#endif
 };
 
 #endif

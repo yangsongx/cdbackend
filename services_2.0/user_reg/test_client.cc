@@ -409,6 +409,27 @@ int test_insert_new_user_password4() {
             CDS_OK);
 }
 
+int test_ping_reg_service()
+{
+    int ret = -1;
+    const char payload[2] = {0x34, 0x12};
+    size_t rc;
+    int result;
+
+    rc = write(mSockReg, payload, sizeof(payload));
+    if(rc > 0)
+    {
+        rc = read(mSockReg, &result, sizeof(result));
+        if(rc > 0 && result == 0)
+        {
+            printf("    Good to Ping register service\n");
+            ret = 0;
+        }
+    }
+
+    return ret;
+}
+
 /////////////////////////////////////////////////////////////////////
 //  EMail + Password case
 /////////////////////////////////////////////////////////////////////
@@ -561,6 +582,26 @@ int _usr_passwd_testing(RegLoginType type, const char *session, const char *name
     return ret;
 }
 
+int test_ping_login_service()
+{
+    int ret = -1;
+    const char payload[2] = {0x34, 0x12};
+    size_t rc;
+    int result;
+
+    rc = write(mSockLogin, payload, sizeof(payload));
+    if(rc > 0)
+    {
+        rc = read(mSockLogin, &result, sizeof(result));
+        if(rc > 0 && result == 0)
+        {
+            printf("    Good to Ping register service\n");
+            ret = 0;
+        }
+    }
+
+    return ret;
+}
 // this is testing a normal user+password case, based on previous
 // new registered normal user.
 int test_normal_user_login() {
@@ -867,6 +908,26 @@ int _activation_testing(RegLoginType type, const char *name, const char *code, i
 }
 
 
+int test_ping_active_service()
+{
+    int ret = -1;
+    const char payload[2] = {0x34, 0x12};
+    size_t rc;
+    int result;
+
+    rc = write(mSockAct, payload, sizeof(payload));
+    if(rc > 0)
+    {
+        rc = read(mSockAct, &result, sizeof(result));
+        if(rc > 0 && result == 0)
+        {
+            printf("    Good to Ping register service\n");
+            ret = 0;
+        }
+    }
+
+    return ret;
+}
 
 // normal case
 int test_activation_phone_smscode() {
@@ -1141,7 +1202,6 @@ int test_change_password2() {
 
 // Using old password should failed!
 int test_change_password3() {
-    int ret = -1;
     return -1;
 }
 /////////////////////////////////////////////////////////////////////
@@ -1203,6 +1263,7 @@ int main(int argc, char **argv)
     // next begin testing one-by one....
     // First, Registration
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+    execute_ut_case(test_ping_reg_service);
     execute_ut_case(test_insert_already_existed_user_password);
     execute_ut_case(test_insert_new_user_password);
     execute_ut_case(test_insert_new_user_password2);
@@ -1239,6 +1300,7 @@ int main(int argc, char **argv)
         getchar();
     }
 
+    execute_ut_case(test_ping_login_service);
     execute_ut_case(test_normal_user_login);
     execute_ut_case(test_normal_user_login_bad_passwd);
     execute_ut_case(test_normal_user_login2);
@@ -1269,6 +1331,7 @@ int main(int argc, char **argv)
         getchar();
     }
 
+    execute_ut_case(test_ping_active_service);
     execute_ut_case(test_activation_phone_smscode);
     execute_ut_case(test_activation_phone_smscode2);
     execute_ut_case(test_activation_phone_smscode3);

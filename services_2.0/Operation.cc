@@ -59,6 +59,8 @@ int Operation::keep_alive(const char *db_tbl, const char *col_name/* = "id" */)
         // call fetch a row cmd here, do NOTING else
         mysql_fetch_row(mresult);
         ret = 0;
+
+        mysql_free_result(mresult);
     }
 
     return ret;
