@@ -268,7 +268,7 @@ int auth_token_via_socket(int as, char *user, char * domain, char *password)
     if(req != NULL)
     {
         *((unsigned short *)req) = req_len - sizeof(unsigned short);
-        com__caredear__auth_request__pack(&obj, req + sizeof(unsigned short));
+        com__caredear__auth_request__pack(&obj, (uint8_t *)(req + sizeof(unsigned short)));
 
         ret = write(as, req, req_len);
         if(ret > 0)
@@ -277,7 +277,7 @@ int auth_token_via_socket(int as, char *user, char * domain, char *password)
             if(ret > 0)
             {
                 valid_size = *((unsigned short *)buf);
-                resp_obj = com__caredear__auth_response__unpack(NULL, valid_size, buf + sizeof(unsigned short));
+                resp_obj = com__caredear__auth_response__unpack(NULL, valid_size, (uint8_t *)(buf + sizeof(unsigned short)));
                 if(resp_obj)
                 {
                     ret = resp_obj->result_code;

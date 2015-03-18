@@ -7,6 +7,7 @@
 // some common definiton, such as DB's table name
 //
 #define USERCENTER_MAIN_TBL     "uc.uc_passport"
+#define USERCENTER_ATTR_TBL     "uc.uc_attributes"
 
 using namespace com::caredear;
 
@@ -43,7 +44,7 @@ namespace caredear{
                     void *resp) = 0;
 
             virtual int compose_result(int code, const char *errmsg,
-                    ::google::protobuf::Message *p_obj,
+                    ::google::protobuf::Message *obj,
                     int *p_resplen,
                     void *p_respdata) = 0;
     };

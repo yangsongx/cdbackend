@@ -60,6 +60,16 @@
                 <databasename></databasename>
             </sqlserver>
         </user_activation_service>
+
+        <attr_modify>
+            <sqlserver>
+                <ip>192.168.4.198</ip>
+                <user>root</user>
+                <password>root</password>
+                <!-- keep below blank -->
+                <databasename></databasename>
+            </sqlserver>
+        </attr_modify>
     </service_2>
 
     <xmpp_auth_2>

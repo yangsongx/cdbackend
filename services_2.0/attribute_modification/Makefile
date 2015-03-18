@@ -9,6 +9,7 @@ CC = g++
 SRC = usr_attribute_modify.cc \
       AttributeOperation.cc \
       AttributeConfig.cc \
+      AttributeModify.pb.cc \
       $(BASECLS)Config.cc \
       $(BASECLS)Operation.cc
 
