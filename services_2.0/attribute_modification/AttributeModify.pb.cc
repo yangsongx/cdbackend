@@ -27,6 +27,7 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* AttributeModifyResponse_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   AttributeModifyResponse_reflection_ = NULL;
+const ::google::protobuf::EnumDescriptor* AttributeType_descriptor_ = NULL;
 const ::google::protobuf::EnumDescriptor* GenderType_descriptor_ = NULL;
 
 }  // namespace
@@ -39,7 +40,8 @@ void protobuf_AssignDesc_AttributeModify_2eproto() {
       "AttributeModify.proto");
   GOOGLE_CHECK(file != NULL);
   AttributeModifyRequest_descriptor_ = file->message_type(0);
-  static const int AttributeModifyRequest_offsets_[7] = {
+  static const int AttributeModifyRequest_offsets_[9] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, req_type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, caredear_id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, real_name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, nick_name_),
@@ -47,6 +49,7 @@ void protobuf_AssignDesc_AttributeModify_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, birthday_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, head_image_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, head_image2_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, next_sequence_),
   };
   AttributeModifyRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -60,9 +63,18 @@ void protobuf_AssignDesc_AttributeModify_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(AttributeModifyRequest));
   AttributeModifyResponse_descriptor_ = file->message_type(1);
-  static const int AttributeModifyResponse_offsets_[2] = {
+  static const int AttributeModifyResponse_offsets_[11] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, result_code_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, extra_msg_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, real_name_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, nick_name_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, gender_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, birthday_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, head_image_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, head_image2_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, user_name_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, user_email_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, user_mobile_),
   };
   AttributeModifyResponse_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -75,7 +87,8 @@ void protobuf_AssignDesc_AttributeModify_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(AttributeModifyResponse));
-  GenderType_descriptor_ = file->enum_type(0);
+  AttributeType_descriptor_ = file->enum_type(0);
+  GenderType_descriptor_ = file->enum_type(1);
 }
 
 namespace {
@@ -110,15 +123,22 @@ void protobuf_AddDesc_AttributeModify_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\025AttributeModify.proto\022\014com.caredear\"\270\001"
-    "\n\026AttributeModifyRequest\022\023\n\013caredear_id\030"
-    "\001 \002(\004\022\021\n\treal_name\030\002 \001(\t\022\021\n\tnick_name\030\003 "
-    "\001(\t\022(\n\006gender\030\004 \001(\0162\030.com.caredear.Gende"
-    "rType\022\020\n\010birthday\030\005 \001(\t\022\022\n\nhead_image\030\006 "
-    "\001(\t\022\023\n\013head_image2\030\007 \001(\t\"A\n\027AttributeMod"
-    "ifyResponse\022\023\n\013result_code\030\001 \002(\005\022\021\n\textr"
-    "a_msg\030\002 \001(\t*!\n\nGenderType\022\010\n\004MALE\020\000\022\t\n\005F"
-    "EMAL\020\001", 326);
+    "\n\025AttributeModify.proto\022\014com.caredear\"\376\001"
+    "\n\026AttributeModifyRequest\022-\n\010req_type\030\001 \002"
+    "(\0162\033.com.caredear.AttributeType\022\023\n\013cared"
+    "ear_id\030\002 \002(\004\022\021\n\treal_name\030\003 \001(\t\022\021\n\tnick_"
+    "name\030\004 \001(\t\022(\n\006gender\030\005 \001(\0162\030.com.caredea"
+    "r.GenderType\022\020\n\010birthday\030\006 \001(\t\022\022\n\nhead_i"
+    "mage\030\007 \001(\t\022\023\n\013head_image2\030\010 \001(\t\022\025\n\rnext_"
+    "sequence\030\t \001(\005\"\210\002\n\027AttributeModifyRespon"
+    "se\022\023\n\013result_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001"
+    "(\t\022\021\n\treal_name\030\003 \001(\t\022\021\n\tnick_name\030\004 \001(\t"
+    "\022(\n\006gender\030\005 \001(\0162\030.com.caredear.GenderTy"
+    "pe\022\020\n\010birthday\030\006 \001(\t\022\022\n\nhead_image\030\007 \001(\t"
+    "\022\023\n\013head_image2\030\010 \001(\t\022\021\n\tuser_name\030\t \001(\t"
+    "\022\022\n\nuser_email\030\n \001(\t\022\023\n\013user_mobile\030\013 \001("
+    "\t*&\n\rAttributeType\022\n\n\006MODIFY\020\000\022\t\n\005QUERY\020"
+    "\001*!\n\nGenderType\022\010\n\004MALE\020\000\022\t\n\005FEMAL\020\001", 636);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "AttributeModify.proto", &protobuf_RegisterTypes);
   AttributeModifyRequest::default_instance_ = new AttributeModifyRequest();
@@ -134,6 +154,20 @@ struct StaticDescriptorInitializer_AttributeModify_2eproto {
     protobuf_AddDesc_AttributeModify_2eproto();
   }
 } static_descriptor_initializer_AttributeModify_2eproto_;
+const ::google::protobuf::EnumDescriptor* AttributeType_descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return AttributeType_descriptor_;
+}
+bool AttributeType_IsValid(int value) {
+  switch(value) {
+    case 0:
+    case 1:
+      return true;
+    default:
+      return false;
+  }
+}
+
 const ::google::protobuf::EnumDescriptor* GenderType_descriptor() {
   protobuf_AssignDescriptorsOnce();
   return GenderType_descriptor_;
@@ -152,6 +186,7 @@ bool GenderType_IsValid(int value) {
 // ===================================================================
 
 #ifndef _MSC_VER
+const int AttributeModifyRequest::kReqTypeFieldNumber;
 const int AttributeModifyRequest::kCaredearIdFieldNumber;
 const int AttributeModifyRequest::kRealNameFieldNumber;
 const int AttributeModifyRequest::kNickNameFieldNumber;
@@ -159,6 +194,7 @@ const int AttributeModifyRequest::kGenderFieldNumber;
 const int AttributeModifyRequest::kBirthdayFieldNumber;
 const int AttributeModifyRequest::kHeadImageFieldNumber;
 const int AttributeModifyRequest::kHeadImage2FieldNumber;
+const int AttributeModifyRequest::kNextSequenceFieldNumber;
 #endif  // !_MSC_VER
 
 AttributeModifyRequest::AttributeModifyRequest()
@@ -180,6 +216,7 @@ AttributeModifyRequest::AttributeModifyRequest(const AttributeModifyRequest& fro
 void AttributeModifyRequest::SharedCtor() {
   ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
+  req_type_ = 0;
   caredear_id_ = GOOGLE_ULONGLONG(0);
   real_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   nick_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
@@ -187,6 +224,7 @@ void AttributeModifyRequest::SharedCtor() {
   birthday_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   head_image_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   head_image2_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  next_sequence_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -237,7 +275,18 @@ AttributeModifyRequest* AttributeModifyRequest::New() const {
 }
 
 void AttributeModifyRequest::Clear() {
-  if (_has_bits_[0 / 32] & 127) {
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<AttributeModifyRequest*>(16)->f) - \
+   reinterpret_cast<char*>(16))
+
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
+  } while (0)
+
+  if (_has_bits_[0 / 32] & 255) {
+    ZR_(req_type_, gender_);
     caredear_id_ = GOOGLE_ULONGLONG(0);
     if (has_real_name()) {
       if (real_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -249,7 +298,6 @@ void AttributeModifyRequest::Clear() {
         nick_name_->clear();
       }
     }
-    gender_ = 0;
     if (has_birthday()) {
       if (birthday_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         birthday_->clear();
@@ -266,6 +314,11 @@ void AttributeModifyRequest::Clear() {
       }
     }
   }
+  next_sequence_ = 0;
+
+#undef OFFSET_OF_FIELD_
+#undef ZR_
+
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -280,9 +333,29 @@ bool AttributeModifyRequest::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required uint64 caredear_id = 1;
+      // required .com.caredear.AttributeType req_type = 1;
       case 1: {
         if (tag == 8) {
+          int value;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          if (::com::caredear::AttributeType_IsValid(value)) {
+            set_req_type(static_cast< ::com::caredear::AttributeType >(value));
+          } else {
+            mutable_unknown_fields()->AddVarint(1, value);
+          }
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(16)) goto parse_caredear_id;
+        break;
+      }
+
+      // required uint64 caredear_id = 2;
+      case 2: {
+        if (tag == 16) {
+         parse_caredear_id:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
                  input, &caredear_id_)));
@@ -290,13 +363,13 @@ bool AttributeModifyRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(18)) goto parse_real_name;
+        if (input->ExpectTag(26)) goto parse_real_name;
         break;
       }
 
-      // optional string real_name = 2;
-      case 2: {
-        if (tag == 18) {
+      // optional string real_name = 3;
+      case 3: {
+        if (tag == 26) {
          parse_real_name:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_real_name()));
@@ -307,13 +380,13 @@ bool AttributeModifyRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(26)) goto parse_nick_name;
+        if (input->ExpectTag(34)) goto parse_nick_name;
         break;
       }
 
-      // optional string nick_name = 3;
-      case 3: {
-        if (tag == 26) {
+      // optional string nick_name = 4;
+      case 4: {
+        if (tag == 34) {
          parse_nick_name:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_nick_name()));
@@ -324,13 +397,13 @@ bool AttributeModifyRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(32)) goto parse_gender;
+        if (input->ExpectTag(40)) goto parse_gender;
         break;
       }
 
-      // optional .com.caredear.GenderType gender = 4;
-      case 4: {
-        if (tag == 32) {
+      // optional .com.caredear.GenderType gender = 5;
+      case 5: {
+        if (tag == 40) {
          parse_gender:
           int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
@@ -339,18 +412,18 @@ bool AttributeModifyRequest::MergePartialFromCodedStream(
           if (::com::caredear::GenderType_IsValid(value)) {
             set_gender(static_cast< ::com::caredear::GenderType >(value));
           } else {
-            mutable_unknown_fields()->AddVarint(4, value);
+            mutable_unknown_fields()->AddVarint(5, value);
           }
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(42)) goto parse_birthday;
+        if (input->ExpectTag(50)) goto parse_birthday;
         break;
       }
 
-      // optional string birthday = 5;
-      case 5: {
-        if (tag == 42) {
+      // optional string birthday = 6;
+      case 6: {
+        if (tag == 50) {
          parse_birthday:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_birthday()));
@@ -361,13 +434,13 @@ bool AttributeModifyRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(50)) goto parse_head_image;
+        if (input->ExpectTag(58)) goto parse_head_image;
         break;
       }
 
-      // optional string head_image = 6;
-      case 6: {
-        if (tag == 50) {
+      // optional string head_image = 7;
+      case 7: {
+        if (tag == 58) {
          parse_head_image:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_head_image()));
@@ -378,13 +451,13 @@ bool AttributeModifyRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(58)) goto parse_head_image2;
+        if (input->ExpectTag(66)) goto parse_head_image2;
         break;
       }
 
-      // optional string head_image2 = 7;
-      case 7: {
-        if (tag == 58) {
+      // optional string head_image2 = 8;
+      case 8: {
+        if (tag == 66) {
          parse_head_image2:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_head_image2()));
@@ -392,6 +465,21 @@ bool AttributeModifyRequest::MergePartialFromCodedStream(
             this->head_image2().data(), this->head_image2().length(),
             ::google::protobuf::internal::WireFormat::PARSE,
             "head_image2");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(72)) goto parse_next_sequence;
+        break;
+      }
+
+      // optional int32 next_sequence = 9;
+      case 9: {
+        if (tag == 72) {
+         parse_next_sequence:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &next_sequence_)));
+          set_has_next_sequence();
         } else {
           goto handle_unusual;
         }
@@ -424,65 +512,76 @@ failure:
 void AttributeModifyRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:com.caredear.AttributeModifyRequest)
-  // required uint64 caredear_id = 1;
-  if (has_caredear_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->caredear_id(), output);
+  // required .com.caredear.AttributeType req_type = 1;
+  if (has_req_type()) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      1, this->req_type(), output);
   }
 
-  // optional string real_name = 2;
+  // required uint64 caredear_id = 2;
+  if (has_caredear_id()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->caredear_id(), output);
+  }
+
+  // optional string real_name = 3;
   if (has_real_name()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->real_name().data(), this->real_name().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
       "real_name");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      2, this->real_name(), output);
+      3, this->real_name(), output);
   }
 
-  // optional string nick_name = 3;
+  // optional string nick_name = 4;
   if (has_nick_name()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->nick_name().data(), this->nick_name().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
       "nick_name");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      3, this->nick_name(), output);
+      4, this->nick_name(), output);
   }
 
-  // optional .com.caredear.GenderType gender = 4;
+  // optional .com.caredear.GenderType gender = 5;
   if (has_gender()) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
-      4, this->gender(), output);
+      5, this->gender(), output);
   }
 
-  // optional string birthday = 5;
+  // optional string birthday = 6;
   if (has_birthday()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->birthday().data(), this->birthday().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
       "birthday");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      5, this->birthday(), output);
+      6, this->birthday(), output);
   }
 
-  // optional string head_image = 6;
+  // optional string head_image = 7;
   if (has_head_image()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->head_image().data(), this->head_image().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
       "head_image");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      6, this->head_image(), output);
+      7, this->head_image(), output);
   }
 
-  // optional string head_image2 = 7;
+  // optional string head_image2 = 8;
   if (has_head_image2()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->head_image2().data(), this->head_image2().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
       "head_image2");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      7, this->head_image2(), output);
+      8, this->head_image2(), output);
+  }
+
+  // optional int32 next_sequence = 9;
+  if (has_next_sequence()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(9, this->next_sequence(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -495,12 +594,18 @@ void AttributeModifyRequest::SerializeWithCachedSizes(
 ::google::protobuf::uint8* AttributeModifyRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // @@protoc_insertion_point(serialize_to_array_start:com.caredear.AttributeModifyRequest)
-  // required uint64 caredear_id = 1;
-  if (has_caredear_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->caredear_id(), target);
+  // required .com.caredear.AttributeType req_type = 1;
+  if (has_req_type()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      1, this->req_type(), target);
   }
 
-  // optional string real_name = 2;
+  // required uint64 caredear_id = 2;
+  if (has_caredear_id()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->caredear_id(), target);
+  }
+
+  // optional string real_name = 3;
   if (has_real_name()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->real_name().data(), this->real_name().length(),
@@ -508,10 +613,10 @@ void AttributeModifyRequest::SerializeWithCachedSizes(
       "real_name");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        2, this->real_name(), target);
+        3, this->real_name(), target);
   }
 
-  // optional string nick_name = 3;
+  // optional string nick_name = 4;
   if (has_nick_name()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->nick_name().data(), this->nick_name().length(),
@@ -519,16 +624,16 @@ void AttributeModifyRequest::SerializeWithCachedSizes(
       "nick_name");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        3, this->nick_name(), target);
+        4, this->nick_name(), target);
   }
 
-  // optional .com.caredear.GenderType gender = 4;
+  // optional .com.caredear.GenderType gender = 5;
   if (has_gender()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
-      4, this->gender(), target);
+      5, this->gender(), target);
   }
 
-  // optional string birthday = 5;
+  // optional string birthday = 6;
   if (has_birthday()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->birthday().data(), this->birthday().length(),
@@ -536,10 +641,10 @@ void AttributeModifyRequest::SerializeWithCachedSizes(
       "birthday");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        5, this->birthday(), target);
+        6, this->birthday(), target);
   }
 
-  // optional string head_image = 6;
+  // optional string head_image = 7;
   if (has_head_image()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->head_image().data(), this->head_image().length(),
@@ -547,10 +652,10 @@ void AttributeModifyRequest::SerializeWithCachedSizes(
       "head_image");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        6, this->head_image(), target);
+        7, this->head_image(), target);
   }
 
-  // optional string head_image2 = 7;
+  // optional string head_image2 = 8;
   if (has_head_image2()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
       this->head_image2().data(), this->head_image2().length(),
@@ -558,7 +663,12 @@ void AttributeModifyRequest::SerializeWithCachedSizes(
       "head_image2");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        7, this->head_image2(), target);
+        8, this->head_image2(), target);
+  }
+
+  // optional int32 next_sequence = 9;
+  if (has_next_sequence()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(9, this->next_sequence(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -573,52 +683,67 @@ int AttributeModifyRequest::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required uint64 caredear_id = 1;
+    // required .com.caredear.AttributeType req_type = 1;
+    if (has_req_type()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::EnumSize(this->req_type());
+    }
+
+    // required uint64 caredear_id = 2;
     if (has_caredear_id()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt64Size(
           this->caredear_id());
     }
 
-    // optional string real_name = 2;
+    // optional string real_name = 3;
     if (has_real_name()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->real_name());
     }
 
-    // optional string nick_name = 3;
+    // optional string nick_name = 4;
     if (has_nick_name()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->nick_name());
     }
 
-    // optional .com.caredear.GenderType gender = 4;
+    // optional .com.caredear.GenderType gender = 5;
     if (has_gender()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->gender());
     }
 
-    // optional string birthday = 5;
+    // optional string birthday = 6;
     if (has_birthday()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->birthday());
     }
 
-    // optional string head_image = 6;
+    // optional string head_image = 7;
     if (has_head_image()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->head_image());
     }
 
-    // optional string head_image2 = 7;
+    // optional string head_image2 = 8;
     if (has_head_image2()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->head_image2());
+    }
+
+  }
+  if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    // optional int32 next_sequence = 9;
+    if (has_next_sequence()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->next_sequence());
     }
 
   }
@@ -648,6 +773,9 @@ void AttributeModifyRequest::MergeFrom(const ::google::protobuf::Message& from) 
 void AttributeModifyRequest::MergeFrom(const AttributeModifyRequest& from) {
   GOOGLE_CHECK_NE(&from, this);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_req_type()) {
+      set_req_type(from.req_type());
+    }
     if (from.has_caredear_id()) {
       set_caredear_id(from.caredear_id());
     }
@@ -670,6 +798,11 @@ void AttributeModifyRequest::MergeFrom(const AttributeModifyRequest& from) {
       set_head_image2(from.head_image2());
     }
   }
+  if (from._has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    if (from.has_next_sequence()) {
+      set_next_sequence(from.next_sequence());
+    }
+  }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
@@ -686,13 +819,14 @@ void AttributeModifyRequest::CopyFrom(const AttributeModifyRequest& from) {
 }
 
 bool AttributeModifyRequest::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
+  if ((_has_bits_[0] & 0x00000003) != 0x00000003) return false;
 
   return true;
 }
 
 void AttributeModifyRequest::Swap(AttributeModifyRequest* other) {
   if (other != this) {
+    std::swap(req_type_, other->req_type_);
     std::swap(caredear_id_, other->caredear_id_);
     std::swap(real_name_, other->real_name_);
     std::swap(nick_name_, other->nick_name_);
@@ -700,6 +834,7 @@ void AttributeModifyRequest::Swap(AttributeModifyRequest* other) {
     std::swap(birthday_, other->birthday_);
     std::swap(head_image_, other->head_image_);
     std::swap(head_image2_, other->head_image2_);
+    std::swap(next_sequence_, other->next_sequence_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
@@ -720,6 +855,15 @@ void AttributeModifyRequest::Swap(AttributeModifyRequest* other) {
 #ifndef _MSC_VER
 const int AttributeModifyResponse::kResultCodeFieldNumber;
 const int AttributeModifyResponse::kExtraMsgFieldNumber;
+const int AttributeModifyResponse::kRealNameFieldNumber;
+const int AttributeModifyResponse::kNickNameFieldNumber;
+const int AttributeModifyResponse::kGenderFieldNumber;
+const int AttributeModifyResponse::kBirthdayFieldNumber;
+const int AttributeModifyResponse::kHeadImageFieldNumber;
+const int AttributeModifyResponse::kHeadImage2FieldNumber;
+const int AttributeModifyResponse::kUserNameFieldNumber;
+const int AttributeModifyResponse::kUserEmailFieldNumber;
+const int AttributeModifyResponse::kUserMobileFieldNumber;
 #endif  // !_MSC_VER
 
 AttributeModifyResponse::AttributeModifyResponse()
@@ -743,6 +887,15 @@ void AttributeModifyResponse::SharedCtor() {
   _cached_size_ = 0;
   result_code_ = 0;
   extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  real_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  nick_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  gender_ = 0;
+  birthday_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  head_image_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  head_image2_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  user_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  user_email_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  user_mobile_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -754,6 +907,30 @@ AttributeModifyResponse::~AttributeModifyResponse() {
 void AttributeModifyResponse::SharedDtor() {
   if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete extra_msg_;
+  }
+  if (real_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete real_name_;
+  }
+  if (nick_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete nick_name_;
+  }
+  if (birthday_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete birthday_;
+  }
+  if (head_image_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete head_image_;
+  }
+  if (head_image2_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete head_image2_;
+  }
+  if (user_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete user_name_;
+  }
+  if (user_email_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete user_email_;
+  }
+  if (user_mobile_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete user_mobile_;
   }
   if (this != default_instance_) {
   }
@@ -781,14 +958,70 @@ AttributeModifyResponse* AttributeModifyResponse::New() const {
 }
 
 void AttributeModifyResponse::Clear() {
-  if (_has_bits_[0 / 32] & 3) {
-    result_code_ = 0;
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<AttributeModifyResponse*>(16)->f) - \
+   reinterpret_cast<char*>(16))
+
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
+  } while (0)
+
+  if (_has_bits_[0 / 32] & 255) {
+    ZR_(result_code_, gender_);
     if (has_extra_msg()) {
       if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         extra_msg_->clear();
       }
     }
+    if (has_real_name()) {
+      if (real_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        real_name_->clear();
+      }
+    }
+    if (has_nick_name()) {
+      if (nick_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        nick_name_->clear();
+      }
+    }
+    if (has_birthday()) {
+      if (birthday_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        birthday_->clear();
+      }
+    }
+    if (has_head_image()) {
+      if (head_image_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        head_image_->clear();
+      }
+    }
+    if (has_head_image2()) {
+      if (head_image2_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        head_image2_->clear();
+      }
+    }
   }
+  if (_has_bits_[8 / 32] & 1792) {
+    if (has_user_name()) {
+      if (user_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        user_name_->clear();
+      }
+    }
+    if (has_user_email()) {
+      if (user_email_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        user_email_->clear();
+      }
+    }
+    if (has_user_mobile()) {
+      if (user_mobile_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        user_mobile_->clear();
+      }
+    }
+  }
+
+#undef OFFSET_OF_FIELD_
+#undef ZR_
+
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -827,6 +1060,162 @@ bool AttributeModifyResponse::MergePartialFromCodedStream(
             this->extra_msg().data(), this->extra_msg().length(),
             ::google::protobuf::internal::WireFormat::PARSE,
             "extra_msg");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(26)) goto parse_real_name;
+        break;
+      }
+
+      // optional string real_name = 3;
+      case 3: {
+        if (tag == 26) {
+         parse_real_name:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_real_name()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->real_name().data(), this->real_name().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "real_name");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(34)) goto parse_nick_name;
+        break;
+      }
+
+      // optional string nick_name = 4;
+      case 4: {
+        if (tag == 34) {
+         parse_nick_name:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_nick_name()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->nick_name().data(), this->nick_name().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "nick_name");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(40)) goto parse_gender;
+        break;
+      }
+
+      // optional .com.caredear.GenderType gender = 5;
+      case 5: {
+        if (tag == 40) {
+         parse_gender:
+          int value;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          if (::com::caredear::GenderType_IsValid(value)) {
+            set_gender(static_cast< ::com::caredear::GenderType >(value));
+          } else {
+            mutable_unknown_fields()->AddVarint(5, value);
+          }
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(50)) goto parse_birthday;
+        break;
+      }
+
+      // optional string birthday = 6;
+      case 6: {
+        if (tag == 50) {
+         parse_birthday:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_birthday()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->birthday().data(), this->birthday().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "birthday");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(58)) goto parse_head_image;
+        break;
+      }
+
+      // optional string head_image = 7;
+      case 7: {
+        if (tag == 58) {
+         parse_head_image:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_head_image()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->head_image().data(), this->head_image().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "head_image");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(66)) goto parse_head_image2;
+        break;
+      }
+
+      // optional string head_image2 = 8;
+      case 8: {
+        if (tag == 66) {
+         parse_head_image2:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_head_image2()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->head_image2().data(), this->head_image2().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "head_image2");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(74)) goto parse_user_name;
+        break;
+      }
+
+      // optional string user_name = 9;
+      case 9: {
+        if (tag == 74) {
+         parse_user_name:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_user_name()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->user_name().data(), this->user_name().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "user_name");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(82)) goto parse_user_email;
+        break;
+      }
+
+      // optional string user_email = 10;
+      case 10: {
+        if (tag == 82) {
+         parse_user_email:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_user_email()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->user_email().data(), this->user_email().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "user_email");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(90)) goto parse_user_mobile;
+        break;
+      }
+
+      // optional string user_mobile = 11;
+      case 11: {
+        if (tag == 90) {
+         parse_user_mobile:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_user_mobile()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->user_mobile().data(), this->user_mobile().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "user_mobile");
         } else {
           goto handle_unusual;
         }
@@ -874,6 +1263,92 @@ void AttributeModifyResponse::SerializeWithCachedSizes(
       2, this->extra_msg(), output);
   }
 
+  // optional string real_name = 3;
+  if (has_real_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->real_name().data(), this->real_name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "real_name");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      3, this->real_name(), output);
+  }
+
+  // optional string nick_name = 4;
+  if (has_nick_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->nick_name().data(), this->nick_name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "nick_name");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      4, this->nick_name(), output);
+  }
+
+  // optional .com.caredear.GenderType gender = 5;
+  if (has_gender()) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      5, this->gender(), output);
+  }
+
+  // optional string birthday = 6;
+  if (has_birthday()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->birthday().data(), this->birthday().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "birthday");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      6, this->birthday(), output);
+  }
+
+  // optional string head_image = 7;
+  if (has_head_image()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->head_image().data(), this->head_image().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "head_image");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      7, this->head_image(), output);
+  }
+
+  // optional string head_image2 = 8;
+  if (has_head_image2()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->head_image2().data(), this->head_image2().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "head_image2");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      8, this->head_image2(), output);
+  }
+
+  // optional string user_name = 9;
+  if (has_user_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->user_name().data(), this->user_name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "user_name");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      9, this->user_name(), output);
+  }
+
+  // optional string user_email = 10;
+  if (has_user_email()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->user_email().data(), this->user_email().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "user_email");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      10, this->user_email(), output);
+  }
+
+  // optional string user_mobile = 11;
+  if (has_user_mobile()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->user_mobile().data(), this->user_mobile().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "user_mobile");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      11, this->user_mobile(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -900,6 +1375,100 @@ void AttributeModifyResponse::SerializeWithCachedSizes(
         2, this->extra_msg(), target);
   }
 
+  // optional string real_name = 3;
+  if (has_real_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->real_name().data(), this->real_name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "real_name");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        3, this->real_name(), target);
+  }
+
+  // optional string nick_name = 4;
+  if (has_nick_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->nick_name().data(), this->nick_name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "nick_name");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        4, this->nick_name(), target);
+  }
+
+  // optional .com.caredear.GenderType gender = 5;
+  if (has_gender()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      5, this->gender(), target);
+  }
+
+  // optional string birthday = 6;
+  if (has_birthday()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->birthday().data(), this->birthday().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "birthday");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        6, this->birthday(), target);
+  }
+
+  // optional string head_image = 7;
+  if (has_head_image()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->head_image().data(), this->head_image().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "head_image");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        7, this->head_image(), target);
+  }
+
+  // optional string head_image2 = 8;
+  if (has_head_image2()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->head_image2().data(), this->head_image2().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "head_image2");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        8, this->head_image2(), target);
+  }
+
+  // optional string user_name = 9;
+  if (has_user_name()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->user_name().data(), this->user_name().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "user_name");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        9, this->user_name(), target);
+  }
+
+  // optional string user_email = 10;
+  if (has_user_email()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->user_email().data(), this->user_email().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "user_email");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        10, this->user_email(), target);
+  }
+
+  // optional string user_mobile = 11;
+  if (has_user_mobile()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->user_mobile().data(), this->user_mobile().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "user_mobile");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        11, this->user_mobile(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -924,6 +1493,70 @@ int AttributeModifyResponse::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->extra_msg());
+    }
+
+    // optional string real_name = 3;
+    if (has_real_name()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->real_name());
+    }
+
+    // optional string nick_name = 4;
+    if (has_nick_name()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->nick_name());
+    }
+
+    // optional .com.caredear.GenderType gender = 5;
+    if (has_gender()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::EnumSize(this->gender());
+    }
+
+    // optional string birthday = 6;
+    if (has_birthday()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->birthday());
+    }
+
+    // optional string head_image = 7;
+    if (has_head_image()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->head_image());
+    }
+
+    // optional string head_image2 = 8;
+    if (has_head_image2()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->head_image2());
+    }
+
+  }
+  if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    // optional string user_name = 9;
+    if (has_user_name()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->user_name());
+    }
+
+    // optional string user_email = 10;
+    if (has_user_email()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->user_email());
+    }
+
+    // optional string user_mobile = 11;
+    if (has_user_mobile()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->user_mobile());
     }
 
   }
@@ -959,6 +1592,35 @@ void AttributeModifyResponse::MergeFrom(const AttributeModifyResponse& from) {
     if (from.has_extra_msg()) {
       set_extra_msg(from.extra_msg());
     }
+    if (from.has_real_name()) {
+      set_real_name(from.real_name());
+    }
+    if (from.has_nick_name()) {
+      set_nick_name(from.nick_name());
+    }
+    if (from.has_gender()) {
+      set_gender(from.gender());
+    }
+    if (from.has_birthday()) {
+      set_birthday(from.birthday());
+    }
+    if (from.has_head_image()) {
+      set_head_image(from.head_image());
+    }
+    if (from.has_head_image2()) {
+      set_head_image2(from.head_image2());
+    }
+  }
+  if (from._has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    if (from.has_user_name()) {
+      set_user_name(from.user_name());
+    }
+    if (from.has_user_email()) {
+      set_user_email(from.user_email());
+    }
+    if (from.has_user_mobile()) {
+      set_user_mobile(from.user_mobile());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -985,6 +1647,15 @@ void AttributeModifyResponse::Swap(AttributeModifyResponse* other) {
   if (other != this) {
     std::swap(result_code_, other->result_code_);
     std::swap(extra_msg_, other->extra_msg_);
+    std::swap(real_name_, other->real_name_);
+    std::swap(nick_name_, other->nick_name_);
+    std::swap(gender_, other->gender_);
+    std::swap(birthday_, other->birthday_);
+    std::swap(head_image_, other->head_image_);
+    std::swap(head_image2_, other->head_image2_);
+    std::swap(user_name_, other->user_name_);
+    std::swap(user_email_, other->user_email_);
+    std::swap(user_mobile_, other->user_mobile_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

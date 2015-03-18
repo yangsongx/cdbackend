@@ -1,21 +1,39 @@
 package com.caredear;
 
+enum AttributeType {
+    MODIFY = 0;
+    QUERY = 1;
+}
+
 enum GenderType{
     MALE = 0;
     FEMAL = 1;
 }
 
 message AttributeModifyRequest {
-    required uint64   caredear_id = 1;
-    optional string   real_name= 2;
-    optional string   nick_name = 3;
-    optional GenderType gender = 4;
-    optional string   birthday = 5;
-    optional string   head_image= 6;
-    optional string   head_image2= 7;  // a larger image
+    required AttributeType req_type = 1;
+    required uint64   caredear_id = 2;
+    optional string   real_name= 3;
+    optional string   nick_name = 4;
+    optional GenderType gender = 5;
+    optional string   birthday = 6;
+    optional string   head_image= 7;
+    optional string   head_image2= 8;  // a larger image
+    optional int32    next_sequence = 9; // used if there're two many segment response data
 }
 
 message AttributeModifyResponse{
     required int32 result_code = 1; //CDS_XXX
     optional string extra_msg = 2; // further error msg if it has
+
+    // below are only available for AttributeType::QUERY case
+    optional string real_name = 3;
+    optional string   nick_name = 4;
+    optional GenderType gender = 5;
+    optional string   birthday = 6;
+    optional string   head_image= 7;
+    optional string   head_image2= 8;
+    optional string   user_name = 9;
+    optional string   user_email = 10;
+    optional string   user_mobile = 11;
 }

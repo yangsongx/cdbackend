@@ -38,6 +38,25 @@ void protobuf_ShutdownFile_AttributeModify_2eproto();
 class AttributeModifyRequest;
 class AttributeModifyResponse;
 
+enum AttributeType {
+  MODIFY = 0,
+  QUERY = 1
+};
+bool AttributeType_IsValid(int value);
+const AttributeType AttributeType_MIN = MODIFY;
+const AttributeType AttributeType_MAX = QUERY;
+const int AttributeType_ARRAYSIZE = AttributeType_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* AttributeType_descriptor();
+inline const ::std::string& AttributeType_Name(AttributeType value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    AttributeType_descriptor(), value);
+}
+inline bool AttributeType_Parse(
+    const ::std::string& name, AttributeType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<AttributeType>(
+    AttributeType_descriptor(), name, value);
+}
 enum GenderType {
   MALE = 0,
   FEMAL = 1
@@ -112,17 +131,24 @@ class AttributeModifyRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required uint64 caredear_id = 1;
+  // required .com.caredear.AttributeType req_type = 1;
+  inline bool has_req_type() const;
+  inline void clear_req_type();
+  static const int kReqTypeFieldNumber = 1;
+  inline ::com::caredear::AttributeType req_type() const;
+  inline void set_req_type(::com::caredear::AttributeType value);
+
+  // required uint64 caredear_id = 2;
   inline bool has_caredear_id() const;
   inline void clear_caredear_id();
-  static const int kCaredearIdFieldNumber = 1;
+  static const int kCaredearIdFieldNumber = 2;
   inline ::google::protobuf::uint64 caredear_id() const;
   inline void set_caredear_id(::google::protobuf::uint64 value);
 
-  // optional string real_name = 2;
+  // optional string real_name = 3;
   inline bool has_real_name() const;
   inline void clear_real_name();
-  static const int kRealNameFieldNumber = 2;
+  static const int kRealNameFieldNumber = 3;
   inline const ::std::string& real_name() const;
   inline void set_real_name(const ::std::string& value);
   inline void set_real_name(const char* value);
@@ -131,10 +157,10 @@ class AttributeModifyRequest : public ::google::protobuf::Message {
   inline ::std::string* release_real_name();
   inline void set_allocated_real_name(::std::string* real_name);
 
-  // optional string nick_name = 3;
+  // optional string nick_name = 4;
   inline bool has_nick_name() const;
   inline void clear_nick_name();
-  static const int kNickNameFieldNumber = 3;
+  static const int kNickNameFieldNumber = 4;
   inline const ::std::string& nick_name() const;
   inline void set_nick_name(const ::std::string& value);
   inline void set_nick_name(const char* value);
@@ -143,17 +169,17 @@ class AttributeModifyRequest : public ::google::protobuf::Message {
   inline ::std::string* release_nick_name();
   inline void set_allocated_nick_name(::std::string* nick_name);
 
-  // optional .com.caredear.GenderType gender = 4;
+  // optional .com.caredear.GenderType gender = 5;
   inline bool has_gender() const;
   inline void clear_gender();
-  static const int kGenderFieldNumber = 4;
+  static const int kGenderFieldNumber = 5;
   inline ::com::caredear::GenderType gender() const;
   inline void set_gender(::com::caredear::GenderType value);
 
-  // optional string birthday = 5;
+  // optional string birthday = 6;
   inline bool has_birthday() const;
   inline void clear_birthday();
-  static const int kBirthdayFieldNumber = 5;
+  static const int kBirthdayFieldNumber = 6;
   inline const ::std::string& birthday() const;
   inline void set_birthday(const ::std::string& value);
   inline void set_birthday(const char* value);
@@ -162,10 +188,10 @@ class AttributeModifyRequest : public ::google::protobuf::Message {
   inline ::std::string* release_birthday();
   inline void set_allocated_birthday(::std::string* birthday);
 
-  // optional string head_image = 6;
+  // optional string head_image = 7;
   inline bool has_head_image() const;
   inline void clear_head_image();
-  static const int kHeadImageFieldNumber = 6;
+  static const int kHeadImageFieldNumber = 7;
   inline const ::std::string& head_image() const;
   inline void set_head_image(const ::std::string& value);
   inline void set_head_image(const char* value);
@@ -174,10 +200,10 @@ class AttributeModifyRequest : public ::google::protobuf::Message {
   inline ::std::string* release_head_image();
   inline void set_allocated_head_image(::std::string* head_image);
 
-  // optional string head_image2 = 7;
+  // optional string head_image2 = 8;
   inline bool has_head_image2() const;
   inline void clear_head_image2();
-  static const int kHeadImage2FieldNumber = 7;
+  static const int kHeadImage2FieldNumber = 8;
   inline const ::std::string& head_image2() const;
   inline void set_head_image2(const ::std::string& value);
   inline void set_head_image2(const char* value);
@@ -186,8 +212,17 @@ class AttributeModifyRequest : public ::google::protobuf::Message {
   inline ::std::string* release_head_image2();
   inline void set_allocated_head_image2(::std::string* head_image2);
 
+  // optional int32 next_sequence = 9;
+  inline bool has_next_sequence() const;
+  inline void clear_next_sequence();
+  static const int kNextSequenceFieldNumber = 9;
+  inline ::google::protobuf::int32 next_sequence() const;
+  inline void set_next_sequence(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:com.caredear.AttributeModifyRequest)
  private:
+  inline void set_has_req_type();
+  inline void clear_has_req_type();
   inline void set_has_caredear_id();
   inline void clear_has_caredear_id();
   inline void set_has_real_name();
@@ -202,6 +237,8 @@ class AttributeModifyRequest : public ::google::protobuf::Message {
   inline void clear_has_head_image();
   inline void set_has_head_image2();
   inline void clear_has_head_image2();
+  inline void set_has_next_sequence();
+  inline void clear_has_next_sequence();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -209,11 +246,13 @@ class AttributeModifyRequest : public ::google::protobuf::Message {
   mutable int _cached_size_;
   ::google::protobuf::uint64 caredear_id_;
   ::std::string* real_name_;
+  int req_type_;
+  int gender_;
   ::std::string* nick_name_;
   ::std::string* birthday_;
   ::std::string* head_image_;
   ::std::string* head_image2_;
-  int gender_;
+  ::google::protobuf::int32 next_sequence_;
   friend void  protobuf_AddDesc_AttributeModify_2eproto();
   friend void protobuf_AssignDesc_AttributeModify_2eproto();
   friend void protobuf_ShutdownFile_AttributeModify_2eproto();
@@ -295,19 +334,149 @@ class AttributeModifyResponse : public ::google::protobuf::Message {
   inline ::std::string* release_extra_msg();
   inline void set_allocated_extra_msg(::std::string* extra_msg);
 
+  // optional string real_name = 3;
+  inline bool has_real_name() const;
+  inline void clear_real_name();
+  static const int kRealNameFieldNumber = 3;
+  inline const ::std::string& real_name() const;
+  inline void set_real_name(const ::std::string& value);
+  inline void set_real_name(const char* value);
+  inline void set_real_name(const char* value, size_t size);
+  inline ::std::string* mutable_real_name();
+  inline ::std::string* release_real_name();
+  inline void set_allocated_real_name(::std::string* real_name);
+
+  // optional string nick_name = 4;
+  inline bool has_nick_name() const;
+  inline void clear_nick_name();
+  static const int kNickNameFieldNumber = 4;
+  inline const ::std::string& nick_name() const;
+  inline void set_nick_name(const ::std::string& value);
+  inline void set_nick_name(const char* value);
+  inline void set_nick_name(const char* value, size_t size);
+  inline ::std::string* mutable_nick_name();
+  inline ::std::string* release_nick_name();
+  inline void set_allocated_nick_name(::std::string* nick_name);
+
+  // optional .com.caredear.GenderType gender = 5;
+  inline bool has_gender() const;
+  inline void clear_gender();
+  static const int kGenderFieldNumber = 5;
+  inline ::com::caredear::GenderType gender() const;
+  inline void set_gender(::com::caredear::GenderType value);
+
+  // optional string birthday = 6;
+  inline bool has_birthday() const;
+  inline void clear_birthday();
+  static const int kBirthdayFieldNumber = 6;
+  inline const ::std::string& birthday() const;
+  inline void set_birthday(const ::std::string& value);
+  inline void set_birthday(const char* value);
+  inline void set_birthday(const char* value, size_t size);
+  inline ::std::string* mutable_birthday();
+  inline ::std::string* release_birthday();
+  inline void set_allocated_birthday(::std::string* birthday);
+
+  // optional string head_image = 7;
+  inline bool has_head_image() const;
+  inline void clear_head_image();
+  static const int kHeadImageFieldNumber = 7;
+  inline const ::std::string& head_image() const;
+  inline void set_head_image(const ::std::string& value);
+  inline void set_head_image(const char* value);
+  inline void set_head_image(const char* value, size_t size);
+  inline ::std::string* mutable_head_image();
+  inline ::std::string* release_head_image();
+  inline void set_allocated_head_image(::std::string* head_image);
+
+  // optional string head_image2 = 8;
+  inline bool has_head_image2() const;
+  inline void clear_head_image2();
+  static const int kHeadImage2FieldNumber = 8;
+  inline const ::std::string& head_image2() const;
+  inline void set_head_image2(const ::std::string& value);
+  inline void set_head_image2(const char* value);
+  inline void set_head_image2(const char* value, size_t size);
+  inline ::std::string* mutable_head_image2();
+  inline ::std::string* release_head_image2();
+  inline void set_allocated_head_image2(::std::string* head_image2);
+
+  // optional string user_name = 9;
+  inline bool has_user_name() const;
+  inline void clear_user_name();
+  static const int kUserNameFieldNumber = 9;
+  inline const ::std::string& user_name() const;
+  inline void set_user_name(const ::std::string& value);
+  inline void set_user_name(const char* value);
+  inline void set_user_name(const char* value, size_t size);
+  inline ::std::string* mutable_user_name();
+  inline ::std::string* release_user_name();
+  inline void set_allocated_user_name(::std::string* user_name);
+
+  // optional string user_email = 10;
+  inline bool has_user_email() const;
+  inline void clear_user_email();
+  static const int kUserEmailFieldNumber = 10;
+  inline const ::std::string& user_email() const;
+  inline void set_user_email(const ::std::string& value);
+  inline void set_user_email(const char* value);
+  inline void set_user_email(const char* value, size_t size);
+  inline ::std::string* mutable_user_email();
+  inline ::std::string* release_user_email();
+  inline void set_allocated_user_email(::std::string* user_email);
+
+  // optional string user_mobile = 11;
+  inline bool has_user_mobile() const;
+  inline void clear_user_mobile();
+  static const int kUserMobileFieldNumber = 11;
+  inline const ::std::string& user_mobile() const;
+  inline void set_user_mobile(const ::std::string& value);
+  inline void set_user_mobile(const char* value);
+  inline void set_user_mobile(const char* value, size_t size);
+  inline ::std::string* mutable_user_mobile();
+  inline ::std::string* release_user_mobile();
+  inline void set_allocated_user_mobile(::std::string* user_mobile);
+
   // @@protoc_insertion_point(class_scope:com.caredear.AttributeModifyResponse)
  private:
   inline void set_has_result_code();
   inline void clear_has_result_code();
   inline void set_has_extra_msg();
   inline void clear_has_extra_msg();
+  inline void set_has_real_name();
+  inline void clear_has_real_name();
+  inline void set_has_nick_name();
+  inline void clear_has_nick_name();
+  inline void set_has_gender();
+  inline void clear_has_gender();
+  inline void set_has_birthday();
+  inline void clear_has_birthday();
+  inline void set_has_head_image();
+  inline void clear_has_head_image();
+  inline void set_has_head_image2();
+  inline void clear_has_head_image2();
+  inline void set_has_user_name();
+  inline void clear_has_user_name();
+  inline void set_has_user_email();
+  inline void clear_has_user_email();
+  inline void set_has_user_mobile();
+  inline void clear_has_user_mobile();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   ::std::string* extra_msg_;
+  ::std::string* real_name_;
   ::google::protobuf::int32 result_code_;
+  int gender_;
+  ::std::string* nick_name_;
+  ::std::string* birthday_;
+  ::std::string* head_image_;
+  ::std::string* head_image2_;
+  ::std::string* user_name_;
+  ::std::string* user_email_;
+  ::std::string* user_mobile_;
   friend void  protobuf_AddDesc_AttributeModify_2eproto();
   friend void protobuf_AssignDesc_AttributeModify_2eproto();
   friend void protobuf_ShutdownFile_AttributeModify_2eproto();
@@ -322,15 +491,40 @@ class AttributeModifyResponse : public ::google::protobuf::Message {
 
 // AttributeModifyRequest
 
-// required uint64 caredear_id = 1;
-inline bool AttributeModifyRequest::has_caredear_id() const {
+// required .com.caredear.AttributeType req_type = 1;
+inline bool AttributeModifyRequest::has_req_type() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void AttributeModifyRequest::set_has_caredear_id() {
+inline void AttributeModifyRequest::set_has_req_type() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void AttributeModifyRequest::clear_has_caredear_id() {
+inline void AttributeModifyRequest::clear_has_req_type() {
   _has_bits_[0] &= ~0x00000001u;
+}
+inline void AttributeModifyRequest::clear_req_type() {
+  req_type_ = 0;
+  clear_has_req_type();
+}
+inline ::com::caredear::AttributeType AttributeModifyRequest::req_type() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyRequest.req_type)
+  return static_cast< ::com::caredear::AttributeType >(req_type_);
+}
+inline void AttributeModifyRequest::set_req_type(::com::caredear::AttributeType value) {
+  assert(::com::caredear::AttributeType_IsValid(value));
+  set_has_req_type();
+  req_type_ = value;
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyRequest.req_type)
+}
+
+// required uint64 caredear_id = 2;
+inline bool AttributeModifyRequest::has_caredear_id() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void AttributeModifyRequest::set_has_caredear_id() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void AttributeModifyRequest::clear_has_caredear_id() {
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline void AttributeModifyRequest::clear_caredear_id() {
   caredear_id_ = GOOGLE_ULONGLONG(0);
@@ -346,15 +540,15 @@ inline void AttributeModifyRequest::set_caredear_id(::google::protobuf::uint64 v
   // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyRequest.caredear_id)
 }
 
-// optional string real_name = 2;
+// optional string real_name = 3;
 inline bool AttributeModifyRequest::has_real_name() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+  return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void AttributeModifyRequest::set_has_real_name() {
-  _has_bits_[0] |= 0x00000002u;
+  _has_bits_[0] |= 0x00000004u;
 }
 inline void AttributeModifyRequest::clear_has_real_name() {
-  _has_bits_[0] &= ~0x00000002u;
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline void AttributeModifyRequest::clear_real_name() {
   if (real_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -422,15 +616,15 @@ inline void AttributeModifyRequest::set_allocated_real_name(::std::string* real_
   // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyRequest.real_name)
 }
 
-// optional string nick_name = 3;
+// optional string nick_name = 4;
 inline bool AttributeModifyRequest::has_nick_name() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+  return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void AttributeModifyRequest::set_has_nick_name() {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000008u;
 }
 inline void AttributeModifyRequest::clear_has_nick_name() {
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline void AttributeModifyRequest::clear_nick_name() {
   if (nick_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -498,15 +692,15 @@ inline void AttributeModifyRequest::set_allocated_nick_name(::std::string* nick_
   // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyRequest.nick_name)
 }
 
-// optional .com.caredear.GenderType gender = 4;
+// optional .com.caredear.GenderType gender = 5;
 inline bool AttributeModifyRequest::has_gender() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+  return (_has_bits_[0] & 0x00000010u) != 0;
 }
 inline void AttributeModifyRequest::set_has_gender() {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000010u;
 }
 inline void AttributeModifyRequest::clear_has_gender() {
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000010u;
 }
 inline void AttributeModifyRequest::clear_gender() {
   gender_ = 0;
@@ -523,15 +717,15 @@ inline void AttributeModifyRequest::set_gender(::com::caredear::GenderType value
   // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyRequest.gender)
 }
 
-// optional string birthday = 5;
+// optional string birthday = 6;
 inline bool AttributeModifyRequest::has_birthday() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
+  return (_has_bits_[0] & 0x00000020u) != 0;
 }
 inline void AttributeModifyRequest::set_has_birthday() {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000020u;
 }
 inline void AttributeModifyRequest::clear_has_birthday() {
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000020u;
 }
 inline void AttributeModifyRequest::clear_birthday() {
   if (birthday_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -599,15 +793,15 @@ inline void AttributeModifyRequest::set_allocated_birthday(::std::string* birthd
   // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyRequest.birthday)
 }
 
-// optional string head_image = 6;
+// optional string head_image = 7;
 inline bool AttributeModifyRequest::has_head_image() const {
-  return (_has_bits_[0] & 0x00000020u) != 0;
+  return (_has_bits_[0] & 0x00000040u) != 0;
 }
 inline void AttributeModifyRequest::set_has_head_image() {
-  _has_bits_[0] |= 0x00000020u;
+  _has_bits_[0] |= 0x00000040u;
 }
 inline void AttributeModifyRequest::clear_has_head_image() {
-  _has_bits_[0] &= ~0x00000020u;
+  _has_bits_[0] &= ~0x00000040u;
 }
 inline void AttributeModifyRequest::clear_head_image() {
   if (head_image_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -675,15 +869,15 @@ inline void AttributeModifyRequest::set_allocated_head_image(::std::string* head
   // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyRequest.head_image)
 }
 
-// optional string head_image2 = 7;
+// optional string head_image2 = 8;
 inline bool AttributeModifyRequest::has_head_image2() const {
-  return (_has_bits_[0] & 0x00000040u) != 0;
+  return (_has_bits_[0] & 0x00000080u) != 0;
 }
 inline void AttributeModifyRequest::set_has_head_image2() {
-  _has_bits_[0] |= 0x00000040u;
+  _has_bits_[0] |= 0x00000080u;
 }
 inline void AttributeModifyRequest::clear_has_head_image2() {
-  _has_bits_[0] &= ~0x00000040u;
+  _has_bits_[0] &= ~0x00000080u;
 }
 inline void AttributeModifyRequest::clear_head_image2() {
   if (head_image2_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -749,6 +943,30 @@ inline void AttributeModifyRequest::set_allocated_head_image2(::std::string* hea
     head_image2_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyRequest.head_image2)
+}
+
+// optional int32 next_sequence = 9;
+inline bool AttributeModifyRequest::has_next_sequence() const {
+  return (_has_bits_[0] & 0x00000100u) != 0;
+}
+inline void AttributeModifyRequest::set_has_next_sequence() {
+  _has_bits_[0] |= 0x00000100u;
+}
+inline void AttributeModifyRequest::clear_has_next_sequence() {
+  _has_bits_[0] &= ~0x00000100u;
+}
+inline void AttributeModifyRequest::clear_next_sequence() {
+  next_sequence_ = 0;
+  clear_has_next_sequence();
+}
+inline ::google::protobuf::int32 AttributeModifyRequest::next_sequence() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyRequest.next_sequence)
+  return next_sequence_;
+}
+inline void AttributeModifyRequest::set_next_sequence(::google::protobuf::int32 value) {
+  set_has_next_sequence();
+  next_sequence_ = value;
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyRequest.next_sequence)
 }
 
 // -------------------------------------------------------------------
@@ -855,6 +1073,639 @@ inline void AttributeModifyResponse::set_allocated_extra_msg(::std::string* extr
   // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyResponse.extra_msg)
 }
 
+// optional string real_name = 3;
+inline bool AttributeModifyResponse::has_real_name() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void AttributeModifyResponse::set_has_real_name() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void AttributeModifyResponse::clear_has_real_name() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void AttributeModifyResponse::clear_real_name() {
+  if (real_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    real_name_->clear();
+  }
+  clear_has_real_name();
+}
+inline const ::std::string& AttributeModifyResponse::real_name() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyResponse.real_name)
+  return *real_name_;
+}
+inline void AttributeModifyResponse::set_real_name(const ::std::string& value) {
+  set_has_real_name();
+  if (real_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    real_name_ = new ::std::string;
+  }
+  real_name_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyResponse.real_name)
+}
+inline void AttributeModifyResponse::set_real_name(const char* value) {
+  set_has_real_name();
+  if (real_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    real_name_ = new ::std::string;
+  }
+  real_name_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.AttributeModifyResponse.real_name)
+}
+inline void AttributeModifyResponse::set_real_name(const char* value, size_t size) {
+  set_has_real_name();
+  if (real_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    real_name_ = new ::std::string;
+  }
+  real_name_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.AttributeModifyResponse.real_name)
+}
+inline ::std::string* AttributeModifyResponse::mutable_real_name() {
+  set_has_real_name();
+  if (real_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    real_name_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.AttributeModifyResponse.real_name)
+  return real_name_;
+}
+inline ::std::string* AttributeModifyResponse::release_real_name() {
+  clear_has_real_name();
+  if (real_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = real_name_;
+    real_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AttributeModifyResponse::set_allocated_real_name(::std::string* real_name) {
+  if (real_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete real_name_;
+  }
+  if (real_name) {
+    set_has_real_name();
+    real_name_ = real_name;
+  } else {
+    clear_has_real_name();
+    real_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyResponse.real_name)
+}
+
+// optional string nick_name = 4;
+inline bool AttributeModifyResponse::has_nick_name() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void AttributeModifyResponse::set_has_nick_name() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void AttributeModifyResponse::clear_has_nick_name() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void AttributeModifyResponse::clear_nick_name() {
+  if (nick_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nick_name_->clear();
+  }
+  clear_has_nick_name();
+}
+inline const ::std::string& AttributeModifyResponse::nick_name() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyResponse.nick_name)
+  return *nick_name_;
+}
+inline void AttributeModifyResponse::set_nick_name(const ::std::string& value) {
+  set_has_nick_name();
+  if (nick_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nick_name_ = new ::std::string;
+  }
+  nick_name_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyResponse.nick_name)
+}
+inline void AttributeModifyResponse::set_nick_name(const char* value) {
+  set_has_nick_name();
+  if (nick_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nick_name_ = new ::std::string;
+  }
+  nick_name_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.AttributeModifyResponse.nick_name)
+}
+inline void AttributeModifyResponse::set_nick_name(const char* value, size_t size) {
+  set_has_nick_name();
+  if (nick_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nick_name_ = new ::std::string;
+  }
+  nick_name_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.AttributeModifyResponse.nick_name)
+}
+inline ::std::string* AttributeModifyResponse::mutable_nick_name() {
+  set_has_nick_name();
+  if (nick_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nick_name_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.AttributeModifyResponse.nick_name)
+  return nick_name_;
+}
+inline ::std::string* AttributeModifyResponse::release_nick_name() {
+  clear_has_nick_name();
+  if (nick_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = nick_name_;
+    nick_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AttributeModifyResponse::set_allocated_nick_name(::std::string* nick_name) {
+  if (nick_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete nick_name_;
+  }
+  if (nick_name) {
+    set_has_nick_name();
+    nick_name_ = nick_name;
+  } else {
+    clear_has_nick_name();
+    nick_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyResponse.nick_name)
+}
+
+// optional .com.caredear.GenderType gender = 5;
+inline bool AttributeModifyResponse::has_gender() const {
+  return (_has_bits_[0] & 0x00000010u) != 0;
+}
+inline void AttributeModifyResponse::set_has_gender() {
+  _has_bits_[0] |= 0x00000010u;
+}
+inline void AttributeModifyResponse::clear_has_gender() {
+  _has_bits_[0] &= ~0x00000010u;
+}
+inline void AttributeModifyResponse::clear_gender() {
+  gender_ = 0;
+  clear_has_gender();
+}
+inline ::com::caredear::GenderType AttributeModifyResponse::gender() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyResponse.gender)
+  return static_cast< ::com::caredear::GenderType >(gender_);
+}
+inline void AttributeModifyResponse::set_gender(::com::caredear::GenderType value) {
+  assert(::com::caredear::GenderType_IsValid(value));
+  set_has_gender();
+  gender_ = value;
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyResponse.gender)
+}
+
+// optional string birthday = 6;
+inline bool AttributeModifyResponse::has_birthday() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void AttributeModifyResponse::set_has_birthday() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void AttributeModifyResponse::clear_has_birthday() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void AttributeModifyResponse::clear_birthday() {
+  if (birthday_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    birthday_->clear();
+  }
+  clear_has_birthday();
+}
+inline const ::std::string& AttributeModifyResponse::birthday() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyResponse.birthday)
+  return *birthday_;
+}
+inline void AttributeModifyResponse::set_birthday(const ::std::string& value) {
+  set_has_birthday();
+  if (birthday_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    birthday_ = new ::std::string;
+  }
+  birthday_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyResponse.birthday)
+}
+inline void AttributeModifyResponse::set_birthday(const char* value) {
+  set_has_birthday();
+  if (birthday_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    birthday_ = new ::std::string;
+  }
+  birthday_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.AttributeModifyResponse.birthday)
+}
+inline void AttributeModifyResponse::set_birthday(const char* value, size_t size) {
+  set_has_birthday();
+  if (birthday_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    birthday_ = new ::std::string;
+  }
+  birthday_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.AttributeModifyResponse.birthday)
+}
+inline ::std::string* AttributeModifyResponse::mutable_birthday() {
+  set_has_birthday();
+  if (birthday_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    birthday_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.AttributeModifyResponse.birthday)
+  return birthday_;
+}
+inline ::std::string* AttributeModifyResponse::release_birthday() {
+  clear_has_birthday();
+  if (birthday_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = birthday_;
+    birthday_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AttributeModifyResponse::set_allocated_birthday(::std::string* birthday) {
+  if (birthday_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete birthday_;
+  }
+  if (birthday) {
+    set_has_birthday();
+    birthday_ = birthday;
+  } else {
+    clear_has_birthday();
+    birthday_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyResponse.birthday)
+}
+
+// optional string head_image = 7;
+inline bool AttributeModifyResponse::has_head_image() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void AttributeModifyResponse::set_has_head_image() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void AttributeModifyResponse::clear_has_head_image() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void AttributeModifyResponse::clear_head_image() {
+  if (head_image_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    head_image_->clear();
+  }
+  clear_has_head_image();
+}
+inline const ::std::string& AttributeModifyResponse::head_image() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyResponse.head_image)
+  return *head_image_;
+}
+inline void AttributeModifyResponse::set_head_image(const ::std::string& value) {
+  set_has_head_image();
+  if (head_image_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    head_image_ = new ::std::string;
+  }
+  head_image_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyResponse.head_image)
+}
+inline void AttributeModifyResponse::set_head_image(const char* value) {
+  set_has_head_image();
+  if (head_image_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    head_image_ = new ::std::string;
+  }
+  head_image_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.AttributeModifyResponse.head_image)
+}
+inline void AttributeModifyResponse::set_head_image(const char* value, size_t size) {
+  set_has_head_image();
+  if (head_image_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    head_image_ = new ::std::string;
+  }
+  head_image_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.AttributeModifyResponse.head_image)
+}
+inline ::std::string* AttributeModifyResponse::mutable_head_image() {
+  set_has_head_image();
+  if (head_image_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    head_image_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.AttributeModifyResponse.head_image)
+  return head_image_;
+}
+inline ::std::string* AttributeModifyResponse::release_head_image() {
+  clear_has_head_image();
+  if (head_image_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = head_image_;
+    head_image_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AttributeModifyResponse::set_allocated_head_image(::std::string* head_image) {
+  if (head_image_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete head_image_;
+  }
+  if (head_image) {
+    set_has_head_image();
+    head_image_ = head_image;
+  } else {
+    clear_has_head_image();
+    head_image_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyResponse.head_image)
+}
+
+// optional string head_image2 = 8;
+inline bool AttributeModifyResponse::has_head_image2() const {
+  return (_has_bits_[0] & 0x00000080u) != 0;
+}
+inline void AttributeModifyResponse::set_has_head_image2() {
+  _has_bits_[0] |= 0x00000080u;
+}
+inline void AttributeModifyResponse::clear_has_head_image2() {
+  _has_bits_[0] &= ~0x00000080u;
+}
+inline void AttributeModifyResponse::clear_head_image2() {
+  if (head_image2_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    head_image2_->clear();
+  }
+  clear_has_head_image2();
+}
+inline const ::std::string& AttributeModifyResponse::head_image2() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyResponse.head_image2)
+  return *head_image2_;
+}
+inline void AttributeModifyResponse::set_head_image2(const ::std::string& value) {
+  set_has_head_image2();
+  if (head_image2_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    head_image2_ = new ::std::string;
+  }
+  head_image2_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyResponse.head_image2)
+}
+inline void AttributeModifyResponse::set_head_image2(const char* value) {
+  set_has_head_image2();
+  if (head_image2_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    head_image2_ = new ::std::string;
+  }
+  head_image2_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.AttributeModifyResponse.head_image2)
+}
+inline void AttributeModifyResponse::set_head_image2(const char* value, size_t size) {
+  set_has_head_image2();
+  if (head_image2_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    head_image2_ = new ::std::string;
+  }
+  head_image2_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.AttributeModifyResponse.head_image2)
+}
+inline ::std::string* AttributeModifyResponse::mutable_head_image2() {
+  set_has_head_image2();
+  if (head_image2_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    head_image2_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.AttributeModifyResponse.head_image2)
+  return head_image2_;
+}
+inline ::std::string* AttributeModifyResponse::release_head_image2() {
+  clear_has_head_image2();
+  if (head_image2_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = head_image2_;
+    head_image2_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AttributeModifyResponse::set_allocated_head_image2(::std::string* head_image2) {
+  if (head_image2_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete head_image2_;
+  }
+  if (head_image2) {
+    set_has_head_image2();
+    head_image2_ = head_image2;
+  } else {
+    clear_has_head_image2();
+    head_image2_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyResponse.head_image2)
+}
+
+// optional string user_name = 9;
+inline bool AttributeModifyResponse::has_user_name() const {
+  return (_has_bits_[0] & 0x00000100u) != 0;
+}
+inline void AttributeModifyResponse::set_has_user_name() {
+  _has_bits_[0] |= 0x00000100u;
+}
+inline void AttributeModifyResponse::clear_has_user_name() {
+  _has_bits_[0] &= ~0x00000100u;
+}
+inline void AttributeModifyResponse::clear_user_name() {
+  if (user_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_name_->clear();
+  }
+  clear_has_user_name();
+}
+inline const ::std::string& AttributeModifyResponse::user_name() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyResponse.user_name)
+  return *user_name_;
+}
+inline void AttributeModifyResponse::set_user_name(const ::std::string& value) {
+  set_has_user_name();
+  if (user_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_name_ = new ::std::string;
+  }
+  user_name_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyResponse.user_name)
+}
+inline void AttributeModifyResponse::set_user_name(const char* value) {
+  set_has_user_name();
+  if (user_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_name_ = new ::std::string;
+  }
+  user_name_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.AttributeModifyResponse.user_name)
+}
+inline void AttributeModifyResponse::set_user_name(const char* value, size_t size) {
+  set_has_user_name();
+  if (user_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_name_ = new ::std::string;
+  }
+  user_name_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.AttributeModifyResponse.user_name)
+}
+inline ::std::string* AttributeModifyResponse::mutable_user_name() {
+  set_has_user_name();
+  if (user_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_name_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.AttributeModifyResponse.user_name)
+  return user_name_;
+}
+inline ::std::string* AttributeModifyResponse::release_user_name() {
+  clear_has_user_name();
+  if (user_name_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = user_name_;
+    user_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AttributeModifyResponse::set_allocated_user_name(::std::string* user_name) {
+  if (user_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete user_name_;
+  }
+  if (user_name) {
+    set_has_user_name();
+    user_name_ = user_name;
+  } else {
+    clear_has_user_name();
+    user_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyResponse.user_name)
+}
+
+// optional string user_email = 10;
+inline bool AttributeModifyResponse::has_user_email() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+inline void AttributeModifyResponse::set_has_user_email() {
+  _has_bits_[0] |= 0x00000200u;
+}
+inline void AttributeModifyResponse::clear_has_user_email() {
+  _has_bits_[0] &= ~0x00000200u;
+}
+inline void AttributeModifyResponse::clear_user_email() {
+  if (user_email_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_email_->clear();
+  }
+  clear_has_user_email();
+}
+inline const ::std::string& AttributeModifyResponse::user_email() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyResponse.user_email)
+  return *user_email_;
+}
+inline void AttributeModifyResponse::set_user_email(const ::std::string& value) {
+  set_has_user_email();
+  if (user_email_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_email_ = new ::std::string;
+  }
+  user_email_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyResponse.user_email)
+}
+inline void AttributeModifyResponse::set_user_email(const char* value) {
+  set_has_user_email();
+  if (user_email_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_email_ = new ::std::string;
+  }
+  user_email_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.AttributeModifyResponse.user_email)
+}
+inline void AttributeModifyResponse::set_user_email(const char* value, size_t size) {
+  set_has_user_email();
+  if (user_email_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_email_ = new ::std::string;
+  }
+  user_email_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.AttributeModifyResponse.user_email)
+}
+inline ::std::string* AttributeModifyResponse::mutable_user_email() {
+  set_has_user_email();
+  if (user_email_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_email_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.AttributeModifyResponse.user_email)
+  return user_email_;
+}
+inline ::std::string* AttributeModifyResponse::release_user_email() {
+  clear_has_user_email();
+  if (user_email_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = user_email_;
+    user_email_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AttributeModifyResponse::set_allocated_user_email(::std::string* user_email) {
+  if (user_email_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete user_email_;
+  }
+  if (user_email) {
+    set_has_user_email();
+    user_email_ = user_email;
+  } else {
+    clear_has_user_email();
+    user_email_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyResponse.user_email)
+}
+
+// optional string user_mobile = 11;
+inline bool AttributeModifyResponse::has_user_mobile() const {
+  return (_has_bits_[0] & 0x00000400u) != 0;
+}
+inline void AttributeModifyResponse::set_has_user_mobile() {
+  _has_bits_[0] |= 0x00000400u;
+}
+inline void AttributeModifyResponse::clear_has_user_mobile() {
+  _has_bits_[0] &= ~0x00000400u;
+}
+inline void AttributeModifyResponse::clear_user_mobile() {
+  if (user_mobile_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_mobile_->clear();
+  }
+  clear_has_user_mobile();
+}
+inline const ::std::string& AttributeModifyResponse::user_mobile() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyResponse.user_mobile)
+  return *user_mobile_;
+}
+inline void AttributeModifyResponse::set_user_mobile(const ::std::string& value) {
+  set_has_user_mobile();
+  if (user_mobile_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_mobile_ = new ::std::string;
+  }
+  user_mobile_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyResponse.user_mobile)
+}
+inline void AttributeModifyResponse::set_user_mobile(const char* value) {
+  set_has_user_mobile();
+  if (user_mobile_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_mobile_ = new ::std::string;
+  }
+  user_mobile_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.AttributeModifyResponse.user_mobile)
+}
+inline void AttributeModifyResponse::set_user_mobile(const char* value, size_t size) {
+  set_has_user_mobile();
+  if (user_mobile_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_mobile_ = new ::std::string;
+  }
+  user_mobile_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.AttributeModifyResponse.user_mobile)
+}
+inline ::std::string* AttributeModifyResponse::mutable_user_mobile() {
+  set_has_user_mobile();
+  if (user_mobile_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    user_mobile_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.AttributeModifyResponse.user_mobile)
+  return user_mobile_;
+}
+inline ::std::string* AttributeModifyResponse::release_user_mobile() {
+  clear_has_user_mobile();
+  if (user_mobile_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = user_mobile_;
+    user_mobile_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void AttributeModifyResponse::set_allocated_user_mobile(::std::string* user_mobile) {
+  if (user_mobile_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete user_mobile_;
+  }
+  if (user_mobile) {
+    set_has_user_mobile();
+    user_mobile_ = user_mobile;
+  } else {
+    clear_has_user_mobile();
+    user_mobile_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyResponse.user_mobile)
+}
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -865,6 +1716,11 @@ inline void AttributeModifyResponse::set_allocated_extra_msg(::std::string* extr
 namespace google {
 namespace protobuf {
 
+template <> struct is_proto_enum< ::com::caredear::AttributeType> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::AttributeType>() {
+  return ::com::caredear::AttributeType_descriptor();
+}
 template <> struct is_proto_enum< ::com::caredear::GenderType> : ::google::protobuf::internal::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::GenderType>() {
