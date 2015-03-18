@@ -44,6 +44,12 @@ int Config::prepare_db_and_mem()
         ERR("***Failed init the SQL env\n");
     }
 
+    if(strlen(m_strMemIP) == 0)
+    {
+        INFO("No memcache config found\n");
+        return 0;
+    }
+
     // next, it is the memcached.
     char mem_cfg [128];
     snprintf(mem_cfg, sizeof(mem_cfg),

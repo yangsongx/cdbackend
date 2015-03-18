@@ -1,0 +1,20 @@
+package com.caredear;
+
+enum GenderType{
+    MALE = 0;
+    FEMAL = 1;
+}
+
+message AttributeModifyRequest {
+    required uint64   caredear_id = 1;
+    optional string   real_name= 2;
+    optional string   nick_name = 3;
+    optional GenderType gender = 4;
+    optional string   birthday = 5;
+    optional string   head_image= 6;
+    optional string   head_image2= 7;  // a larger image
+}
+
+message AttributeModifyResponse{
+    required int32 result_code = 1; //CDS_XXX
+}

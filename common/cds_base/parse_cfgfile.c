@@ -11,6 +11,8 @@
 
 int get_node_via_xpath(const char *xpath, xmlXPathContextPtr ctx, char *result, int result_size)
 {
+    int ret = -1;
+
     xmlXPathObjectPtr  obj;
     obj = xmlXPathEvalExpression((xmlChar *)xpath, ctx);
     if(obj != NULL && obj->nodesetval != NULL)
@@ -24,13 +26,14 @@ int get_node_via_xpath(const char *xpath, xmlXPathContextPtr ctx, char *result, 
             {
                 node = node->children;
                 strncpy(result, (const char *)node->content, result_size);
+                ret = 0;
             }
         }
 
         xmlXPathFreeObject(obj);
     }
 
-    return 0;
+    return ret;
 }
 
 void fill_server_info(xmlXPathContextPtr ctx, struct sql_server_info *server)

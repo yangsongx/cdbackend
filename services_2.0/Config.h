@@ -44,6 +44,10 @@ namespace caredear{
         memcached_st     *m_Memc;
         ///////////////////////////////////////////
 
+        Config() {
+            m_strSqlIP[0] = '\0';
+            m_strMemIP[0] = '\0';
+        }
         /* each components' config XML path is different,
          * so they MUST override this function */
         virtual int parse_cfg(const char *config_file) = 0;
