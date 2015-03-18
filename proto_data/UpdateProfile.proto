@@ -12,9 +12,9 @@ enum Updatetype{
 
 message UpdateRequest{
     required Updatetype reg_type = 1;  //
-    required string     reg_data = 2;
-    required string     reg_ticket = 3;
-    optional string     reg_value = 4;  //
+    required string     update_data = 2;
+    required string     uid = 3;
+    optional string     vcode = 4;  //
 }
 
 // FIXME - result code be consistent with Web defination?
