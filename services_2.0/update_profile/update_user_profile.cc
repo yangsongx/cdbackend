@@ -55,24 +55,35 @@ int uup_handler(int size, void *req, int *len_resp, void *resp)
     {
     	if (0==check_user_vcode(g_info.m_Sql,&reqobj,&respobj, &g_info))
     	{
-    		if(0==record_user_login_info(g_info.m_Sql,&reqobj,&respobj, &g_info))
-    		{
-    			if(opr.compose_result(-2,NULL,&respobj, len_resp, resp))
-    		{
-                ERR("** failed seriliaze for the error case\n");
+            if(is_dup_record(g_info.m_Sql,&reqobj,&respobj, &g_info)!=0)
+            {
+                if(opr.compose_result(19,NULL,&respobj, len_resp, resp))
+                {
+                    ERR("** failed seriliaze for the error case\n");
+                }
             }
-    		}
-    		else
-    		{
-    			if(opr.compose_result(-3,NULL,&respobj, len_resp, resp))
-    		{
-                ERR("** failed seriliaze for the error case\n");
+            else
+            {
+                int DB_returns = record_user_login_info(g_info.m_Sql,&reqobj,&respobj, &g_info);
+    		    if(0==DB_returns)
+    		    {
+    			      if(opr.compose_result(0,NULL,&respobj, len_resp, resp))
+    		          {
+                            ERR("** failed seriliaze for the error case\n");
+                       }
+    		    }
+    		    else 
+    		    {
+    			     if(opr.compose_result(DB_returns,NULL,&respobj, len_resp, resp))
+    		         {
+                         ERR("** failed seriliaze for the error case\n");
+                     }
+    		    }
             }
-    		}
     	}
     	else
     	{
-    		if(opr.compose_result(-1,NULL,&respobj, len_resp, resp))
+    		if(opr.compose_result(16,NULL,&respobj, len_resp, resp))
     		{
                 ERR("** failed seriliaze for the error case\n");
             }

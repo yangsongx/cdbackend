@@ -26,15 +26,97 @@ using namespace com::caredear;
 extern pthread_mutex_t uup_mutex; // defined in main()
 
 
+int is_dup_record(MYSQL *ms, UpdateRequest *reqobj, UpdateResponse *respobj, UpdateProfileConfig *config)
+{
+
+    char sqlcmd[1024];
+    int ret = CDS_OK;
+
+    switch(reqobj->reg_type())
+    {
+        case Updatetype::MOBILE_PHONE:
+                snprintf(sqlcmd, sizeof(sqlcmd),
+                "SELECT * FROM %s WHERE usermobile=\'%s\'",
+                NEW_PASS_TABLE,
+                reqobj->update_data().c_str());
+            break;
+
+        case Updatetype::EMAIL:
+                snprintf(sqlcmd, sizeof(sqlcmd),
+                "SELECT * FROM %s WHERE email=\'%s\'",
+                NEW_PASS_TABLE,
+                reqobj->update_data().c_str());
+            break;
+        case Updatetype::USER_NAME:
+                snprintf(sqlcmd, sizeof(sqlcmd),
+                "SELECT * FROM %s WHERE username=\'%s\'",
+                NEW_PASS_TABLE,
+                reqobj->update_data().c_str());
+            break;
+        case Updatetype::PASSWORD:
+            return ret;
+        default:
+            ERR("**Warning, un-support update_type\n");
+            break;        
+    }
+
+
+    LOG("is_dup_record: %s\n",sqlcmd);
+    LOCK_CDS(uup_mutex);
+    if(mysql_query(ms, sqlcmd))
+    {
+        UNLOCK_CDS(uup_mutex);
+        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR)
+        {
+            ERR("SQL GONE AWAY, need reconnecting\n");
+            return CDS_ERR_SQL_DISCONNECTED;
+        }
+        else
+        {
+            ERR("Failed verify code SQL:%s\n", mysql_error(ms));
+            return CDS_ERR_SQL_EXECUTE_FAILED;
+        }
+    }
+
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+    mresult = mysql_store_result(ms);
+    UNLOCK_CDS(uup_mutex);
+    if(mresult)
+    {
+        row = mysql_fetch_row(mresult);
+        if(row == NULL)
+        {
+            LOG("is_dup_record row is null: %s\n",sqlcmd);
+            ret = 0;
+        }
+        else
+        {
+            LOG("is_dup_record row NOT null: %s\n",sqlcmd);
+            ret = 1;
+        }
+    }
+    else
+    {
+        ERR("store result got NULL for check verify code\n");
+        ret = 2;
+    }
+
+    return ret;
+
+    
+}
+
 int record_user_login_info(MYSQL *ms, UpdateRequest *reqobj, UpdateResponse *respobj, UpdateProfileConfig *config)
 {
+
     char sqlcmd[1024];
     int ret = CDS_OK;
     switch(reqobj->reg_type())
     {
         case Updatetype::MOBILE_PHONE:
                 snprintf(sqlcmd, sizeof(sqlcmd),
-                "UPDATE %s SET usermobile=\'%s\'' WHERE id=\'%s\'",
+                "UPDATE %s SET usermobile=\'%s\' WHERE id=\'%s\'",
                 NEW_PASS_TABLE,
                 reqobj->update_data().c_str(),
                 reqobj->uid().c_str());
@@ -42,21 +124,21 @@ int record_user_login_info(MYSQL *ms, UpdateRequest *reqobj, UpdateResponse *res
 
         case Updatetype::EMAIL:
                 snprintf(sqlcmd, sizeof(sqlcmd),
-                "UPDATE %s SET email=\'%s\'' WHERE id=\'%s\'",
+                "UPDATE %s SET email=\'%s\' WHERE id=\'%s\'",
                 NEW_PASS_TABLE,
                 reqobj->update_data().c_str(),
                 reqobj->uid().c_str());
             break;
         case Updatetype::USER_NAME:
                 snprintf(sqlcmd, sizeof(sqlcmd),
-                "UPDATE %s SET username=\'%s\'' WHERE id=\'%s\'",
+                "UPDATE %s SET username=\'%s\' WHERE id=\'%s\'",
                 NEW_PASS_TABLE,
                 reqobj->update_data().c_str(),
                 reqobj->uid().c_str());
             break;
         case Updatetype::PASSWORD:
                  snprintf(sqlcmd, sizeof(sqlcmd),
-                "UPDATE %s SET loginpassword=\'%s\'' WHERE id=\'%s\'",
+                "UPDATE %s SET loginpassword=\'%s\' WHERE id=\'%s\'",
                 NEW_PASS_TABLE,
                 reqobj->update_data().c_str(),
                 reqobj->uid().c_str());
@@ -67,6 +149,7 @@ int record_user_login_info(MYSQL *ms, UpdateRequest *reqobj, UpdateResponse *res
         
     }    
     LOCK_CDS(uup_mutex);
+    LOG("record_user_login_info: %s\n",sqlcmd);
     if(mysql_query(ms, sqlcmd))
     {
         UNLOCK_CDS(uup_mutex);
