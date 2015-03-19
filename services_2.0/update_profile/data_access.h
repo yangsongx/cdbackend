@@ -9,6 +9,6 @@ using namespace com::caredear;
 
 extern int record_user_login_info(MYSQL *ms, UpdateRequest *reqobj, UpdateResponse *respobj, UpdateProfileConfig *config);
 extern int check_user_vcode(MYSQL *ms, UpdateRequest *reqobj, UpdateResponse *respobj, UpdateProfileConfig *config);
-
+extern int is_dup_record(MYSQL *ms, UpdateRequest *reqobj, UpdateResponse *respobj, UpdateProfileConfig *config);
 
 #endif
