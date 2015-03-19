@@ -18,7 +18,7 @@
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 
-#ifdef DEBUG 
+#ifdef CHECK_MEM_LEAK
 #include <mcheck.h>
 #endif
 
@@ -32,32 +32,28 @@
 #include "cds_public.h"
 #include "nds_def.h"
 
+
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
-#include "NetdiskConfig.h"
-#include "NetdiskOperation.h"
+#include "NetdiskMessage.pb.h"
 
 /* Now, we're going to C++ world */
 using namespace std;
 using namespace google::protobuf::io;
 using namespace com::caredear;
 
-//static MYSQL *nds_sql = NULL;
-
-NetdiskConfig  g_info;
+static MYSQL *nds_sql = NULL;
 
 /* QINIU SDK KEYS... */
 Qiniu_Client qn;
-//
-//const char *QINIU_ACCESS_KEY;
-//const char *QINIU_SECRET_KEY;
-//
+const char *QINIU_ACCESS_KEY;
+const char *QINIU_SECRET_KEY;
 const char *qiniu_bucket;
 const char *qiniu_domain;
 unsigned int qiniu_expires = 2592000; // 30 dyas by default
 unsigned int qiniu_quota = 10000; // set 10000 here just for debug..., correct should go into config...
 
-#if 0
+
 int init_and_config(const char *cfg_file)
 {
     int ret = -1;
@@ -146,7 +142,6 @@ int init_and_config(const char *cfg_file)
 
     return ret;
 }
-#endif
 
 int get_md5(const char *filename, char *p_md5)
 {
@@ -382,8 +377,7 @@ int simulate_client_upload(NetdiskResponse *p_ndr)
 int ping_nds_handler(int size, void *req, int *len_resp, void *resp)
 {
     int ret = 0;
-    // TODO
-#if 0
+
     ret = keep_nds_db_connected(nds_sql);
     LOG("nds ping result=%d\n", ret);
 
@@ -391,7 +385,7 @@ int ping_nds_handler(int size, void *req, int *len_resp, void *resp)
      */
     *len_resp = 4;
     *(int *)resp = ret;
-#endif
+
     return ret;
 }
 
@@ -400,7 +394,6 @@ int ping_nds_handler(int size, void *req, int *len_resp, void *resp)
  * upload token to caller.
  *
  */
-#if 0
 int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
 {
     int ret = CDS_OK;
@@ -448,7 +441,6 @@ int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, voi
 
     return ret;
 }
-#endif
 
 /**
  * update the DB as we found APK upload the file successfully
@@ -571,43 +563,29 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
     unsigned short len;
     int ret = CDS_OK;
     bool ok = false;
-    NetdiskOperation opr(&g_info);
-    NetdiskRequest  reqobj;
-    NetdiskResponse respobj;
+    NetdiskResponse nd_resp;
 
-#if 1
-    if(size >= DATA_BUFFER_SIZE)
+    if(size >= 1024)
     {
-        ERR("Too much long data, drop it!\n");
-        if(opr.compose_result(CDS_ERR_REQ_TOOLONG, "too much long",
-                    &respobj, len_resp, resp) != 0)
+        /* Note - actually, len checking already done at .SO side... */
+        ERR("Exceed limit(%d > %d), don't handle this request\n",
+                size, 1024);
+        ret = CDS_ERR_REQ_TOOLONG;
+        if(sendback_response(ret, "too much long length in req", &nd_resp, len_resp, resp) != 0)
         {
             ERR("***Failed Serialize the too-long error data\n");
         }
 
-        return CDS_ERR_REQ_TOOLONG;
+        return ret;
     }
 
+    LOG("got %d size from client\n", size);
+
+    NetdiskRequest reqobj;
     ArrayInputStream in(req, size);
     CodedInputStream is(&in);
 
     ok = reqobj.ParseFromCodedStream(&is);
-    if(ok)
-    {
-        ret = opr.handling_request(&reqobj, &respobj, len_resp, resp);
-    }
-    else
-    {
-        ERR("***Failed pare reqobj in protobuf!\n");
-        ret = CDS_ERR_REQ_PROTOBUF_INCORRECT;
-        if(opr.compose_result(CDS_ERR_REQ_PROTOBUF_INCORRECT, "failed parse in protobuf",
-                &respobj, len_resp, resp) != 0)
-        {
-            ERR("** failed seriliaze for the error case\n");
-        }
-    }
-#else
-
     if(ok)
     {
         // After go here, all data section got
@@ -691,25 +669,18 @@ int nds_handler(int size, void *req, int *len_resp, void *resp)
     {
         ERR("**Failed parse the request obj in protobuf!\n");
     }
-#endif
+
     return ret;
 }
 
 int main(int argc, char **argv)
 {
     struct addition_config cfg;
-
-#ifdef DEBUG 
+#ifdef CHECK_MEM_LEAK
     setenv("MALLOC_TRACE", "/tmp/nds.memleak", 1);
     mtrace();
 #endif
 
-#if 1
-    if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
-    {
-        ERR("*** Warning Failed init the config XML file!\n");
-    }
-#else
     if(init_and_config("/etc/cds_cfg.xml") != 0)
     {
         ERR("Failed init and get config info! quit this netdisk service!\n");
@@ -722,7 +693,7 @@ int main(int argc, char **argv)
         ERR("Failed create IPC objs:%d\n", errno);
         return -2;
     }
-#endif
+
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = nds_handler;
     cfg.ping_handler = ping_nds_handler;

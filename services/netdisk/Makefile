@@ -2,7 +2,6 @@
 #
 DEBUG=true
 QINIU_SDK = ../../3rd_party/qiniu-sdk/
-BASECLS=../../services_2.0/
 
 CC = g++
 SRC = $(QINIU_SDK)qiniu/auth_mac.cc \
@@ -15,17 +14,13 @@ SRC = $(QINIU_SDK)qiniu/auth_mac.cc \
       $(QINIU_SDK)qiniu/rs.cc \
       $(QINIU_SDK)b64/urlsafe_b64.cc \
       $(QINIU_SDK)cJSON/cJSON.cc \
-      $(BASECLS)Operation.cc \
-      $(BASECLS)Config.cc \
       NetdiskMessage.pb.cc \
-      NetdiskOperation.cc \
-      NetdiskConfig.cc \
       nds_main.cc \
       nds_sql.cc
 
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = $(COMMON_CFLAGS) -I../../common/cds_base/ -I $(BASECLS) -I $(QINIU_SDK) -I /usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
+CXXFLAGS = $(COMMON_CFLAGS) -I../../common/cds_base/ -I $(QINIU_SDK) -I /usr/include/libxml2/ `mysql_config --cflags` -fpermissive
 
 # Release should use -O2
 
@@ -35,7 +30,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L ../../common/cds_base/ -L $(QINIU_SDK) -lcds -pthread -levent -lcurl -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs`
+LDFLAGS = -L ../../common/cds_base/ -L $(QINIU_SDK) -lcds -pthread -levent -lcurl -lssl -lcrypto -lxml2 -lprotobuf `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.

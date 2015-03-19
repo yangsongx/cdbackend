@@ -259,7 +259,6 @@ void FREE_CMSSQL(MYSQL *m)
         mysql_close(m);
 }
 
-#if 0
 int create_new_user(MYSQL *ms, NetdiskRequest *p_obj)
 {
     int ret = -1;
@@ -292,7 +291,6 @@ int create_new_user(MYSQL *ms, NetdiskRequest *p_obj)
 
     return ret;
 }
-#endif
 
 /**
  *
@@ -350,7 +348,7 @@ int exceed_quota(MYSQL *ms, NetdiskRequest *p_obj)
 
     return exceed;
 }
-#if 0
+
 /**
  *
  *return CDS_XXX  for the request
@@ -448,7 +446,6 @@ int preprocess_upload_req (MYSQL *ms, NetdiskRequest *p_obj)
 
     return ret;
 }
-#endif
 
 int update_existed_file_db(MYSQL *ms, NetdiskRequest *p_obj)
 {
