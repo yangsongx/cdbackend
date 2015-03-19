@@ -11,16 +11,17 @@ enum Opcode{
 }
 
 message NetdiskRequest{
-    required string user = 1;  // user's mobile number(such as 130xxxxxxxx)
-    required Opcode opcode = 2;
+    required string user = 1;  // (obsoleted, 2.0 architecture SHOULD use UCENTER's CID!  user's mobile number(such as 130xxxxxxxx)
+    required uint64 caredear_id = 2; // User Caredear ID
+    required Opcode opcode = 3;
 
-    optional string md5 = 3;       // upload case fields...
-    optional string filename = 4;
-    optional int32  filesize = 5;
-    optional string newfile = 6;  // only for RENAME case...
-    optional string filecollection = 7;
-    optional string filepermission = 8;
-    optional string fileuploader = 9;
+    optional string md5 = 4;       // upload case fields...
+    optional string filename = 5;
+    optional int32  filesize = 6;
+    optional string newfile = 7;  // only for RENAME case...
+    optional string filecollection = 8;
+    optional string filepermission = 9;
+    optional string fileuploader = 10;
 }
 
 message NetdiskResponse{

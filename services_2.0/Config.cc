@@ -1,4 +1,5 @@
 #include "Config.h"
+#include <errmsg.h>
 
 using namespace com::caredear;
 
@@ -90,10 +91,13 @@ int Config::reconnect_sql()
                 NULL,
                 0))
     {
-        ERR("**failed re-connecting to MySQL:%s\n",
-                mysql_error(m_Sql));
-        mysql_close(m_Sql);
-        m_Sql = NULL;
+        ERR("**failed re-connecting to MySQL:(%d)%s\n",
+                mysql_errno(m_Sql), mysql_error(m_Sql));
+        if(mysql_errno(m_Sql) != CR_ALREADY_CONNECTED)
+        {
+            mysql_close(m_Sql);
+            m_Sql = NULL;
+        }
     }
     else
     {

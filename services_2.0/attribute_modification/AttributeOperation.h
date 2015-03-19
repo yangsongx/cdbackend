@@ -12,13 +12,19 @@ using namespace google::protobuf::io;
 
 class AttributeOperation : public com::caredear::Operation {
 
+    static AttributeModifyResponse m_QueryInfo;
     static int  m_attrRecord; // 1 - there're specified attribute item in DB, otherwise is 0
 
+    static int cb_query_attribute(MYSQL_RES *p_result);
     static int cb_check_attr_existence(MYSQL_RES *p_result);
 
     int user_attribute_existed(uint64_t cid);
+    int modify_user_attribute(AttributeModifyRequest  *reqobj);
+
     int insert_usr_attr_to_db(AttributeModifyRequest *attrobj);
     int update_usr_attr_to_db(AttributeModifyRequest *attrobj);
+
+    int query_user_attribute_from_db(AttributeModifyRequest *reqobj, AttributeModifyResponse *respobj);
 
 public:
     AttributeOperation() {

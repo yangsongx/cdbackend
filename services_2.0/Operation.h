@@ -9,6 +9,9 @@
 #define USERCENTER_MAIN_TBL     "uc.uc_passport"
 #define USERCENTER_ATTR_TBL     "uc.uc_attributes"
 
+#define NETDISK_USER_TBL        "netdisk.USERS"
+#define NETDISK_FILE_TBL        "netdisk.FILES"
+
 using namespace com::caredear;
 
 typedef int (*cb_sqlfunc)(MYSQL_RES *p_result);

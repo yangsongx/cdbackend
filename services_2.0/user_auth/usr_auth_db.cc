@@ -32,6 +32,7 @@ int set_token_info_to_db(MYSQL *ms, AuthRequest *reqobj)
     if(mresult)
     {
         ERR("**Warning, UPDATE should NEVER got non-NULL csse!\n");
+        mysql_free_result(mresult);
     }
     else
     {
@@ -108,6 +109,8 @@ int get_token_info_from_db(MYSQL *ms, AuthRequest *reqobj, AuthResponse *respobj
             // didn't find the matching
             ret = CDS_ERR_UMATCH_USER_INFO;
         }
+
+        mysql_free_result(mresult);
     }
     else
     {
@@ -159,6 +162,8 @@ int store_db_session_conf(MYSQL *ms, map<int, session_db_cfg_t> *pList)
             t.sfg_type = atoi(row[3]);
             pList->insert(map<int, session_db_cfg_t>::value_type(sysid, t));
         }
+
+        mysql_free_result(mresult);
     }
     else
     {

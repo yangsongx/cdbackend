@@ -68,53 +68,6 @@ int rm_qiniu_disk_file(const char *diskkey)
  *
  *return a FT_XXX type
  */
-int mapping_file_type(const char *filename)
-{
-    int type = FT_DOC;
-    int len = strlen(filename);
-    char *suffix;
-
-    if(filename[len - 1] == '.')
-    {
-        // file ending with dot(i.e, 'xxx.')
-        return type;
-    }
-
-    while(filename[--len] != '.' && len > 0) ;
-
-    if(len != 0)
-    {
-        suffix = (char *) &filename[len + 1]; // + 1 to surpass '.' char
-        LOG("%s ===> %s\n", filename, suffix);
-        if(!strncmp(suffix, "jpg", 3) || !strncmp(suffix, "jpeg", 4)
-          || !strncmp(suffix, "png", 3) || !strncmp(suffix, "bmp", 3)
-          || !strncmp(suffix, "gif", 3))
-        {
-            type = FT_IMAGE;
-        }
-        else if(!strncmp(suffix, "3gp", 3) || !strncmp(suffix, "mp3", 3)
-                || !strncmp(suffix, "wma", 3))
-        {
-            type = FT_MUSIC;
-        }
-        else if(!strncmp(suffix, "mp4", 3) || !strncmp(suffix, "3gp", 3))
-        {
-            type = FT_VIDEO;
-        }
-        else if(!strncmp(suffix, "vcf", 3))
-        {
-            type = FT_CONTACTS;
-        }
-        else if(!strncmp(suffix, "msg", 3))
-        {
-            type = FT_SMS;
-        }
-
-        // all others will be considered as doc
-    }
-
-    return type;
-}
 
 /**
  * Getting a files' md5 and size in DB(if available)
@@ -527,7 +480,7 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
     UNLOCK_SQL;
 
 
-    type = mapping_file_type(filename);
+    //type = mapping_file_type(filename);
     time(&t);
     strftime(timeformat, sizeof(timeformat), "%Y-%m-%d %H:%M:%S", localtime_r(&t, &re));
 

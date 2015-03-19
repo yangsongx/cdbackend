@@ -85,6 +85,10 @@ else
   echo "Attribute IDL generation [**failed]"
 fi
 
-#mv *.pb.*  $(NETDISK_DIR)
-#protoc --java_out="/home/yangsongxiang/server/backend/services/netdisk/test/" NetdiskMessage.proto
-#mv *.java $(NETDISK_DIR)test/com/caredear
+# For Netdisk Service - 2.0
+protoc --cpp_out="../services_2.0/netdisk_2/" NetdiskMessage.proto
+if [ $? -eq 0 ]; then
+  echo "Netdisk IDL generation [OK]"
+else
+  echo "Netdisk IDL generation [**failed]"
+fi

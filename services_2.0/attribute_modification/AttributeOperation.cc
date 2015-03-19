@@ -1,6 +1,89 @@
 #include "AttributeOperation.h"
 
 int AttributeOperation::m_attrRecord = 0;
+AttributeModifyResponse AttributeOperation::m_QueryInfo;
+
+
+int AttributeOperation::cb_query_attribute(MYSQL_RES *p_result)
+{
+    MYSQL_ROW  row;
+    int col_count;
+
+    if(!p_result)
+    {
+        return -1;
+    }
+
+    row = mysql_fetch_row(p_result);
+    if(!row)
+    {
+        INFO("Got blank result for query user info\n");
+        return -1;
+    }
+
+    /* keep field-map be consistent with SELECT sql */
+    col_count = mysql_num_fields(p_result);
+    if(col_count != 9 || mysql_num_rows(p_result) != 1)
+    {
+        ERR("query result probably incorrect(row:%llu,col:%d)\n",
+               mysql_num_rows(p_result), col_count);
+        return -1;
+    }
+
+    if(row[0] != NULL && strlen(row[0]) > 0)
+    {
+        m_QueryInfo.set_user_name(row[0]);
+    }
+
+    if(row[1] != NULL && strlen(row[1]) > 0)
+    {
+        m_QueryInfo.set_user_mobile(row[1]);
+    }
+
+    if(row[2] != NULL && strlen(row[2]) > 0)
+    {
+        m_QueryInfo.set_user_email(row[2]);
+    }
+
+    if(row[3] != NULL && strlen(row[3]) > 0)
+    {
+        m_QueryInfo.set_real_name(row[3]);
+    }
+
+    if(row[4] != NULL && strlen(row[4]) > 0)
+    {
+        m_QueryInfo.set_nick_name(row[4]);
+    }
+
+    if(row[5] != NULL && strlen(row[5]) > 0)
+    {
+        if(atoi(row[5]) == 1)
+        {
+            m_QueryInfo.set_gender(GenderType::MALE);
+        }
+        else
+        {
+            m_QueryInfo.set_gender(GenderType::FEMAL);
+        }
+    }
+
+    if(row[6] != NULL && strlen(row[6]) > 0)
+    {
+        m_QueryInfo.set_birthday(row[6]);
+    }
+
+    if(row[7] != NULL && strlen(row[7]) > 0)
+    {
+        m_QueryInfo.set_head_image(row[7]);
+    }
+
+    if(row[8] != NULL && strlen(row[8]) > 0)
+    {
+        m_QueryInfo.set_head_image2(row[8]);
+    }
+
+    return 0;
+}
 
 /**
  *
@@ -229,11 +312,9 @@ int AttributeOperation::update_usr_attr_to_db(AttributeModifyRequest *reqobj)
     return ret;
 }
 
-int AttributeOperation::handling_request(::google::protobuf::Message *attr_req, ::google::protobuf::Message *attr_resp, int *len_resp, void *resp)
+int AttributeOperation::modify_user_attribute(AttributeModifyRequest  *reqobj)
 {
-    int ret = CDS_OK;
-    AttributeModifyRequest  *reqobj = (AttributeModifyRequest *) attr_req;
-    AttributeModifyResponse *respobj = (AttributeModifyResponse *) attr_resp;
+    int ret;
 
     if(user_attribute_existed(reqobj->caredear_id()) == 1)
     {
@@ -244,6 +325,57 @@ int AttributeOperation::handling_request(::google::protobuf::Message *attr_req, 
     {
         // insert a new record
         ret = insert_usr_attr_to_db(reqobj);
+    }
+
+    return ret;
+}
+
+int AttributeOperation::query_user_attribute_from_db(AttributeModifyRequest *reqobj, AttributeModifyResponse *respobj)
+{
+    int ret = CDS_OK;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT %s.username,%s.usermobile,%s.email,"
+            "%s.realname,%s.nickname,%s.sex,%s.birthday,%s.headimg,%s.headimg2 "
+            "FROM %s,%s WHERE %s.id=%s.caredearid AND %s.id=%lu",
+            USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL,
+            USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL,
+            USERCENTER_MAIN_TBL, USERCENTER_ATTR_TBL, USERCENTER_MAIN_TBL, USERCENTER_ATTR_TBL, USERCENTER_MAIN_TBL, reqobj->caredear_id());
+
+    ret = sql_cmd(sqlcmd, cb_query_attribute);
+    if(ret == CDS_OK)
+    {
+        // assign operator
+        *respobj = m_QueryInfo;
+    }
+
+    return ret;
+}
+
+
+int AttributeOperation::handling_request(::google::protobuf::Message *attr_req, ::google::protobuf::Message *attr_resp, int *len_resp, void *resp)
+{
+    int ret = CDS_OK;
+    AttributeModifyRequest  *reqobj = (AttributeModifyRequest *) attr_req;
+    AttributeModifyResponse *respobj = (AttributeModifyResponse *) attr_resp;
+
+    switch(reqobj->req_type())
+    {
+        case AttributeType::MODIFY:
+            ret = modify_user_attribute(reqobj);
+            break;
+
+        case AttributeType::QUERY:
+            // As query won't be so frequently, we don't add any
+            // memcach, so directly choose from DB.
+            ret = query_user_attribute_from_db(reqobj, respobj);
+            break;
+
+        default:
+            ERR("SHOULD NEVER come here as unknow req type\n");
+            ret = CDS_GENERIC_ERROR;
+            break;
     }
 
     if(compose_result(ret, NULL, respobj, len_resp, resp) != 0)

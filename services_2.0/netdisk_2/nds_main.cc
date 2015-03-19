@@ -42,111 +42,19 @@ using namespace std;
 using namespace google::protobuf::io;
 using namespace com::caredear;
 
-//static MYSQL *nds_sql = NULL;
+static MYSQL *nds_sql = NULL;
 
 NetdiskConfig  g_info;
 
 /* QINIU SDK KEYS... */
 Qiniu_Client qn;
 //
-//const char *QINIU_ACCESS_KEY;
-//const char *QINIU_SECRET_KEY;
 //
 const char *qiniu_bucket;
 const char *qiniu_domain;
 unsigned int qiniu_expires = 2592000; // 30 dyas by default
 unsigned int qiniu_quota = 10000; // set 10000 here just for debug..., correct should go into config...
 
-#if 0
-int init_and_config(const char *cfg_file)
-{
-    int ret = -1;
-    xmlDocPtr doc;
-    xmlXPathContextPtr ctx;
-
-    static char access_key[128];
-    static char secret_key[128];
-    static char bucket[128];
-    static char domain[128];
-
-    /* Init Qiniu stuff,as we need it's service */
-    Qiniu_Servend_Init(-1);
-
-    if(access(cfg_file, F_OK) != 0)
-    {
-        ERR("\'%s\' not existed!\n", cfg_file);
-        return -1;
-    }
-
-    doc = xmlParseFile(cfg_file);
-    if(doc != NULL)
-    {
-        ctx = xmlXPathNewContext(doc);
-        if(ctx != NULL)
-        {
-            get_node_via_xpath("/config/netdisk/qiniu/access_key", ctx,
-                    access_key, sizeof(access_key));
-
-            get_node_via_xpath("/config/netdisk/qiniu/secret_key", ctx,
-                    secret_key, sizeof(secret_key));
-
-            get_node_via_xpath("/config/netdisk/sqlserver/ip", ctx,
-                    sql_cfg.ssi_server_ip, 32);
-
-            get_node_via_xpath("/config/netdisk/sqlserver/user", ctx,
-                    sql_cfg.ssi_user_name, 32);
-
-            get_node_via_xpath("/config/netdisk/sqlserver/password", ctx,
-                    sql_cfg.ssi_user_password, 32);
-            // FIXME , I don't parse database name here, as we will
-            // use database.dbtable in SQL command.
-
-            QINIU_ACCESS_KEY = access_key;
-            QINIU_SECRET_KEY = secret_key;
-
-
-            // re-use a static buf temp for store int...
-            get_node_via_xpath("/config/netdisk/qiniu/expiration", ctx,
-                    domain, sizeof(domain));
-            qiniu_expires = atoi(domain);
-
-            get_node_via_xpath("/config/netdisk/qiniu/quota", ctx,
-                    domain, sizeof(domain));
-            qiniu_quota = atoi(domain);
-
-            //next, overwrite the domain immediately
-            get_node_via_xpath("/config/netdisk/qiniu/domain", ctx,
-                    domain, sizeof(domain));
-
-            get_node_via_xpath("/config/netdisk/qiniu/bucket", ctx,
-                    bucket, sizeof(bucket));
-
-            qiniu_domain = domain;
-            qiniu_bucket = bucket;
-
-            xmlXPathFreeContext(ctx);
-            ret = 0;
-        }
-
-        xmlFreeDoc(doc);
-
-        LOG("ACCESS KEY:%s, SECRET KEY:%s\n",
-                QINIU_ACCESS_KEY, QINIU_SECRET_KEY);
-        LOG("SQL Server IP : %s Port : %d, user name : %s\n",
-                sql_cfg.ssi_server_ip, sql_cfg.ssi_server_port,
-                sql_cfg.ssi_user_name);
-    }
-
-    nds_sql = GET_CMSSQL(&sql_cfg);
-    if(nds_sql == NULL)
-    {
-        ERR("failed connecting to the SQL server!\n");
-        return -1;
-    }
-
-    return ret;
-}
-#endif
 
 int get_md5(const char *filename, char *p_md5)
 {
