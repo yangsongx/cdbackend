@@ -8,6 +8,7 @@ enum RegLoginType{
     PHONE_PASSWD = 4;
     OTHERS = 5;
     CID_PASSWD = 6; // using caredear ID login
+    LOG_OUT = 7; // User want to log out
 }
 
 enum DeviceType{

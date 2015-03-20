@@ -10,6 +10,7 @@ message LoginRequest{
     required string    login_name = 3;
     required string    login_password = 4;  // it will be token for mobile case
     required string    login_sysid = 5;
+    optional string    logout_ticket = 6; // the target logout's token
 }
 
 // FIXME - result code be consistent with Web defination?

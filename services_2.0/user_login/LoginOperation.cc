@@ -39,6 +39,20 @@ int LoginOperation::update_usercenter_session(LoginRequest *reqobj, struct user_
     return 0;
 }
 
+int LoginOperation::delete_usercenter_session(LoginRequest *reqobj)
+{
+    int ret = CDS_OK;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "DELETE FROM %s WHERE ticket=\'%s\' AND session=\'%s\'",
+            USERCENTER_SESSION_TBL, reqobj->logout_ticket().c_str(), reqobj->login_session().c_str());
+
+    ret = sql_cmd(sqlcmd, NULL);
+
+    return ret;
+}
+
 int LoginOperation::compose_result(int code, const char *errmsg, ::google::protobuf::Message *obj, int *p_resplen, void *p_respdata)
 {
     unsigned short len;
@@ -66,18 +80,10 @@ int LoginOperation::compose_result(int code, const char *errmsg, ::google::proto
     return ((p_obj->SerializeToCodedStream(&cos) == true) ? 0 : -1);
 }
 
-
-/**
- * Begin do the User's Login action
- *
- *
- */
-int LoginOperation::handling_request(::google::protobuf::Message *login_req, ::google::protobuf::Message *login_resp, int *len_resp, void *resp)
+int LoginOperation::process_user_and_credential(LoginRequest *reqobj, LoginResponse *respobj)
 {
     int ret = -1;
     unsigned long cid = -1;
-    LoginRequest *reqobj = (LoginRequest *)login_req;
-    LoginResponse *respobj = (LoginResponse *) login_resp;
 
     ret = match_user_credential_in_db(m_pCfg->m_Sql, reqobj, &cid);
 
@@ -110,6 +116,31 @@ int LoginOperation::handling_request(::google::protobuf::Message *login_req, ::g
     {
         // failure case...
         ERR("User login is incorrect!\n");
+    }
+
+    return ret;
+}
+
+/**
+ * Begin do the User's Login action
+ *
+ *
+ */
+int LoginOperation::handling_request(::google::protobuf::Message *login_req, ::google::protobuf::Message *login_resp, int *len_resp, void *resp)
+{
+    int ret = -1;
+    LoginRequest *reqobj = (LoginRequest *)login_req;
+    LoginResponse *respobj = (LoginResponse *) login_resp;
+
+    if(reqobj->login_type() != RegLoginType::LOG_OUT)
+    {
+        // a normal User+Credential Log-In case
+        ret = process_user_and_credential(reqobj, respobj);
+    }
+    else
+    {
+        // This is user requesting deleting log session
+        ret = delete_usercenter_session(reqobj);
     }
 
     if(compose_result(ret, NULL, respobj, len_resp, resp) != 0)

@@ -38,12 +38,13 @@ void protobuf_AssignDesc_UserLogin_2eproto() {
       "UserLogin.proto");
   GOOGLE_CHECK(file != NULL);
   LoginRequest_descriptor_ = file->message_type(0);
-  static const int LoginRequest_offsets_[5] = {
+  static const int LoginRequest_offsets_[6] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, login_type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, login_session_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, login_name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, login_password_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, login_sysid_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, logout_ticket_),
   };
   LoginRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -109,12 +110,13 @@ void protobuf_AddDesc_UserLogin_2eproto() {
   ::com::caredear::protobuf_AddDesc_CommonUserCenter_2eproto();
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\017UserLogin.proto\022\014com.caredear\032\026CommonU"
-    "serCenter.proto\"\226\001\n\014LoginRequest\022.\n\nlogi"
+    "serCenter.proto\"\255\001\n\014LoginRequest\022.\n\nlogi"
     "n_type\030\001 \002(\0162\032.com.caredear.RegLoginType"
     "\022\025\n\rlogin_session\030\002 \002(\t\022\022\n\nlogin_name\030\003 "
     "\002(\t\022\026\n\016login_password\030\004 \002(\t\022\023\n\013login_sys"
-    "id\030\005 \002(\t\"F\n\rLoginResponse\022\023\n\013result_code"
-    "\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t\022\r\n\005token\030\003 \001(\t", 280);
+    "id\030\005 \002(\t\022\025\n\rlogout_ticket\030\006 \001(\t\"F\n\rLogin"
+    "Response\022\023\n\013result_code\030\001 \002(\005\022\021\n\textra_m"
+    "sg\030\002 \001(\t\022\r\n\005token\030\003 \001(\t", 303);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserLogin.proto", &protobuf_RegisterTypes);
   LoginRequest::default_instance_ = new LoginRequest();
@@ -139,6 +141,7 @@ const int LoginRequest::kLoginSessionFieldNumber;
 const int LoginRequest::kLoginNameFieldNumber;
 const int LoginRequest::kLoginPasswordFieldNumber;
 const int LoginRequest::kLoginSysidFieldNumber;
+const int LoginRequest::kLogoutTicketFieldNumber;
 #endif  // !_MSC_VER
 
 LoginRequest::LoginRequest()
@@ -165,6 +168,7 @@ void LoginRequest::SharedCtor() {
   login_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   login_password_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   login_sysid_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  logout_ticket_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -185,6 +189,9 @@ void LoginRequest::SharedDtor() {
   }
   if (login_sysid_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete login_sysid_;
+  }
+  if (logout_ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete logout_ticket_;
   }
   if (this != default_instance_) {
   }
@@ -212,7 +219,7 @@ LoginRequest* LoginRequest::New() const {
 }
 
 void LoginRequest::Clear() {
-  if (_has_bits_[0 / 32] & 31) {
+  if (_has_bits_[0 / 32] & 63) {
     login_type_ = 1;
     if (has_login_session()) {
       if (login_session_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -232,6 +239,11 @@ void LoginRequest::Clear() {
     if (has_login_sysid()) {
       if (login_sysid_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         login_sysid_->clear();
+      }
+    }
+    if (has_logout_ticket()) {
+      if (logout_ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        logout_ticket_->clear();
       }
     }
   }
@@ -332,6 +344,23 @@ bool LoginRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(50)) goto parse_logout_ticket;
+        break;
+      }
+
+      // optional string logout_ticket = 6;
+      case 6: {
+        if (tag == 50) {
+         parse_logout_ticket:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_logout_ticket()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->logout_ticket().data(), this->logout_ticket().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "logout_ticket");
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -407,6 +436,16 @@ void LoginRequest::SerializeWithCachedSizes(
       5, this->login_sysid(), output);
   }
 
+  // optional string logout_ticket = 6;
+  if (has_logout_ticket()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->logout_ticket().data(), this->logout_ticket().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "logout_ticket");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      6, this->logout_ticket(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -467,6 +506,17 @@ void LoginRequest::SerializeWithCachedSizes(
         5, this->login_sysid(), target);
   }
 
+  // optional string logout_ticket = 6;
+  if (has_logout_ticket()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->logout_ticket().data(), this->logout_ticket().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "logout_ticket");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        6, this->logout_ticket(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -513,6 +563,13 @@ int LoginRequest::ByteSize() const {
           this->login_sysid());
     }
 
+    // optional string logout_ticket = 6;
+    if (has_logout_ticket()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->logout_ticket());
+    }
+
   }
   if (!unknown_fields().empty()) {
     total_size +=
@@ -555,6 +612,9 @@ void LoginRequest::MergeFrom(const LoginRequest& from) {
     if (from.has_login_sysid()) {
       set_login_sysid(from.login_sysid());
     }
+    if (from.has_logout_ticket()) {
+      set_logout_ticket(from.logout_ticket());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -584,6 +644,7 @@ void LoginRequest::Swap(LoginRequest* other) {
     std::swap(login_name_, other->login_name_);
     std::swap(login_password_, other->login_password_);
     std::swap(login_sysid_, other->login_sysid_);
+    std::swap(logout_ticket_, other->logout_ticket_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

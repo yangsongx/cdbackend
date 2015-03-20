@@ -40,11 +40,12 @@ enum RegLoginType {
   NAME_PASSWD = 3,
   PHONE_PASSWD = 4,
   OTHERS = 5,
-  CID_PASSWD = 6
+  CID_PASSWD = 6,
+  LOG_OUT = 7
 };
 bool RegLoginType_IsValid(int value);
 const RegLoginType RegLoginType_MIN = MOBILE_PHONE;
-const RegLoginType RegLoginType_MAX = CID_PASSWD;
+const RegLoginType RegLoginType_MAX = LOG_OUT;
 const int RegLoginType_ARRAYSIZE = RegLoginType_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* RegLoginType_descriptor();

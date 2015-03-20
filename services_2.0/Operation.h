@@ -8,6 +8,7 @@
 //
 #define USERCENTER_MAIN_TBL     "uc.uc_passport"
 #define USERCENTER_ATTR_TBL     "uc.uc_attributes"
+#define USERCENTER_SESSION_TBL  "uc.uc_session"
 
 #define NETDISK_USER_TBL        "netdisk.USERS"
 #define NETDISK_FILE_TBL        "netdisk.FILES"

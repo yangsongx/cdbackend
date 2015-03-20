@@ -148,6 +148,18 @@ class LoginRequest : public ::google::protobuf::Message {
   inline ::std::string* release_login_sysid();
   inline void set_allocated_login_sysid(::std::string* login_sysid);
 
+  // optional string logout_ticket = 6;
+  inline bool has_logout_ticket() const;
+  inline void clear_logout_ticket();
+  static const int kLogoutTicketFieldNumber = 6;
+  inline const ::std::string& logout_ticket() const;
+  inline void set_logout_ticket(const ::std::string& value);
+  inline void set_logout_ticket(const char* value);
+  inline void set_logout_ticket(const char* value, size_t size);
+  inline ::std::string* mutable_logout_ticket();
+  inline ::std::string* release_logout_ticket();
+  inline void set_allocated_logout_ticket(::std::string* logout_ticket);
+
   // @@protoc_insertion_point(class_scope:com.caredear.LoginRequest)
  private:
   inline void set_has_login_type();
@@ -160,6 +172,8 @@ class LoginRequest : public ::google::protobuf::Message {
   inline void clear_has_login_password();
   inline void set_has_login_sysid();
   inline void clear_has_login_sysid();
+  inline void set_has_logout_ticket();
+  inline void clear_has_logout_ticket();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -169,6 +183,7 @@ class LoginRequest : public ::google::protobuf::Message {
   ::std::string* login_name_;
   ::std::string* login_password_;
   ::std::string* login_sysid_;
+  ::std::string* logout_ticket_;
   int login_type_;
   friend void  protobuf_AddDesc_UserLogin_2eproto();
   friend void protobuf_AssignDesc_UserLogin_2eproto();
@@ -620,6 +635,82 @@ inline void LoginRequest::set_allocated_login_sysid(::std::string* login_sysid) 
     login_sysid_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:com.caredear.LoginRequest.login_sysid)
+}
+
+// optional string logout_ticket = 6;
+inline bool LoginRequest::has_logout_ticket() const {
+  return (_has_bits_[0] & 0x00000020u) != 0;
+}
+inline void LoginRequest::set_has_logout_ticket() {
+  _has_bits_[0] |= 0x00000020u;
+}
+inline void LoginRequest::clear_has_logout_ticket() {
+  _has_bits_[0] &= ~0x00000020u;
+}
+inline void LoginRequest::clear_logout_ticket() {
+  if (logout_ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    logout_ticket_->clear();
+  }
+  clear_has_logout_ticket();
+}
+inline const ::std::string& LoginRequest::logout_ticket() const {
+  // @@protoc_insertion_point(field_get:com.caredear.LoginRequest.logout_ticket)
+  return *logout_ticket_;
+}
+inline void LoginRequest::set_logout_ticket(const ::std::string& value) {
+  set_has_logout_ticket();
+  if (logout_ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    logout_ticket_ = new ::std::string;
+  }
+  logout_ticket_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.LoginRequest.logout_ticket)
+}
+inline void LoginRequest::set_logout_ticket(const char* value) {
+  set_has_logout_ticket();
+  if (logout_ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    logout_ticket_ = new ::std::string;
+  }
+  logout_ticket_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.LoginRequest.logout_ticket)
+}
+inline void LoginRequest::set_logout_ticket(const char* value, size_t size) {
+  set_has_logout_ticket();
+  if (logout_ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    logout_ticket_ = new ::std::string;
+  }
+  logout_ticket_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.LoginRequest.logout_ticket)
+}
+inline ::std::string* LoginRequest::mutable_logout_ticket() {
+  set_has_logout_ticket();
+  if (logout_ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    logout_ticket_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.LoginRequest.logout_ticket)
+  return logout_ticket_;
+}
+inline ::std::string* LoginRequest::release_logout_ticket() {
+  clear_has_logout_ticket();
+  if (logout_ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = logout_ticket_;
+    logout_ticket_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void LoginRequest::set_allocated_logout_ticket(::std::string* logout_ticket) {
+  if (logout_ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete logout_ticket_;
+  }
+  if (logout_ticket) {
+    set_has_logout_ticket();
+    logout_ticket_ = logout_ticket;
+  } else {
+    clear_has_logout_ticket();
+    logout_ticket_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.LoginRequest.logout_ticket)
 }
 
 // -------------------------------------------------------------------
