@@ -612,25 +612,11 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
-#if 1
     if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {
         ERR("*** Warning Failed init the config XML file!\n");
     }
-#else
-    if(init_and_config("/etc/cds_cfg.xml") != 0)
-    {
-        ERR("Failed init and get config info! quit this netdisk service!\n");
-        return -1;
-    }
 
-    if(INIT_DB_MUTEX() != 0)
-    {
-        FREE_CMSSQL(nds_sql);
-        ERR("Failed create IPC objs:%d\n", errno);
-        return -2;
-    }
-#endif
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = nds_handler;
     cfg.ping_handler = ping_nds_handler;

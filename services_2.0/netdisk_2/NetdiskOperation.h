@@ -24,26 +24,35 @@ enum FILE_TYPE {
 };
 
 class NetdiskOperation : public com::caredear::Operation {
+    typedef struct _file_md5_size{
+        char f_md5[34]; // store md5sum data
+        int  f_size;
+    }file_md5_size_t;
 
     Qiniu_Client m_qn;
 
     int do_completed_qiniu_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata);
     int do_qiniu_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata);
+    int do_qiniu_deletion(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata);
 
     // /////////////////////////////////////////////////////////////////////////////
     // static variables....
+    static file_md5_size_t m_md5_size;
     static int m_cbFlag; // A flag for SQL callback result processing
 
     static int cb_query_user_entry(MYSQL_RES *p_result);
+    static int cb_query_file_md5_and_size(MYSQL_RES *p_result);
     static int cb_query_file_md5(MYSQL_RES *p_result);
     static int cb_query_quota(MYSQL_RES *p_result);
     // END OF static variables....
     // /////////////////////////////////////////////////////////////////////////////
 
 protected:
+    int map_file_to_md5_and_size(NetdiskRequest *p_obj, char *p_md5, int len_md5, int *p_size);
     int mapping_file_type(const char *filename);
 
     int add_new_user_entry_in_db(NetdiskRequest *p_obj);
+    int delete_file_info_from_db(NetdiskRequest *p_obj, const char *md5);
     int record_file_info_to_db(NetdiskRequest *p_obj);
 
     int preprocess_upload_req(NetdiskRequest *p_obj);

@@ -1,6 +1,8 @@
 #include "NetdiskOperation.h"
 #include "NetdiskConfig.h"
 
+NetdiskOperation::file_md5_size_t NetdiskOperation::m_md5_size;
+
 int NetdiskOperation::m_cbFlag = 0;
 
 int NetdiskOperation::cb_query_quota(MYSQL_RES *p_result)
@@ -40,6 +42,33 @@ int NetdiskOperation::cb_query_user_entry(MYSQL_RES *p_result)
     return 0;
 }
 
+int NetdiskOperation::cb_query_file_md5_and_size(MYSQL_RES *p_result)
+{
+    MYSQL_ROW row;
+    row = mysql_fetch_row(p_result);
+    if(row != NULL)
+    {
+        if(mysql_num_fields(p_result) != 2)
+        {
+            ERR("Warning, fields MUST be 2(md5|size)!check DB\n");
+        }
+        if(row[0] != NULL)
+        {
+            strncpy(m_md5_size.f_md5, row[0], 34);
+        }
+        if(row[1] != NULL)
+        {
+            m_md5_size.f_size = atoi(row[1]);
+        }
+    }
+    else
+    {
+        ERR("didn't find any matching file md5_size info!\n");
+    }
+
+    return 0;
+}
+
 int NetdiskOperation::cb_query_file_md5(MYSQL_RES *p_result)
 {
     MYSQL_ROW row;
@@ -72,6 +101,18 @@ int NetdiskOperation::add_new_user_entry_in_db(NetdiskRequest *p_obj)
 
     return ret;
 }
+
+int NetdiskOperation::delete_file_info_from_db(NetdiskRequest *p_obj, const char *md5)
+{
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "DELETE FROM %s WHERE MD5=\'%s\' AND OWNER=%lu",
+            NETDISK_FILE_TBL, md5, p_obj->caredear_id());
+
+    return 0;
+}
+
 
 /**
  * As we need modify multiple table, need support transaction
@@ -309,7 +350,7 @@ int NetdiskOperation::handling_request(::google::protobuf::Message *p_obj, ::goo
                     reqobj->user().c_str(), reqobj->filename().c_str());
             LOG("==================\n\n");
 
-            //ret = do_deletion(&reqobj, &nd_resp, len_resp, resp);
+            ret = do_qiniu_deletion(reqobj, respobj, len_resp, resp);
             break;
 
         case Opcode::SHARE:
@@ -451,4 +492,49 @@ int NetdiskOperation::mapping_file_type(const char *filename)
     }
 
     return type;
+}
+
+int NetdiskOperation::do_qiniu_deletion(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
+{
+    int ret = CDS_OK;
+    char md5[34];
+    int  size;
+
+    p_ndr->set_opcode(Opcode::DELETE);
+
+    ret = map_file_to_md5_and_size(p_obj, md5, sizeof(md5), &size);
+    if(ret == CDS_OK)
+    {
+        ret = delete_file_info_from_db(p_obj, md5);
+    }
+
+    // TODO
+
+    return ret;
+}
+
+int NetdiskOperation::map_file_to_md5_and_size(NetdiskRequest *p_obj, char *p_md5, int len_md5, int *p_size )
+{
+    int ret = -1;
+    char sqlcmd[256];
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT MD5,SIZE FROM %s WHERE FILENAME=\'%s\' AND OWNER=%lu;",
+            NETDISK_FILE_TBL, p_obj->filename().c_str(), p_obj->caredear_id());
+
+    ret = sql_cmd(sqlcmd, cb_query_file_md5_and_size);
+    if(ret == CDS_OK)
+    {
+        /* After exe SQL OK, target stored in m_md5_size variable */
+        strncpy(p_md5, m_md5_size.f_md5, len_md5);
+        *p_size = m_md5_size.f_size;
+    }
+    else
+    {
+        ERR("**Failed mapping %s file's md5|size info\n", p_obj->filename().c_str());
+    }
+
+    return ret;
 }
