@@ -37,12 +37,15 @@ int Operation::keep_alive(const char *db_tbl, const char *col_name/* = "id" */)
 {
     int ret = -1;
     char sqlcmd[128];
-    MYSQL *ms = m_pCfg->m_Sql;
-    MYSQL_RES *mresult;
+    //MYSQL *ms = m_pCfg->m_Sql;
+    //MYSQL_RES *mresult;
 
     snprintf(sqlcmd, sizeof(sqlcmd), "SELECT %s FROM %s",
             col_name, db_tbl);
 
+#if 1
+    ret = sql_cmd(sqlcmd, NULL);
+#else
     pthread_mutex_lock(&m_pCfg->m_SqlMutex);
     if(mysql_query(ms, sqlcmd))
     {
@@ -62,6 +65,7 @@ int Operation::keep_alive(const char *db_tbl, const char *col_name/* = "id" */)
 
         mysql_free_result(mresult);
     }
+#endif
 
     return ret;
 }

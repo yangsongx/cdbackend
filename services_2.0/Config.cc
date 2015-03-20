@@ -83,7 +83,9 @@ int Config::reconnect_sql()
 
     mysql_close(m_Sql);
 
-    if(!mysql_real_connect(m_Sql, m_strSqlIP,
+    m_Sql = mysql_init(NULL);
+
+    if(m_Sql != NULL && !mysql_real_connect(m_Sql, m_strSqlIP,
                 m_strSqlUserName,
                 m_strSqlUserPassword,
                 "", // db keep blank

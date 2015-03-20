@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -26,6 +27,7 @@
 
 #include <my_global.h>
 #include <mysql.h>
+#include <errmsg.h>
 
 #include <openssl/md5.h>
 
@@ -150,6 +152,14 @@ int try_conn_db(const char *config_file)
 
             mSql = mysql_init(NULL);
             if(mSql != NULL){
+                int a = 1;
+                /* begin set some options before real connect */
+                //mysql_options(mSql, MYSQL_OPT_RECONNECT, &a);
+                a = 2;
+                mysql_options(mSql, MYSQL_OPT_CONNECT_TIMEOUT, &a);
+                mysql_options(mSql, MYSQL_OPT_READ_TIMEOUT, &a);
+                printf("Set SQL options...\n");
+
                 if(!mysql_real_connect(mSql, sqlip, sqluser, sqlpasswd,
                             "uc", 0, NULL, 0)) {
                     printf("error for mysql_real_connect():%s\n",
@@ -1208,7 +1218,35 @@ int test_change_password3() {
 // misc test
 /////////////////////////////////////////////////////////////////////
 int test_sql_auto_reconnect() {
-    printf("SUB code, SQL auto-reconnect failed\n");
+    // the DATABASE conn is mSql
+
+    int i = 16;
+    printf("SUB code, SQL auto-reconnect testing...\n");
+    while(i-- > 0) {
+        sleep(1);
+        printf("[%d] second left\r", i);
+        syncfs(STDOUT_FILENO);
+    }
+    printf("\n\nNow, try do a query here:");
+    char cmd[78];
+    sprintf(cmd, "SELECT id FROM uc.uc_passport");
+    if(mysql_query(mSql, cmd)) {
+        printf("SQL query failed:(%d):%s\n",
+                mysql_errno(mSql), mysql_error(mSql));
+    } else {
+        printf("SQL execute [OK]\n");
+        MYSQL_RES *mresult = mysql_store_result(mSql);
+        if(mresult) {
+            MYSQL_ROW row = mysql_fetch_row(mresult);
+            if(row != NULL)
+            {
+                printf("%s\n", row[0]);
+            }
+
+            mysql_free_result(mresult);
+        }
+    }
+
     return -1;
 }
 
