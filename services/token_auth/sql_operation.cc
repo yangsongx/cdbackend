@@ -27,6 +27,9 @@
 /* Table's Column Name */
 #define USER_TBL_USERNAME_COL  "username"
 
+extern struct ping_token_info glb_ping_tinfo;
+extern time_t glb_cur;
+
 /**
  * keep MySQL connect by keep alive ping request
  */
@@ -37,7 +40,7 @@ int keep_tauth_db_connected(MYSQL *ms)
     MYSQL_RES *mresult;
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT ID FROM %s;", USER_TBL);
+            "SELECT count(ID) FROM %s;", USER_TBL);
 
     LOCK_SQL;
     if(mysql_query(ms, sqlcmd))
@@ -54,6 +57,12 @@ int keep_tauth_db_connected(MYSQL *ms)
     {
         MYSQL_ROW row;
         row = mysql_fetch_row(mresult);
+        if(row != NULL) {
+            // store the data!
+            glb_ping_tinfo.p_cnt = atol(row[0]);
+            time(&glb_ping_tinfo.p_cur);
+            glb_ping_tinfo.p_cur = glb_ping_tinfo.p_cur - glb_cur;
+        }
         //DO NOTHING HERE, we just call a store result code,
         //since MySQL connection timeout is removed when
         //code come here.

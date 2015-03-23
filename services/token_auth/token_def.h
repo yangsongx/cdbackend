@@ -40,6 +40,11 @@ struct cipher_token_string_info{
     char *csi_content;
 };
 
+struct ping_token_info{
+    unsigned long p_cnt;
+    time_t p_cur;
+};
+
 /**
  * Token data wrapper layer, take care about
  * both memcached and MySQL

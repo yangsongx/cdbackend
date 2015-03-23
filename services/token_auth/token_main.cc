@@ -37,6 +37,23 @@ static memcached_st *glb_memc = NULL;
 
 pthread_mutex_t sql_mutex;
 
+
+/* added at 2015-3-23,
+ *
+ * in order to know how long time this process run-ed,
+ *
+ * this should be added to 2.0-architecture as well
+ */
+time_t glb_cur;
+
+/* added at 2015-3-23,
+ *
+ * in order to know details this process run-ed,
+ *
+ * this should be added to 2.0-architecture as well
+ */
+struct ping_token_info glb_ping_tinfo;
+
 /* set a defult value if no config found */
 struct sql_server_info server_cfg = {
     "127.0.0.1",
@@ -424,8 +441,14 @@ int ping_tauth_handler(int size, void *req, int *len_resp, void *resp)
     ret = keep_tauth_db_connected(glb_msql);
     LOG("tauth ping result=%d\n", ret);
 
-    *len_resp = 4;
-    *(int *)resp = ret;
+    if(ret == 0) {
+        *len_resp = sizeof(struct ping_token_info) + sizeof(int);
+        *(int *)resp = ret;
+        memcpy((char *)resp + sizeof(int), &glb_ping_tinfo, sizeof(glb_ping_tinfo));
+    } else {
+        *len_resp = 4;
+        *(int *)resp = ret;
+    }
 
     return ret;
 }
@@ -441,6 +464,8 @@ int main(int argc, char **argv)
 
     char buffer[512];
     memset(buffer, 0x00, sizeof(buffer));
+
+    time(&glb_cur);
 
     /**
      * [Note] 2015-1-27
