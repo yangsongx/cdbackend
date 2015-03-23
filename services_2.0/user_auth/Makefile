@@ -12,8 +12,7 @@ SRC = usr_auth_service.cc \
       UserAuthConfig.cc \
       usr_auth_db.cc \
       $(BASECLS)Config.cc \
-      $(BASECLS)Operation.cc \
-      usr_auth_mem.cc
+      $(BASECLS)Operation.cc
 
 
 #include ../../common/caredear_service_lib/common.mk

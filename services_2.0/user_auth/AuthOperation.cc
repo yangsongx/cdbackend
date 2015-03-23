@@ -2,6 +2,32 @@
 
 #include "usr_auth_db.h"
 
+int AuthOperation::split_val_into_fields(char *value, struct auth_data_wrapper *w)
+{
+    char *c, *s, *l;
+    char *saveptr;
+
+    if(!value)
+    {
+        return -1;
+    }
+
+    if((c = strtok_r((char *)value, " ", &saveptr)) != NULL)
+    {
+        w->adw_cid = atol(c);
+        if((s = strtok_r(NULL, " ", &saveptr)) != NULL)
+        {
+            strcpy(w->adw_session, s);
+            if((l = strtok_r(NULL, " " , &saveptr)) != NULL)
+            {
+                w->adw_lastlogin = atol(l);
+            }
+        }
+    }
+
+    return 0;
+}
+
 /**
  * inner wrapper token time compare logic, including both memcach+SQL
  *
@@ -79,7 +105,11 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
 
 
     // first try from mem
+#if 1
+    p_val = get_mem_value(reqobj->auth_token().c_str(), &val_len, NULL /* don't need the CAS */);
+#else
     p_val = get_token_info_from_mem(m_pCfg->m_Memc, reqobj->auth_token().c_str(), &val_len);
+#endif
     if(p_val)
     {
         // got value from mem, parse it...
@@ -126,8 +156,20 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
 int AuthOperation::update_session_lastoperatetime(AuthRequest *reqobj, struct auth_data_wrapper *w)
 {
     memcached_return_t rc;
+    char value[128];
+    time_t cur;
 
-    // mem
+    time(&cur);
+    sprintf(value, "%ld %s %ld",
+            w->adw_cid, w->adw_session, cur);
+    // mem FIXME - directly set, not using CAS
+#if 1
+    rc = (memcached_return_t) set_mem_value(reqobj->auth_token().c_str(), value);
+    if(rc != MEMCACHED_SUCCESS)
+    {
+        ERR("**failed set mem :%d\n", rc);
+    }
+#else
     rc = set_token_info_to_mem(m_pCfg->m_Memc, reqobj->auth_token().c_str(), w);
     if(rc != MEMCACHED_SUCCESS)
     {
@@ -142,6 +184,7 @@ int AuthOperation::update_session_lastoperatetime(AuthRequest *reqobj, struct au
             ERR("***Failed update token info to mem:%d\n", rc);
         }
     }
+#endif
 
     // SQL
     set_token_info_to_db(m_pCfg->m_Sql, reqobj);

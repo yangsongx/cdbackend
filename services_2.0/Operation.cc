@@ -70,18 +70,70 @@ int Operation::keep_alive(const char *db_tbl, const char *col_name/* = "id" */)
     return ret;
 }
 
-int Operation::set_mem_value()
+/**
+ * Directly set a key mem value
+ *
+ */
+int Operation::set_mem_value(const char *key, const char *value, uint32_t flag /* = 0 */, time_t expiration /* = 0 */)
 {
-    return 0;
+    memcached_return_t rc;
+
+    rc = memcached_set(m_pCfg->m_Memc,
+            key, strlen(key),
+            value, strlen(value),
+            expiration, flag);
+
+    return rc;
 }
 
 /**
  * Using CAS to set a mem value.
  *
  */
-int Operation::set_mem_value_with_cas(const char *key, uint64_t cas)
+int Operation::set_mem_value_with_cas(const char *key, const char *value, uint32_t flag /* = 0 */, time_t expiration /* = 0 */ )
 {
-    return 0;
+    char  *val = NULL;
+    size_t val_len;
+    memcached_return_t rc;
+    uint64_t cas_value;
+
+    val = memcached_get_by_key(m_pCfg->m_Memc,
+            NULL,
+            0,
+            key,
+            strlen(key),
+            &val_len,
+            0, &rc);
+    if(val != NULL)
+    {
+        if(rc == MEMCACHED_SUCCESS)
+        {
+            cas_value = (m_pCfg->m_Memc->result).item_cas;
+            LOG("%s -> CAS %ld\n", key, cas_value);
+
+            rc = memcached_cas(m_pCfg->m_Memc,
+                    key, strlen(key),
+                    value, strlen(value),
+                    expiration,
+                    flag,
+                    cas_value);
+        }
+
+        free(val);
+    }
+    else if(rc == MEMCACHED_NOTFOUND)
+    {
+        INFO("CAS found it is new item, so directly set mem here\n");
+        rc = (memcached_return_t)set_mem_value(key, value, flag, expiration);
+    }
+
+    /* NOTE - If the item already changed by other person,
+     * libmemcached API would return MEMCACHED_DATA_EXISTS,
+     *
+     * caller need re-call this API again.
+     */
+
+    return rc;
 }
 
 /**

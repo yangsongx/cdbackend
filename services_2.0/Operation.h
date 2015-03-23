@@ -35,8 +35,8 @@ namespace caredear{
 
             /* below 3 APIs aim to collect all components' memcached related
              * operation here */
-            int set_mem_value();
-            int set_mem_value_with_cas(const char *key, uint64_t cas);
+            int set_mem_value(const char *key, const char *value, uint32_t flag = 0, time_t expiration = 0);
+            int set_mem_value_with_cas(const char *key, const char *value, uint32_t flag = 0, time_t expiration = 0);
             char *get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas);
 
             int sql_cmd(const char *cmd, cb_sqlfunc sql_cb);

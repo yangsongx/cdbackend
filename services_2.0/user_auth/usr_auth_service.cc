@@ -1,6 +1,7 @@
 /**
  * User Auth Service (UAS)
  *
+ * Target binary is uauth(User Auth)
  */
 
 #ifdef CHECK_MEM_LEAK

@@ -13,12 +13,27 @@ using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
+// don't update lastlogin within 0.5 hours
+#define MAX_FREQUENT_VISIT  (30*60)
+
+/**
+ * Wrapper for mem val's splitted fields
+ */
+struct auth_data_wrapper{
+    unsigned long adw_cid;
+    char          adw_session[64];  // act like device id
+    time_t        adw_lastlogin;
+};
+
 class AuthOperation : public com::caredear::Operation {
 
     int check_token(AuthRequest *reqobj, struct auth_data_wrapper *w);
     bool is_allowed_access(AuthRequest *reqobj);
     int auth_token_in_session(AuthRequest *reqobj, AuthResponse *respobj, struct auth_data_wrapper *w);
     int update_session_lastoperatetime(AuthRequest *reqobj, struct auth_data_wrapper *w);
+
+protected:
+    int split_val_into_fields(char *value, struct auth_data_wrapper *w);
 
 public:
     AuthOperation() {
