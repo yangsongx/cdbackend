@@ -20,6 +20,7 @@ using namespace google::protobuf::io;
 
 pthread_mutex_t  uls_mutex;
 UserLoginConfig  g_info;
+time_t g_start;
 
 /**
  * Login handler entry
@@ -78,11 +79,25 @@ int uls_ping_handler(int size, void *req, int *len_resp, void *resp)
      * LoginOperation opr;
      * opr.set_conf(&g_inf);
      */
+
+    INFO("Entering the PING ALIVE handler...\n");
     ret = opr.keep_alive(USERCENTER_MAIN_TBL);
     LOG("PING ALIVE result=%d\n", ret);
 
-    *len_resp = 4;
-    *(int *)resp = ret;
+    // Next, compose a response payload...
+    int *ptr = (int *)resp;
+
+    *ptr = ret;
+    *(ptr + 1) = CDS_USR_LOGIN; // tell ping source that who am I
+
+    time_t cur;
+    time(&cur);
+    cur -= g_start;
+    LOG("delta time is (%lu)\n", cur);
+    memcpy(ptr + 2, &cur, 8); // 64-bit machine, it is 8-byte for long
+
+    // all length
+    *len_resp = (4+4+8);
 
     return 0;
 }
@@ -95,6 +110,8 @@ int main(int argc, char **argv)
     setenv("MALLOC_TRACE", "/tmp/uls.memleak", 1);
     mtrace();
 #endif
+
+    time(&g_start);
 
     if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {

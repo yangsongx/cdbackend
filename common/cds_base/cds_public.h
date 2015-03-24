@@ -57,6 +57,17 @@ enum {
     LEN_TYPE_ASCII
 };
 
+/* All CDS components' ID, this is used in PING ALIVE handler function,
+ * so ping caller knew the target be ping-ed by him */
+enum {
+    CDS_USR_REG = 0,
+    CDS_USR_LOGIN,
+    CDS_USR_ACTIVATION,
+    CDS_USR_AUTH,
+    CDS_USR_PASSWD,
+};
+
+
 typedef int (*cb_func)(int size, void *req, int *len, void *resp);
 
 /**

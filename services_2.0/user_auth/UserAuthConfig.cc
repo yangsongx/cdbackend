@@ -63,7 +63,6 @@ int UserAuthConfig::parse_cfg(const char *config_file)
         xmlFreeDoc(doc);
     }
 
-
     if(prepare_db_and_mem() == 0)
     {
         readout_db_session_conf();
@@ -77,6 +76,10 @@ int UserAuthConfig::parse_cfg(const char *config_file)
 
 int UserAuthConfig::readout_db_session_conf()
 {
-    store_db_session_conf(m_Sql, &m_sessionCfg);
+    if(m_Sql != NULL)
+    {
+        store_db_session_conf(m_Sql, &m_sessionCfg);
+    }
+
     return 0;
 }

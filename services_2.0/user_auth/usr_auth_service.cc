@@ -24,6 +24,10 @@ using namespace google::protobuf::io;
 UserAuthConfig  g_info;
 pthread_mutex_t  uas_mutex;
 
+/* a start time entry, used for keep alive report the
+ * program running life time */
+time_t  g_start;
+
 /**
  * Auth handling entry point
  *
@@ -80,11 +84,24 @@ int uas_ping_handler(int size, void *req, int *len_resp, void *resp)
     AuthOperation opr;
     opr.set_conf(&g_info);
 
-    ret = opr.keep_alive("uc.uc_session");
-    LOG("PING ALIVE result=%d\n", ret);
+    INFO("Entering the PING ALIVE handler...\n");
+    ret = opr.keep_alive(USERCENTER_SESSION_TBL);
+    INFO("the PING ALIVE result=%d\n", ret);
 
-    *len_resp = 4;
-    *(int *)resp = ret;
+    // Next, compose a response payload...
+    int *ptr = (int *)resp;
+
+    *ptr = ret;
+    *(ptr + 1) = CDS_USR_AUTH; // tell ping source that who am I
+
+    time_t cur;
+    time(&cur);
+    cur -= g_start;
+    LOG("delta time is (%lu)\n", cur);
+    memcpy(ptr + 2, &cur, 8); // 64-bit machine, it is 8-byte for long
+
+    // all length
+    *len_resp = (4+4+8);
 
     return ret;
 }
@@ -97,6 +114,10 @@ int main(int argc, char **argv)
     setenv("MALLOC_TRACE", "/tmp/uas.memleak", 1);
     mtrace();
 #endif
+
+    /* remember when the program started,
+     * will use this in ping handler */
+    time(&g_start);
 
     if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {

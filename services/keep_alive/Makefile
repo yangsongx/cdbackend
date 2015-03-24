@@ -15,7 +15,7 @@ else
 CFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -pthread -lxml2
+LDFLAGS = -pthread
 
 
 OBJS = $(SRC:.c=.o)

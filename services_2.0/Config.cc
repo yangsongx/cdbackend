@@ -3,15 +3,19 @@
 
 using namespace com::caredear;
 
-/**
- * Get MySQL and memcached handler.
- *
- */
-int Config::prepare_db_and_mem()
+
+int Config::conn_to_mysql()
 {
+    int ret = -1;
+
     m_Sql = mysql_init(NULL);
     if(m_Sql != NULL)
     {
+        mysql_options(m_Sql, MYSQL_OPT_CONNECT_TIMEOUT, &m_iSqlConnTimeout);
+
+        mysql_options(m_Sql, MYSQL_OPT_READ_TIMEOUT, &m_iSqlRdTimeout);
+        mysql_options(m_Sql, MYSQL_OPT_WRITE_TIMEOUT, &m_iSqlWtTimeout);
+
         if(!mysql_real_connect(m_Sql, m_strSqlIP,
                     m_strSqlUserName,
                     m_strSqlUserPassword,
@@ -20,14 +24,15 @@ int Config::prepare_db_and_mem()
                     NULL,
                     0))
         {
-            ERR("**failed connecting to MySQL:%s\n",
-                    mysql_error(m_Sql));
+            ERR("**failed connecting to MySQL:(%d)%s\n",
+                    mysql_errno(m_Sql), mysql_error(m_Sql));
             mysql_close(m_Sql);
             m_Sql = NULL;
         }
         else
         {
             INFO("Connecting to MySQL ... [OK]\n");
+            ret = 0;
         }
 
         // TODO see not in the header
@@ -45,6 +50,20 @@ int Config::prepare_db_and_mem()
         ERR("***Failed init the SQL env\n");
     }
 
+    return ret;
+}
+
+
+/**
+ * Get MySQL and memcached handler.
+ *
+ */
+int Config::prepare_db_and_mem()
+{
+    // first, MySQL
+    conn_to_mysql();
+
+    // next, memcached
     if(strlen(m_strMemIP) == 0)
     {
         INFO("No memcache config found\n");
@@ -81,31 +100,10 @@ int Config::reconnect_sql()
 {
     int ret = -1;
 
+    INFO("try re-connecting to mySQL...\n");
+
     mysql_close(m_Sql);
-
-    m_Sql = mysql_init(NULL);
-
-    if(m_Sql != NULL && !mysql_real_connect(m_Sql, m_strSqlIP,
-                m_strSqlUserName,
-                m_strSqlUserPassword,
-                "", // db keep blank
-                0,  // port , take default
-                NULL,
-                0))
-    {
-        ERR("**failed re-connecting to MySQL:(%d)%s\n",
-                mysql_errno(m_Sql), mysql_error(m_Sql));
-        if(mysql_errno(m_Sql) != CR_ALREADY_CONNECTED)
-        {
-            mysql_close(m_Sql);
-            m_Sql = NULL;
-        }
-    }
-    else
-    {
-        INFO("Re-Connecting to MySQL ... [OK]\n");
-        ret = 0;
-    }
+    ret = conn_to_mysql();
 
     return ret;
 }

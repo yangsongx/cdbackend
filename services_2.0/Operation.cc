@@ -37,35 +37,11 @@ int Operation::keep_alive(const char *db_tbl, const char *col_name/* = "id" */)
 {
     int ret = -1;
     char sqlcmd[128];
-    //MYSQL *ms = m_pCfg->m_Sql;
-    //MYSQL_RES *mresult;
 
     snprintf(sqlcmd, sizeof(sqlcmd), "SELECT %s FROM %s",
             col_name, db_tbl);
 
-#if 1
     ret = sql_cmd(sqlcmd, NULL);
-#else
-    pthread_mutex_lock(&m_pCfg->m_SqlMutex);
-    if(mysql_query(ms, sqlcmd))
-    {
-        pthread_mutex_unlock(&m_pCfg->m_SqlMutex);
-        ERR("failed execute the ping sql cmd:%s\n", mysql_error(ms));
-        return CDS_ERR_SQL_EXECUTE_FAILED;
-    }
-
-    mresult = mysql_store_result(ms);
-    pthread_mutex_unlock(&m_pCfg->m_SqlMutex);
-
-    if(mresult)
-    {
-        // call fetch a row cmd here, do NOTING else
-        mysql_fetch_row(mresult);
-        ret = 0;
-
-        mysql_free_result(mresult);
-    }
-#endif
 
     return ret;
 }
@@ -181,6 +157,13 @@ int Operation::sql_cmd(const char *cmd, cb_sqlfunc sql_cb)
 {
     int ret;
 
+    /* SQL error case protection */
+    if(m_pCfg->m_Sql == NULL)
+    {
+        ERR("MySQL connection not existed at all!\n");
+        return CDS_ERR_SQL_DISCONNECTED;
+    }
+
     ret = execute_sql(cmd, sql_cb);
     if(ret == CDS_ERR_SQL_DISCONNECTED)
     {
@@ -211,7 +194,8 @@ int Operation::execute_sql(const char *cmd, cb_sqlfunc sql_cb)
     if(mysql_query(ms, cmd))
     {
         pthread_mutex_unlock(&m_pCfg->m_SqlMutex);
-        ERR("**failed execute SQL cmd:%s\n", mysql_error(ms));
+        ERR("**failed execute SQL cmd:(%d)%s\n",
+                mysql_errno(ms), mysql_error(ms));
 
         if(mysql_errno(ms) == CR_SERVER_GONE_ERROR)
         {

@@ -424,16 +424,21 @@ int test_ping_reg_service()
     int ret = -1;
     const char payload[2] = {0x34, 0x12};
     size_t rc;
+    char back[512];
     int result;
 
     rc = write(mSockReg, payload, sizeof(payload));
     if(rc > 0)
     {
-        rc = read(mSockReg, &result, sizeof(result));
-        if(rc > 0 && result == 0)
+        rc = read(mSockReg, back, sizeof(back));
+
+        if(rc > 0)
         {
-            printf("    Good to Ping register service\n");
-            ret = 0;
+            result = *(int *) back;
+            if(result == 0) {
+                printf("    Good to Ping register service\n");
+                ret = 0;
+            }
         }
     }
 
@@ -597,16 +602,20 @@ int test_ping_login_service()
     int ret = -1;
     const char payload[2] = {0x34, 0x12};
     size_t rc;
+    char back[512];
     int result;
 
     rc = write(mSockLogin, payload, sizeof(payload));
     if(rc > 0)
     {
-        rc = read(mSockLogin, &result, sizeof(result));
-        if(rc > 0 && result == 0)
+        rc = read(mSockLogin, back, sizeof(back));
+        if(rc > 0)
         {
-            printf("    Good to Ping register service\n");
-            ret = 0;
+            result = *(int *) back;
+            if(result == 0) {
+                printf("    Good to Ping register service\n");
+                ret = 0;
+            }
         }
     }
 
@@ -923,16 +932,20 @@ int test_ping_active_service()
     int ret = -1;
     const char payload[2] = {0x34, 0x12};
     size_t rc;
+    char back[512];
     int result;
 
     rc = write(mSockAct, payload, sizeof(payload));
     if(rc > 0)
     {
-        rc = read(mSockAct, &result, sizeof(result));
-        if(rc > 0 && result == 0)
+        rc = read(mSockAct, back, sizeof(back));
+        if(rc > 0)
         {
-            printf("    Good to Ping register service\n");
-            ret = 0;
+            result = *(int *) back;
+            if(result == 0) {
+                printf("    Good to Ping register service\n");
+                ret = 0;
+            }
         }
     }
 
@@ -1040,14 +1053,20 @@ int test_ping_auth_service() {
     size_t rc = 0;
     int ret = -1;
     const char ka_ping_payload[2] = {0x34, 0x12};
+    char back[512];
+    int result;
 
     rc = write(mSockAuth, ka_ping_payload, 2);
     if(rc > 0)
     {
-        rc = read(mSockAuth, &ret, sizeof(ret));
+        rc = read(mSockAuth, back, sizeof(back));
         if(rc > 0)
         {
-            printf("req's result = %d\n", ret);
+            result = *(int *) back;
+            if(result == 0) {
+                printf("req's result = %d\n", result);
+                ret = 0;
+            }
         }
     }
     else
@@ -1222,11 +1241,10 @@ int test_sql_auto_reconnect() {
 
     int i = 16;
     printf("SUB code, SQL auto-reconnect testing...\n");
-    while(i-- > 0) {
-        sleep(1);
-        printf("[%d] second left\r", i);
-        syncfs(STDOUT_FILENO);
-    }
+   // while(1)
+    {
+    printf("press any key to continue...\n");
+    getchar();
     printf("\n\nNow, try do a query here:");
     char cmd[78];
     sprintf(cmd, "SELECT id FROM uc.uc_passport");
@@ -1245,6 +1263,7 @@ int test_sql_auto_reconnect() {
 
             mysql_free_result(mresult);
         }
+    }
     }
 
     return -1;
@@ -1296,7 +1315,7 @@ int main(int argc, char **argv)
                 "press any key to continue\n");
         getchar();
     }
-
+#if 1
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next begin testing one-by one....
     // First, Registration
@@ -1402,7 +1421,7 @@ int main(int argc, char **argv)
     execute_ut_case(test_auth_normal_case7);
 
 
-
+#endif
 
 
     ///
@@ -1413,7 +1432,7 @@ int main(int argc, char **argv)
 
 
     //misc testing...
-    execute_ut_case(test_sql_auto_reconnect);
+    //execute_ut_case(test_sql_auto_reconnect);
 
     //
     // summary

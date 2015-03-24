@@ -21,7 +21,7 @@ using namespace google::protobuf::io;
 
 pthread_mutex_t  urs_mutex;
 UserRegConfig    g_info;
-
+time_t g_start;
 /**
  * Handler entry for a user registration request
  *
@@ -80,11 +80,26 @@ int ping_reg_handler(int size, void *req, int *len_resp, void *resp)
      * RegOperation opr;
      * opr.set_conf(&g_inf);
      */
-    ret = opr.keep_alive(USERCENTER_MAIN_TBL);
-    LOG("PING ALIVE result=%d\n", ret);
 
-    *len_resp = 4;
-    *(int *)resp = ret;
+    INFO("Entering the PING ALIVE handler...\n");
+    ret = opr.keep_alive(USERCENTER_MAIN_TBL);
+    INFO("PING ALIVE result=%d\n", ret);
+
+    // Next, compose a response payload...
+    int *ptr = (int *)resp;
+
+    *ptr = ret;
+    *(ptr + 1) = CDS_USR_REG; // tell ping source that who am I
+
+    time_t cur;
+    time(&cur);
+    cur -= g_start;
+    INFO("delta time is (%lu)\n", cur);
+    memcpy(ptr + 2, &cur, 8); // 64-bit machine, it is 8-byte for long
+
+    // all length
+    *len_resp = (4+4+8);
+
     return 0;
 }
 
@@ -101,6 +116,7 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
+    time(&g_start);
 
     if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {

@@ -39,12 +39,21 @@
 #define KA_MAILMSG  "/tmp/msg.txt"
 #define KA_PROFILE  ".keep_alive"
 
+#if 1
+#define KA_CURL_ARGV "-n", "--ssl-reqd", "--mail-from", "<service@caredear.com>", \
+                     "--mail-rcpt", "<13614278@qq.com>", \
+                     "--url", "smtps://smtp.exmail.qq.com:465", \
+                     "-T", KA_MAILMSG, \
+                     "-u", "service@caredear.com:nanjing21k"
+#else
 #define KA_CURL_ARGV "-n", "--ssl-reqd", "--mail-from", "<service@caredear.com>", \
                      "--mail-rcpt", "<13614278@qq.com>", \
                      "--mail-rcpt", "<server@caredear.com>", \
                      "--url", "smtps://smtp.exmail.qq.com:465", \
                      "-T", KA_MAILMSG, \
                      "-u", "service@caredear.com:nanjing21k"
+
+#endif
 
 #define KA_MAIL_MSG "From: \"Caredear Service\" <service@caredear.com>\n" \
                     "To: \"Caredear Server\" <server@caredear.com>\n"   \
@@ -60,10 +69,25 @@ static int  ka_maxmail = KA_MAXMAIL;
 static int  ka_health_sum = KA_DEF_HEALTH_SUM;
 static int  ka_interval = 240; /* in minute unit */
 
-//static char ka_ping_payload[] = "00DD13911111111#com.caredear.pcare_parent#1403578305#3QXJFlSXghueTIrDivljeBisw3Ly7SFKaPJTMPKAjJHxIoa/RwkN6tzl2pRfclX2ETCPGAf9BBlLNnKH5my92ObtEXy9gRAPARCIlDMqgd3k6BlwjG6n2txZbZ/y82Feve9kipaGWN6eHA4do7D5h/MFv9EsV/et6o3GxAhIII0=";
-
 time_t start_time;
 time_t end_time;
+
+
+enum {
+    USR_REG = 0,
+    USR_LOGIN,
+    USR_ACTIVATION,
+    USR_AUTH,
+    USR_PASSWD
+};
+
+/* Be consistent with the CDS components... */
+struct ping_response{
+    int  pr_code;
+    int  pr_component;
+    time_t pr_life;
+};
+
 
 static void show_usage()
 {
@@ -76,12 +100,56 @@ static void show_usage()
             "-h          print this help info text.\n");
 }
 
+static char *map_component_code(int code, char *component)
+{
+    // TODO map ping_response::pr_component to a textual string here.
+    switch(code){
+        case USR_REG:
+            strcpy(component, "Register(urs)");
+            break;
+
+        case USR_LOGIN:
+            strcpy(component, "Login(uls)");
+            break;
+
+        case USR_ACTIVATION:
+            strcpy(component, "activation(acts)");
+            break;
+
+        case USR_AUTH:
+            strcpy(component, "User Auth(uauth)");
+            break;
+
+        case USR_PASSWD:
+            strcpy(component, "Password(passwdmgr)");
+            break;
+
+        default:
+            strcpy(component, "Unknow");
+                break;
+    }
+
+    return component;
+}
+
+static int current_datetime(char *stored_data, size_t size_data)
+{
+    time_t cur;
+    time(&cur);
+
+    /* strftime() return 0 for error */
+    return (strftime(stored_data, size_data, "%Y-%m-%d %H:%M:%S",
+                localtime(&cur)) == 0 ? -1 : 0);
+}
 /**
  * Send out the email to notify the error case
  *
  */
 static void send_out_email(char *mail_body)
 {
+#if 0
+    ERR("the response of body:%s\n", mail_body);
+#else
     char mail_cmd[256];
     FILE *p;
     pid_t pid;
@@ -126,6 +194,7 @@ static void send_out_email(char *mail_body)
     {
         ERR("**Failed calling the fork():%d\n", errno);
     }
+#endif
 }
 
 void healthy_summary(time_t elapse_time)
@@ -206,7 +275,11 @@ void alive_ping()
     struct sockaddr_in addr;
     ssize_t rc;
     time_t  t;
+    struct ping_response resp;
     char    buff[256];
+    char    errmsg[128];
+    char    cur[64];
+    char    comp[64];
     struct timeval t1;
 
     KPI("Ping begin!\n");
@@ -214,12 +287,7 @@ void alive_ping()
     s = socket(AF_INET, SOCK_STREAM, 0);
     if(s == -1)
     {
-        ERR("failed create socket:%d\n", errno);
-
-        /* for error case, re-set the start time */
-        gettimeofday(&t1, NULL);
-        start_time = t1.tv_sec;
-        global_mail_count = 0;
+        sprintf(errmsg, "failed create socket:%d\n", errno);
 
         goto fail_ping;
     }
@@ -229,18 +297,7 @@ void alive_ping()
     addr.sin_port = htons(ka_port);
     if(connect(s, (const struct sockaddr *)&addr, sizeof(addr)) == -1)
     {
-        /* FIXME - for socket connection error,
-           we can easily find this via either log
-           or system process running trace,
-
-           so currently, we don't send out mail
-           for such error case. */
-        ERR("failed connect to server:%d\n", errno);
-
-        gettimeofday(&t1, NULL);
-        start_time = t1.tv_sec;
-        global_mail_count = 0;
-
+        sprintf(errmsg, "failed connect to server:%d\n", errno);
         goto fail_ping;
     }
 
@@ -251,50 +308,54 @@ void alive_ping()
     const char ka_ping_payload[2] = {0x34, 0x12};
 
     rc = write(s, ka_ping_payload, 2);
+    LOG("Client-----(%d bytes data)---->Server\n", rc);
     if(rc > 0)
     {
-        rc = read(s, &result, sizeof(result));
+        rc = read(s, &resp, sizeof(resp));
         if(rc > 0)
         {
-            LOG("req's result = %d\n", result);
-            if(result != 0)
-            {
-                time(&t);
-                snprintf(buff, sizeof(buff),
-                        "%s:get an error code from token server:%d\n",
-                        ctime(&t), result);
+            LOG("Client<----(%d bytes data)-----Server\n", rc);
+            current_datetime(cur, sizeof(cur));
+
+            snprintf(buff, sizeof(buff),
+                    "%s:[%s] ===>me: code=%d, life=%.2f Days\n",
+                        cur, map_component_code(resp.pr_component, comp), resp.pr_code, ((float)resp.pr_life / 86400.0f));
                 ERR("%s", buff);
 
-                meet_error = 1;
                 send_out_email(buff);
-            }
         }
         else
         {
-            time(&t);
+            current_datetime(cur, sizeof(cur));
             snprintf(buff, sizeof(buff),
                     "%s**Failed call read() after sent req,%ld:%d\n",
-                    ctime(&t), rc, errno);
+                    cur, rc, errno);
             ERR("%s", buff);
 
-            meet_error = 1;
             send_out_email(buff);
         }
     }
     else
     {
-        time(&t);
+        current_datetime(cur, sizeof(cur));
         snprintf(buff, sizeof(buff),
                 "%s**Failed write the req to server socket:%d\n",
-                ctime(&t), errno);
+                cur, errno);
         ERR("%s", buff);
         if(errno != EINTR && errno != EAGAIN)
         {
-            meet_error = 1;
             send_out_email(buff);
         }
     }
+
+    if(s != -1)
+        close(s);
+
+    return;
+
 fail_ping:
+    send_out_email(errmsg);
+
     if(s != -1)
         close(s);
 }
@@ -385,15 +446,6 @@ int main(int argc, char **argv)
         {
             /* keep ping the server between the time interval */
             alive_ping();
-
-            gettimeofday(&t2, NULL);
-            end_time = t2.tv_sec;
-            if((end_time - start_time) >= ka_health_sum && !meet_error)
-            {
-                LOG("run OK for so long time...\n");
-                healthy_summary(end_time - start_time);
-                start_time = end_time;
-            }
         }
         else
         {
