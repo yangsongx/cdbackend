@@ -5,6 +5,7 @@
 
 #include <my_global.h>
 #include <mysql.h>
+#include <errmsg.h>
 
 #include <qiniu/base.h>
 #include <qiniu/io.h>
@@ -166,6 +167,8 @@ int mapping_file_md5_and_size(MYSQL *ms, NetdiskRequest *p_obj, char *p_md5, int
         {
             ret = CDS_ERR_FILE_NOTFOUND;
         }
+
+        mysql_free_result(mresult);
     }
 
     return ret;
@@ -231,6 +234,11 @@ MYSQL *GET_CMSSQL(struct sql_server_info *server)
     msql = mysql_init(NULL);
     if(msql != NULL)
     {
+            int opt = 5;
+            /* set options */
+            mysql_options(msql, MYSQL_OPT_READ_TIMEOUT, &opt);
+            mysql_options(msql, MYSQL_OPT_WRITE_TIMEOUT, &opt);
+
         if(!mysql_real_connect(msql, server->ssi_server_ip,
                     server->ssi_user_name,
                     server->ssi_user_password,
@@ -372,7 +380,11 @@ int preprocess_upload_req (MYSQL *ms, NetdiskRequest *p_obj)
         UNLOCK_SQL;
         ERR("** failed find user:%s,error:%s\n",
                 sqlcmd, mysql_error(ms));
-        return CDS_ERR_SQL_EXECUTE_FAILED;
+        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR) {
+            return CDS_ERR_SQL_DISCONNECTED;
+        } else {
+            return CDS_ERR_SQL_EXECUTE_FAILED;
+        }
     }
 
     mresult = mysql_store_result(ms);
@@ -392,6 +404,8 @@ int preprocess_upload_req (MYSQL *ms, NetdiskRequest *p_obj)
                 return CDS_ERR_SQL_EXECUTE_FAILED;
             }
         }
+
+        mysql_free_result(mresult);
     }
     else
     {
@@ -517,7 +531,11 @@ int update_user_uploaded_data(MYSQL *ms, NetdiskRequest *p_obj)
         UNLOCK_SQL;
         ERR("**failed update USERS:%s, error:%s\n",
                 sqlcmd, mysql_error(ms));
-        return CDS_ERR_SQL_EXECUTE_FAILED;
+        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR) {
+            return CDS_ERR_SQL_DISCONNECTED;
+        } else {
+            return CDS_ERR_SQL_EXECUTE_FAILED;
+        }
     }
 
     mresult = mysql_store_result(ms);
@@ -657,7 +675,11 @@ int get_netdisk_key(MYSQL *ms, NetdiskRequest *p_obj, char *p_result)
     {
         UNLOCK_SQL;
         ERR("failed execute the md5-finding SQL cmd.\n");
-        return ret;
+        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR) {
+            return CDS_ERR_SQL_DISCONNECTED;
+        } else {
+            return CDS_ERR_SQL_EXECUTE_FAILED;
+        }
     }
 
     MYSQL_RES *mresult;
@@ -681,6 +703,8 @@ int get_netdisk_key(MYSQL *ms, NetdiskRequest *p_obj, char *p_result)
         {
             ERR("Didn't find this file(%s) in DB\n", p_obj->filename().c_str());
         }
+
+        mysql_free_result(mresult);
     }
     else
     {
@@ -739,6 +763,7 @@ int share_file(MYSQL *ms, NetdiskRequest *p_obj, char *p_result)
         {
             ERR("Didn't find this md5(%s) in DB\n", p_obj->md5().c_str());
         }
+        mysql_free_result(mresult);
     }
     else
     {

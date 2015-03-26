@@ -78,7 +78,8 @@ enum {
     USR_LOGIN,
     USR_ACTIVATION,
     USR_AUTH,
-    USR_PASSWD
+    USR_PASSWD,
+    USR_NETDISK,
 };
 
 /* Be consistent with the CDS components... */
@@ -122,6 +123,10 @@ static char *map_component_code(int code, char *component)
 
         case USR_PASSWD:
             strcpy(component, "Password(passwdmgr)");
+            break;
+
+        case USR_NETDISK:
+            strcpy(component, "Netdisk(nds)");
             break;
 
         default:

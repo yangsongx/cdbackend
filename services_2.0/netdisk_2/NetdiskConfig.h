@@ -15,6 +15,7 @@
 
 
 class NetdiskConfig : public com::caredear::Config {
+
 public:
     char   m_accessKey[128];
     char   m_secretKey[128];

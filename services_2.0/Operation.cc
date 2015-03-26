@@ -150,6 +150,16 @@ char *Operation::get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas
 }
 
 /**
+ * execute the SQL via trasaction(which can rollback if sth wrong)
+ *
+ */
+int Operation::sql_cmd_via_transaction(int argc, char **argv, cb_sqlfunc sql_cb)
+{
+    // TODO, need implementation code here...
+    return -1;
+}
+
+/**
  * Wrapper util for visiting SQL, can auto-reconnect to SQL
  * after idle timeout.
  */

@@ -45,6 +45,7 @@ using namespace com::caredear;
 static MYSQL *nds_sql = NULL;
 
 NetdiskConfig  g_info;
+time_t  g_ndsStart;
 
 /* QINIU SDK KEYS... */
 Qiniu_Client qn;
@@ -290,16 +291,22 @@ int simulate_client_upload(NetdiskResponse *p_ndr)
 int ping_nds_handler(int size, void *req, int *len_resp, void *resp)
 {
     int ret = 0;
-    // TODO
-#if 0
-    ret = keep_nds_db_connected(nds_sql);
-    LOG("nds ping result=%d\n", ret);
+    NetdiskOperation opr(&g_info);
 
-    /* for ping case, we don't need Protobuf's sendbackresponse...
-     */
-    *len_resp = 4;
-    *(int *)resp = ret;
-#endif
+    INFO("PING ALIVE for nds...\n");
+    ret = opr.keep_alive(NETDISK_FILE_TBL, "ID");
+    INFO("PING finished with %d\n", ret);
+
+    int *ptr = (int *)resp;
+    *ptr = ret;
+    *(ptr + 1) = CDS_NETDISK;
+    time_t cur;
+    time(&cur);
+    cur -= g_ndsStart;
+    memcpy(ptr + 2, &cur, 8);
+
+    *len_resp = (4+4+8);
+
     return ret;
 }
 
@@ -611,6 +618,8 @@ int main(int argc, char **argv)
     setenv("MALLOC_TRACE", "/tmp/nds.memleak", 1);
     mtrace();
 #endif
+
+    time(&g_ndsStart);
 
     if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {

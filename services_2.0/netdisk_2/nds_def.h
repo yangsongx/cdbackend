@@ -34,6 +34,5 @@ extern int get_netdisk_key(MYSQL *ms, NetdiskRequest *p_obj, char *p_result);
 extern int remove_file_from_db(MYSQL *ms, NetdiskRequest *p_obj);
 extern int share_file(MYSQL *ms, NetdiskRequest *p_obj, char *p_result);
 extern int copy_shared_file(MYSQL *ms,  MYSQL_ROW  row, NetdiskRequest *p_obj);
-extern int keep_nds_db_connected(MYSQL *ms);
 
 #endif

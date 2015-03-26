@@ -729,39 +729,3 @@ int copy_shared_file(MYSQL *ms,  MYSQL_ROW  row, NetdiskRequest *p_obj)
 
     return ret;    
 }
-
-int keep_nds_db_connected(MYSQL *ms)
-{
-    int ret = CDS_OK;
-    char sqlcmd[128];
-    MYSQL_RES *mresult;
-
-    snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT ID FROM %s;", ND_FILE_TBL);
-
-    LOCK_SQL;
-    if(mysql_query(ms, sqlcmd))
-    {
-        UNLOCK_SQL;
-        ERR("failed execute the ping sql cmd:%s\n", mysql_error(ms));
-        return CDS_ERR_SQL_EXECUTE_FAILED;
-    }
-
-    mresult = mysql_store_result(ms);
-    UNLOCK_SQL;
-
-    if(mresult)
-    {
-        MYSQL_ROW row;
-        row = mysql_fetch_row(mresult);
-        //DO NOTHING HERE, we just call a store result code,
-        //since MySQL connection timeout is removed when
-        //code come here.
-    }
-    else
-    {
-        ERR("got a null result for ping SQL cmd\n");
-        ret = CDS_ERR_SQL_EXECUTE_FAILED;
-    }
-    return ret;
-}

@@ -1,6 +1,9 @@
 # Top-level of service-2.0 Makefile
 ##
 
+BUILD_NUMBER=$(shell date +%Y%m%d)
+export BUILD_NUMBER
+
 # FIXME - currently, we don't contain any excluding dir
 exclude_dirs := include bin
 

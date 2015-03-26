@@ -40,6 +40,7 @@ namespace caredear{
             char *get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas);
 
             int sql_cmd(const char *cmd, cb_sqlfunc sql_cb);
+            int sql_cmd_via_transaction(int argc, char **argv, cb_sqlfunc sql_cb);
 
             /* each component's xxxOpr need override this API */
             virtual int handling_request(::google::protobuf::Message *reqobj,

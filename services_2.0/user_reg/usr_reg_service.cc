@@ -2,7 +2,7 @@
  * main entry for User Registration Service(URS)
  *
  */
-#ifdef CHECK_MEM_LEAK
+#ifdef DEBUG
 #include <mcheck.h>
 #endif
 
@@ -22,6 +22,7 @@ using namespace google::protobuf::io;
 pthread_mutex_t  urs_mutex;
 UserRegConfig    g_info;
 time_t g_start;
+
 /**
  * Handler entry for a user registration request
  *
@@ -77,8 +78,10 @@ int ping_reg_handler(int size, void *req, int *len_resp, void *resp)
     int ret;
     RegOperation opr(&g_info);
     /* Above code is the same as:
+     * --------------------------
      * RegOperation opr;
      * opr.set_conf(&g_inf);
+     * --------------------------
      */
 
     INFO("Entering the PING ALIVE handler...\n");
@@ -111,7 +114,7 @@ int main(int argc, char **argv)
 {
     struct addition_config cfg;
 
-#ifdef CHECK_MEM_LEAK
+#ifdef DEBUG
     setenv("MALLOC_TRACE", "/tmp/urs.memleak", 1);
     mtrace();
 #endif

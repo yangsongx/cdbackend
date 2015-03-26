@@ -129,6 +129,7 @@ int AttributeOperation::user_attribute_existed(uint64_t cid)
             USERCENTER_ATTR_TBL, cid);
 
     ret = sql_cmd(sqlcmd, cb_check_attr_existence);
+
     if(ret == CDS_OK && m_attrRecord == 1)
     {
         return 1;

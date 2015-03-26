@@ -34,6 +34,7 @@ class NetdiskOperation : public com::caredear::Operation {
     int do_completed_qiniu_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata);
     int do_qiniu_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata);
     int do_qiniu_deletion(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata);
+    int do_qiniu_downloadurl(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata);
 
     // /////////////////////////////////////////////////////////////////////////////
     // static variables....
@@ -50,6 +51,7 @@ class NetdiskOperation : public com::caredear::Operation {
 protected:
     int map_file_to_md5_and_size(NetdiskRequest *p_obj, char *p_md5, int len_md5, int *p_size);
     int mapping_file_type(const char *filename);
+    int reduce_used_size(NetdiskRequest *p_obj, int size);
 
     int add_new_user_entry_in_db(NetdiskRequest *p_obj);
     int delete_file_info_from_db(NetdiskRequest *p_obj, const char *md5);

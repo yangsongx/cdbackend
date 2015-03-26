@@ -401,6 +401,23 @@ int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, voi
     p_ndr->set_opcode(UPLOADING);
 
     ret = preprocess_upload_req(nds_sql, p_obj);
+    if(ret == CDS_ERR_SQL_DISCONNECTED) {
+        ERR("SQL idle timeout, need reconnet\n");
+        mysql_close(nds_sql);
+
+        nds_sql = GET_CMSSQL(&sql_cfg);
+        if(nds_sql == NULL) {
+            ERR("failed reconnect to SQL\n");
+            return CDS_ERR_SQL_DISCONNECTED;
+
+        } else {
+            INFO("Reconnect to netdisk DB [OK]\n");
+
+            ret = preprocess_upload_req(nds_sql, p_obj);
+        }
+       
+    }
+
     switch(ret)
     {
         case CDS_ERR_SQL_EXECUTE_FAILED:
@@ -454,7 +471,24 @@ int complete_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resple
     ret = update_user_uploaded_data(nds_sql, p_obj);
     if(ret != CDS_OK)
     {
+
+        if(ret == CDS_ERR_SQL_DISCONNECTED) {
+            ERR("SQL idle timeout, need reconnet\n");
+            mysql_close(nds_sql);
+            nds_sql = GET_CMSSQL(&sql_cfg);
+
+            if(nds_sql != NULL) {
+                INFO("Reconnect to netdisk DB [OK]\n");
+
+                ret = update_user_uploaded_data(nds_sql, p_obj);
+            } else {
+                ERR("failed reconnect to SQL\n");
+                return CDS_ERR_SQL_DISCONNECTED;
+            }
+
+        } else {
         ERR("** failed update the DB\n");
+        }
     }
 
     // Actually, we need few UPLOADED action result here...
@@ -498,7 +532,22 @@ int do_download(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, v
 
     p_ndr->set_opcode(DOWNLOADURL);
 
-    if(get_netdisk_key(nds_sql, p_obj, md5) != 0)
+    ret = get_netdisk_key(nds_sql, p_obj, md5);
+
+    if(ret == CDS_ERR_SQL_DISCONNECTED) {
+        ERR("SQL idle timeout, need reconnet\n");
+        mysql_close(nds_sql);
+        nds_sql = GET_CMSSQL(&sql_cfg);
+        if(nds_sql == NULL) {
+            ret = -1; // to let later code send back error
+        } else {
+            INFO("Reconnect to netdisk DB [OK]\n");
+
+            ret = get_netdisk_key(nds_sql, p_obj, md5);
+        }
+    }
+
+    if(ret != 0)
     {
         ret = CDS_ERR_FILE_NOTFOUND;
         if(sendback_response(ret, "can't find file md5", p_ndr, p_resplen, p_respdata) != 0)

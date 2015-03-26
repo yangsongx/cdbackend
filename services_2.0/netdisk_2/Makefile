@@ -23,9 +23,20 @@ SRC = $(QINIU_SDK)qiniu/auth_mac.cc \
       nds_main.cc \
       nds_sql.cc
 
+TEST_SRC = test_nds.cc \
+           NetdiskMessage.pb.cc \
+           $(BASECLS)Config.cc \
+           $(BASECLS)Operation.cc
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = $(COMMON_CFLAGS) -I../../common/cds_base/ -I $(BASECLS) -I $(QINIU_SDK) -I /usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
+ifeq ($(strip $(BUILD_NUMBER)),)
+    #user make in sub-dir, we need define the macro by ourself
+    BUILD_NUMBER=$(shell date +%Y%m%d)
+endif
+
+CXXFLAGS = $(COMMON_CFLAGS) -I../../common/cds_base/ -I $(BASECLS) -I $(QINIU_SDK) -I /usr/include/libxml2/ \
+           `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter \
+           -DBUILD_NUMBER=$(BUILD_NUMBER)
 
 # Release should use -O2
 
@@ -44,16 +55,19 @@ LDFLAGS += -lldap_r -llber -lidn -lrtmp -lm -ldl -lz -lrt -static
 endif
 
 OBJS = $(SRC:.cc=.o)
+TESTOBJS = $(TEST_SRC:.cc=.o)
 
-all:nds
+all:nds test_nds
 
 nds:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
+test_nds:$(TESTOBJS)
+	$(CC) -o $@ $^ $(LDFLAGS) -lqiniu-static -lcurl
 
 .cc.o:
 	$(CC) $(CXXFLAGS) -c $< -o $@
 
 .PHONY:clean
 clean:
-	rm -rf *.o nds a.out
+	rm -rf *.o nds test_nds a.out
 	find $(QINIU_SDK) -name '*.o' -exec rm -rf {} ";"
