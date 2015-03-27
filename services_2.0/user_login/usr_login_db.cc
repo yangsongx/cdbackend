@@ -265,6 +265,8 @@ int match_user_credential_in_db(MYSQL *ms, LoginRequest *reqobj, unsigned long *
                 ret = compare_user_smscode_wth_cid(ms, reqobj, reqobj->login_password().c_str(), *p_cid);
             }
         }
+
+        mysql_free_result(mresult);
     }
     else
     {

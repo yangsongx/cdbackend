@@ -874,6 +874,196 @@ int test_phone_passwd_login5()
 
     return -1;
 }
+
+// testing for older phone's device report
+int _login_testing_oldver(RegLoginType regtype, const char *name, const char *password, DeviceType devtype, int passflag) {
+    int ret = -1;
+    LoginRequest req;
+    LoginResponse resp;
+
+    req.set_login_type(regtype);
+    req.set_login_name(name);
+    req.set_login_password(password);
+    req.set_device_type(devtype);
+
+    // NOTE, how to handle with below two items?
+    //
+    req.set_login_sysid("2"); // these will just be added to session table
+    req.set_login_session("2");
+
+    size_t size;
+    unsigned short len = req.ByteSize();
+    printf("    the reqobj's len = %d\n", len);
+
+    char *b = (char *)malloc(len + 2);
+    if(!b) {
+        printf("***malloc return NULL\n");
+        return -1;
+    }
+
+    ArrayOutputStream aos(b, len + 2);
+    CodedOutputStream cos(&aos);
+    cos.WriteRaw(&len, sizeof(len));
+    if(req.SerializeToCodedStream(&cos)) {
+        size = write(mSockLogin, b, (len + 2));
+        printf("    ===>Server wrote with %ld byte\n", size);
+    }
+    free(b);
+   
+    // Now, waiting for response..
+    size = read(mSockLogin, gBuffer, sizeof(gBuffer));
+    printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
+    if(*(unsigned short *)gBuffer > 0) {
+        ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
+        CodedInputStream is(&in);
+        if(resp.ParseFromCodedStream(&is)) {
+            printf("     result_code = %d\n", resp.result_code());
+            if(resp.has_extra_msg()) {
+                printf("   extra msg = %s\n", resp.extra_msg().c_str());
+            }
+
+            if(resp.has_token()) {
+                printf("   LOGIN [OK], token msg = %s\n", resp.token().c_str());
+            }
+
+            if(resp.result_code() == passflag) {
+                ret = 0;
+            }
+        }
+    }
+
+    return ret;
+}
+
+// check if older phone can report device type
+int test_older_phone_add_device_type(){
+
+    return  _login_testing_oldver(RegLoginType::MOBILE_PHONE, // phone + sms verify code
+            "olderphone",  // DO NOT MODIFY, pre-built in the test.sql data file
+            "336688",  // DO NOT MDOFIY
+            DeviceType::IOS, // mark as iOS, DO NOT modify, need this for later verify case
+            CDS_OK);
+}
+
+// verify previously added fields..
+int test_older_phone_add_device_type2(){
+    int ret = -1;
+    char cmd[256];
+
+    snprintf(cmd,sizeof(cmd),
+            "SELECT device FROM uc_passport WHERE usermobile='olderphone'");
+    if(mysql_query(mSql, cmd)){
+        printf("**failed verify the previous added device type case:%s\n",
+                mysql_error(mSql));
+        return -1;
+    }
+
+    MYSQL_RES *mresult;
+
+    mresult = mysql_store_result(mSql);
+    if(mresult) {
+        MYSQL_ROW row;
+        row = mysql_fetch_row(mresult);
+        if(row != NULL) {
+            printf("    the SQL row[]=%s\n", row[0]);
+            int i = atoi(row[0]);
+            if(i==DeviceType::IOS) {
+                printf("   Cool~~, IOS device\n");
+                ret = 0;
+            } else {
+                printf("    Wow, it is Not IOS, mark as failed\n");
+            }
+        }
+        mysql_free_result(mresult);
+    }
+
+    return ret;
+}
+
+
+int test_older_phone_add_device_type3(){
+
+    return  _login_testing_oldver(RegLoginType::MOBILE_PHONE, // phone + sms verify code
+            "olderphone",  // DO NOT MODIFY, pre-built in the test.sql data file
+            "336688",  // DO NOT MDOFIY
+            DeviceType::CAREDEAROS, // mark as caredear OS, DO NOT modify, need this for later verify case
+            CDS_OK);
+}
+
+// verify previously added fields..
+int test_older_phone_add_device_type4(){
+    int ret = -1;
+    char cmd[256];
+
+    snprintf(cmd,sizeof(cmd),
+            "SELECT device FROM uc_passport WHERE usermobile='olderphone'");
+    if(mysql_query(mSql, cmd)){
+        printf("**failed verify the previous added device type case:%s\n",
+                mysql_error(mSql));
+        return -1;
+    }
+
+    MYSQL_RES *mresult;
+
+    mresult = mysql_store_result(mSql);
+    if(mresult) {
+        MYSQL_ROW row;
+        row = mysql_fetch_row(mresult);
+        if(row != NULL) {
+            printf("    the SQL row[]=%s\n", row[0]);
+            int i = atoi(row[0]);
+            if(i==DeviceType::CAREDEAROS) {
+                printf("   Cool~~, CAREOS device\n");
+                ret = 0;
+            }
+        }
+        mysql_free_result(mresult);
+    }
+
+    return ret;
+}
+
+int test_older_phone_add_device_type5(){
+
+    return  _login_testing_oldver(RegLoginType::MOBILE_PHONE, // phone + sms verify code
+            "olderphone",  // DO NOT MODIFY, pre-built in the test.sql data file
+            "336688",  // DO NOT MDOFIY
+            DeviceType::ANDROID, // mark as Android, DO NOT modify, need this for later verify case
+            CDS_OK);
+}
+
+// verify previously added fields..
+int test_older_phone_add_device_type6(){
+    int ret = -1;
+    char cmd[256];
+
+    snprintf(cmd,sizeof(cmd),
+            "SELECT device FROM uc_passport WHERE usermobile='olderphone'");
+    if(mysql_query(mSql, cmd)){
+        printf("**failed verify the previous added device type case:%s\n",
+                mysql_error(mSql));
+        return -1;
+    }
+
+    MYSQL_RES *mresult;
+
+    mresult = mysql_store_result(mSql);
+    if(mresult) {
+        MYSQL_ROW row;
+        row = mysql_fetch_row(mresult);
+        if(row != NULL) {
+            printf("    the SQL row[]=%s\n", row[0]);
+            int i = atoi(row[0]);
+            if(i==DeviceType::ANDROID) {
+                printf("   Cool~~, Android device\n");
+                ret = 0;
+            }
+        }
+        mysql_free_result(mresult);
+    }
+
+    return ret;
+}
 /////////////////////////////////////////////////////////////////////
 // activation/login case
 /////////////////////////////////////////////////////////////////////
@@ -993,6 +1183,7 @@ int test_activation_phone_smscode5() {
             g_phone_sms_verifycode, // DO NOT MODIFY
             CDS_OK);
 }
+
 
 /////////////////////////////////////////////////////////////////////
 // auth test
@@ -1239,7 +1430,7 @@ int test_change_password3() {
 int test_sql_auto_reconnect() {
     // the DATABASE conn is mSql
 
-    int i = 16;
+    //int i = 16;
     printf("SUB code, SQL auto-reconnect testing...\n");
    // while(1)
     {
@@ -1315,7 +1506,7 @@ int main(int argc, char **argv)
                 "press any key to continue\n");
         getchar();
     }
-#if 1
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next begin testing one-by one....
     // First, Registration
@@ -1366,6 +1557,13 @@ int main(int argc, char **argv)
     execute_ut_case(test_phone_passwd_login3);
     execute_ut_case(test_phone_passwd_login4);
     execute_ut_case(test_phone_passwd_login5);
+
+    execute_ut_case(test_older_phone_add_device_type);
+    execute_ut_case(test_older_phone_add_device_type2);
+    execute_ut_case(test_older_phone_add_device_type3);
+    execute_ut_case(test_older_phone_add_device_type4);
+    execute_ut_case(test_older_phone_add_device_type5);
+    execute_ut_case(test_older_phone_add_device_type6);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next will try testing the activation feature...
@@ -1419,9 +1617,6 @@ int main(int argc, char **argv)
     execute_ut_case(test_auth_normal_case5);
     execute_ut_case(test_auth_normal_case6);
     execute_ut_case(test_auth_normal_case7);
-
-
-#endif
 
 
     ///

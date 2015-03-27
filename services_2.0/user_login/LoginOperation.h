@@ -14,10 +14,13 @@ using namespace google::protobuf::io;
 
 class LoginOperation : public com::caredear::Operation {
 
+
     int update_usercenter_session(LoginRequest *reqobj, struct user_session *u);
 
     int delete_usercenter_session(LoginRequest *reqobj);
     int process_user_and_credential(LoginRequest *reqobj, LoginResponse *respobj);
+
+    int add_device_type(LoginRequest *reqobj);
 
 public:
     LoginOperation() {

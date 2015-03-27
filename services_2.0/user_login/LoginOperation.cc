@@ -1,6 +1,7 @@
 #include "LoginOperation.h"
 #include "usr_login_db.h"
 
+
 /**
  * Inner wrapper util for mem+DB set
  *
@@ -121,6 +122,51 @@ int LoginOperation::process_user_and_credential(LoginRequest *reqobj, LoginRespo
     return ret;
 }
 
+/* a templ util function, probably not needed after we
+ * got all older products' device type */
+int LoginOperation::add_device_type(LoginRequest *reqobj)
+{
+    char sqlcmd[1024];
+
+    switch(reqobj->login_type()) {
+        case RegLoginType::MOBILE_PHONE:
+        case RegLoginType::PHONE_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET device=\'%d\' WHERE usermobile=\'%s\'",
+                    USERCENTER_MAIN_TBL, reqobj->device_type(), reqobj->login_name().c_str());
+            break;
+
+        case RegLoginType::NAME_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET device=\'%d\' WHERE username=\'%s\'",
+                    USERCENTER_MAIN_TBL, reqobj->device_type(), reqobj->login_name().c_str());
+            break;
+
+        case RegLoginType::EMAIL_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET device=\'%d\' WHERE email=\'%s\'",
+                    USERCENTER_MAIN_TBL, reqobj->device_type(), reqobj->login_name().c_str());
+            break;
+
+        case RegLoginType::OTHERS:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET device=\'%d\' WHERE third=\'%s\'",
+                    USERCENTER_MAIN_TBL, reqobj->device_type(), reqobj->login_name().c_str());
+            break;
+
+        case RegLoginType::CID_PASSWD:
+            // TODO support this?
+            break;
+
+        default:
+            break;
+    }
+
+    sql_cmd(sqlcmd, NULL);
+
+    return 0;
+}
+
 /**
  * Begin do the User's Login action
  *
@@ -131,6 +177,21 @@ int LoginOperation::handling_request(::google::protobuf::Message *login_req, ::g
     int ret = -1;
     LoginRequest *reqobj = (LoginRequest *)login_req;
     LoginResponse *respobj = (LoginResponse *) login_resp;
+
+    /* TODO
+     * As older version of APK didn't contained the device type,
+     * we need this on 2.0 arch, so temply added a field to store
+     * the device info
+     *
+     * We need obsolete this after all old released product report
+     * the info.
+     */
+#if 1
+    if(reqobj->has_device_type()) {
+        INFO("an older product, add device type\n");
+        add_device_type(reqobj);
+    }
+#endif
 
     if(reqobj->login_type() != RegLoginType::LOG_OUT)
     {

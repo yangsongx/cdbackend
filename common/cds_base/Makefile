@@ -50,7 +50,8 @@ endif
 SO_LDFLAGS = -levent -pthread -lcrypto -lxml2 -lssl -shared -fPIC
 
 .PHONY: all
-all: cds cs ca testcode token circle nds nus ka sipsaccount stun
+all: cds cs ca
+#all: cds cs ca testcode token circle nds nus ka sipsaccount stun
 
 cds:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)

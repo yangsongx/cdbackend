@@ -38,13 +38,14 @@ void protobuf_AssignDesc_UserLogin_2eproto() {
       "UserLogin.proto");
   GOOGLE_CHECK(file != NULL);
   LoginRequest_descriptor_ = file->message_type(0);
-  static const int LoginRequest_offsets_[6] = {
+  static const int LoginRequest_offsets_[7] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, login_type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, login_session_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, login_name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, login_password_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, login_sysid_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, logout_ticket_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginRequest, device_type_),
   };
   LoginRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -110,13 +111,14 @@ void protobuf_AddDesc_UserLogin_2eproto() {
   ::com::caredear::protobuf_AddDesc_CommonUserCenter_2eproto();
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\017UserLogin.proto\022\014com.caredear\032\026CommonU"
-    "serCenter.proto\"\255\001\n\014LoginRequest\022.\n\nlogi"
+    "serCenter.proto\"\334\001\n\014LoginRequest\022.\n\nlogi"
     "n_type\030\001 \002(\0162\032.com.caredear.RegLoginType"
     "\022\025\n\rlogin_session\030\002 \002(\t\022\022\n\nlogin_name\030\003 "
     "\002(\t\022\026\n\016login_password\030\004 \002(\t\022\023\n\013login_sys"
-    "id\030\005 \002(\t\022\025\n\rlogout_ticket\030\006 \001(\t\"F\n\rLogin"
-    "Response\022\023\n\013result_code\030\001 \002(\005\022\021\n\textra_m"
-    "sg\030\002 \001(\t\022\r\n\005token\030\003 \001(\t", 303);
+    "id\030\005 \002(\t\022\025\n\rlogout_ticket\030\006 \001(\t\022-\n\013devic"
+    "e_type\030\007 \001(\0162\030.com.caredear.DeviceType\"F"
+    "\n\rLoginResponse\022\023\n\013result_code\030\001 \002(\005\022\021\n\t"
+    "extra_msg\030\002 \001(\t\022\r\n\005token\030\003 \001(\t", 350);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserLogin.proto", &protobuf_RegisterTypes);
   LoginRequest::default_instance_ = new LoginRequest();
@@ -142,6 +144,7 @@ const int LoginRequest::kLoginNameFieldNumber;
 const int LoginRequest::kLoginPasswordFieldNumber;
 const int LoginRequest::kLoginSysidFieldNumber;
 const int LoginRequest::kLogoutTicketFieldNumber;
+const int LoginRequest::kDeviceTypeFieldNumber;
 #endif  // !_MSC_VER
 
 LoginRequest::LoginRequest()
@@ -169,6 +172,7 @@ void LoginRequest::SharedCtor() {
   login_password_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   login_sysid_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   logout_ticket_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  device_type_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -219,7 +223,7 @@ LoginRequest* LoginRequest::New() const {
 }
 
 void LoginRequest::Clear() {
-  if (_has_bits_[0 / 32] & 63) {
+  if (_has_bits_[0 / 32] & 127) {
     login_type_ = 1;
     if (has_login_session()) {
       if (login_session_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -246,6 +250,7 @@ void LoginRequest::Clear() {
         logout_ticket_->clear();
       }
     }
+    device_type_ = 0;
   }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -361,6 +366,26 @@ bool LoginRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(56)) goto parse_device_type;
+        break;
+      }
+
+      // optional .com.caredear.DeviceType device_type = 7;
+      case 7: {
+        if (tag == 56) {
+         parse_device_type:
+          int value;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          if (::com::caredear::DeviceType_IsValid(value)) {
+            set_device_type(static_cast< ::com::caredear::DeviceType >(value));
+          } else {
+            mutable_unknown_fields()->AddVarint(7, value);
+          }
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -446,6 +471,12 @@ void LoginRequest::SerializeWithCachedSizes(
       6, this->logout_ticket(), output);
   }
 
+  // optional .com.caredear.DeviceType device_type = 7;
+  if (has_device_type()) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      7, this->device_type(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -517,6 +548,12 @@ void LoginRequest::SerializeWithCachedSizes(
         6, this->logout_ticket(), target);
   }
 
+  // optional .com.caredear.DeviceType device_type = 7;
+  if (has_device_type()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      7, this->device_type(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -570,6 +607,12 @@ int LoginRequest::ByteSize() const {
           this->logout_ticket());
     }
 
+    // optional .com.caredear.DeviceType device_type = 7;
+    if (has_device_type()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::EnumSize(this->device_type());
+    }
+
   }
   if (!unknown_fields().empty()) {
     total_size +=
@@ -615,6 +658,9 @@ void LoginRequest::MergeFrom(const LoginRequest& from) {
     if (from.has_logout_ticket()) {
       set_logout_ticket(from.logout_ticket());
     }
+    if (from.has_device_type()) {
+      set_device_type(from.device_type());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -645,6 +691,7 @@ void LoginRequest::Swap(LoginRequest* other) {
     std::swap(login_password_, other->login_password_);
     std::swap(login_sysid_, other->login_sysid_);
     std::swap(logout_ticket_, other->logout_ticket_);
+    std::swap(device_type_, other->device_type_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

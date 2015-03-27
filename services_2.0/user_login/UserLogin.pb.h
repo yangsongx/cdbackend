@@ -160,6 +160,13 @@ class LoginRequest : public ::google::protobuf::Message {
   inline ::std::string* release_logout_ticket();
   inline void set_allocated_logout_ticket(::std::string* logout_ticket);
 
+  // optional .com.caredear.DeviceType device_type = 7;
+  inline bool has_device_type() const;
+  inline void clear_device_type();
+  static const int kDeviceTypeFieldNumber = 7;
+  inline ::com::caredear::DeviceType device_type() const;
+  inline void set_device_type(::com::caredear::DeviceType value);
+
   // @@protoc_insertion_point(class_scope:com.caredear.LoginRequest)
  private:
   inline void set_has_login_type();
@@ -174,6 +181,8 @@ class LoginRequest : public ::google::protobuf::Message {
   inline void clear_has_login_sysid();
   inline void set_has_logout_ticket();
   inline void clear_has_logout_ticket();
+  inline void set_has_device_type();
+  inline void clear_has_device_type();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -182,9 +191,10 @@ class LoginRequest : public ::google::protobuf::Message {
   ::std::string* login_session_;
   ::std::string* login_name_;
   ::std::string* login_password_;
+  int login_type_;
+  int device_type_;
   ::std::string* login_sysid_;
   ::std::string* logout_ticket_;
-  int login_type_;
   friend void  protobuf_AddDesc_UserLogin_2eproto();
   friend void protobuf_AssignDesc_UserLogin_2eproto();
   friend void protobuf_ShutdownFile_UserLogin_2eproto();
@@ -711,6 +721,31 @@ inline void LoginRequest::set_allocated_logout_ticket(::std::string* logout_tick
     logout_ticket_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:com.caredear.LoginRequest.logout_ticket)
+}
+
+// optional .com.caredear.DeviceType device_type = 7;
+inline bool LoginRequest::has_device_type() const {
+  return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void LoginRequest::set_has_device_type() {
+  _has_bits_[0] |= 0x00000040u;
+}
+inline void LoginRequest::clear_has_device_type() {
+  _has_bits_[0] &= ~0x00000040u;
+}
+inline void LoginRequest::clear_device_type() {
+  device_type_ = 0;
+  clear_has_device_type();
+}
+inline ::com::caredear::DeviceType LoginRequest::device_type() const {
+  // @@protoc_insertion_point(field_get:com.caredear.LoginRequest.device_type)
+  return static_cast< ::com::caredear::DeviceType >(device_type_);
+}
+inline void LoginRequest::set_device_type(::com::caredear::DeviceType value) {
+  assert(::com::caredear::DeviceType_IsValid(value));
+  set_has_device_type();
+  device_type_ = value;
+  // @@protoc_insertion_point(field_set:com.caredear.LoginRequest.device_type)
 }
 
 // -------------------------------------------------------------------
