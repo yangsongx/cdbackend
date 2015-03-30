@@ -57,6 +57,8 @@ using namespace com::caredear;
 using namespace google::protobuf::io;
 
 MYSQL  *mSql;
+MYSQL  *mSqlSips;
+
 int     mSockReg;
 int     mSockLogin;
 int     mSockAct;
@@ -167,6 +169,43 @@ int try_conn_db(const char *config_file)
                     return -1;
                 }
             }
+
+            //
+            // next, try connecting to Sips DB...
+            char sips_ip[32];
+            char sips_user[32];
+            char sips_passwd[32];
+
+            get_node_via_xpath("//service_2/user_register_service/sipsserver/ip",
+                    ctx, sips_ip, sizeof(sips_ip));
+
+            get_node_via_xpath("//service_2/user_register_service/sipsserver/user",
+                    ctx, sips_user, sizeof(sips_user));
+
+            get_node_via_xpath("//service_2/user_register_service/sipsserver/password",
+                    ctx, sips_passwd, sizeof(sips_passwd));
+
+            LOG("the SIPS SQL server ip:%s, user:%s, password:%s\n",
+                    sips_ip, sips_user, sips_passwd);
+
+            mSqlSips = mysql_init(NULL);
+            if(mSqlSips != NULL){
+                int a = 1;
+                /* begin set some options before real connect */
+                a = 2;
+                mysql_options(mSqlSips, MYSQL_OPT_CONNECT_TIMEOUT, &a);
+                mysql_options(mSqlSips, MYSQL_OPT_READ_TIMEOUT, &a);
+                printf("Set SQL options...\n");
+
+                if(!mysql_real_connect(mSqlSips, sips_ip, sips_user, sips_passwd,
+                            "opensips", 0, NULL, 0)) {
+                    printf("error for mysql_real_connect():%s\n",
+                            mysql_error(mSqlSips));
+                    return -1;
+                }
+            }
+            //
+
         }
 
         xmlFreeDoc(doc);
@@ -277,10 +316,25 @@ int test_phone_sms_reg() {
             CDS_OK);
 }
 
+void _delete_sips_entry() {
+    char cmd[128];
+
+    sprintf(cmd, "DELETE FROM subscriber WHERE username=\'18911112222\'");
+    if(mysql_query(mSqlSips, cmd)){
+        printf("**failed delete number:%s\n", mysql_error(mSql));
+        return ;
+    } else {
+        printf("DELETION [OK]\n");
+    }
+
+}
 // reg a new mobile phone with password
 int test_phone_passwd_reg() {
     const char *password="189password"; //DO NOT change
     char md5str[36];
+
+    // before below new user, we delte sth from SIPS DB
+    _delete_sips_entry();
 
     the_md5(password, strlen(password), md5str);
     return _phone_reg_testing(RegLoginType::PHONE_PASSWD,
@@ -1064,6 +1118,56 @@ int test_older_phone_add_device_type6(){
 
     return ret;
 }
+
+// need add sips db when insert a new user.
+int test_add_sips_db_for_reg() {
+    int ret = -1;
+    char sqlcmd[128];
+
+    sprintf(sqlcmd, "SELECT username,domain FROM subscriber WHERE username=\'%s\'",
+            "18911112222" // DO NOT Modify
+            );
+
+    printf("the sql cmd:%s\n", sqlcmd);
+    if(mSqlSips == NULL)
+    {
+        printf("*** failed get the Sips SQL\n");
+        return -1;
+    }
+
+    if(mysql_query(mSqlSips, sqlcmd)) {
+        printf("***failed check the Sips DB:%s\n", mysql_error(mSqlSips));
+        return -1;
+    }
+
+    MYSQL_RES *mresult;
+    mresult = mysql_store_result(mSqlSips);
+    if(mresult)
+    {
+        MYSQL_ROW row;
+        row = mysql_fetch_row(mresult);
+        if(row != NULL) {
+            printf("    the SQL row[]=%s,%s\n", row[0], row[1]);
+            if(!strcmp(row[0], "18911112222")) {
+                printf("   GOOD, Sips DB also contain the mobile info!\n");
+                ret = 0;
+            }
+        } else {
+            printf(" didn't find the mobile in SIPS DB\n");
+        }
+
+        mysql_free_result(mresult);
+    }
+    else
+    {
+        printf("***NULL result \n");
+    }
+
+    // we re-use previously a new user mobile
+    // as the check one!
+
+    return ret;
+}
 /////////////////////////////////////////////////////////////////////
 // activation/login case
 /////////////////////////////////////////////////////////////////////
@@ -1564,6 +1668,7 @@ int main(int argc, char **argv)
     execute_ut_case(test_older_phone_add_device_type4);
     execute_ut_case(test_older_phone_add_device_type5);
     execute_ut_case(test_older_phone_add_device_type6);
+    execute_ut_case(test_add_sips_db_for_reg);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next will try testing the activation feature...

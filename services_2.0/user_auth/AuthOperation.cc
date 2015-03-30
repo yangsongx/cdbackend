@@ -124,7 +124,12 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
             ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
             if(ret == CDS_ERR_SQL_DISCONNECTED)
             {
-                if(m_pCfg->reconnect_sql() == 0)
+                /* FIXME if use Operation::sql_cmd() */
+                if(m_pCfg->reconnect_sql(m_pCfg->m_Sql,
+                    m_pCfg->m_strSqlIP,
+                    m_pCfg->m_strSqlUserName,
+                    m_pCfg->m_strSqlUserPassword) != NULL)
+
                 {
                     ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
                 }
@@ -139,7 +144,11 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
         ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
         if(ret == CDS_ERR_SQL_DISCONNECTED)
         {
-            if(m_pCfg->reconnect_sql() == 0)
+            /* FIXME if use Operation::sql_cmd() */
+            if(m_pCfg->reconnect_sql(m_pCfg->m_Sql,
+                    m_pCfg->m_strSqlIP,
+                    m_pCfg->m_strSqlUserName,
+                    m_pCfg->m_strSqlUserPassword) != NULL)
             {
                 ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
             }

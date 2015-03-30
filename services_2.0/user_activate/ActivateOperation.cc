@@ -14,7 +14,15 @@ int ActivateOperation::handling_request(::google::protobuf::Message *reqobj, ::g
     ret = verify_activation_code(m_pCfg->m_Sql, req);
     if(ret == CDS_ERR_SQL_DISCONNECTED)
     {
-        if(m_pCfg->reconnect_sql() == 0)
+        /* FIXME below reconnect actually SHOULD NEVER popup here(MUST only in parent)
+         *
+         * To meet the strict code arch, above operation should put in OperationXXX class
+         * there SHOULD be NO any xxx_db.cc file in each component.
+         */
+        if(m_pCfg->reconnect_sql(m_pCfg->m_Sql,
+                    m_pCfg->m_strSqlIP,
+                    m_pCfg->m_strSqlUserName,
+                    m_pCfg->m_strSqlUserPassword) != NULL)
         {
             ret = verify_activation_code(m_pCfg->m_Sql, req);
         }

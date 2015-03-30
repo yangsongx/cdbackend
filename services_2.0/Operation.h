@@ -13,6 +13,8 @@
 #define NETDISK_USER_TBL        "netdisk.USERS"
 #define NETDISK_FILE_TBL        "netdisk.FILES"
 
+#define OPENSIPS_SUB_TBL        "opensips.subscriber"
+
 using namespace com::caredear;
 
 typedef int (*cb_sqlfunc)(MYSQL_RES *p_result);
@@ -22,7 +24,7 @@ namespace caredear{
 
 
     class Operation {
-            int execute_sql(const char *cmd, cb_sqlfunc sql_cb);
+            int execute_sql(MYSQL *ms, const char *cmd, cb_sqlfunc sql_cb);
 
         public:
             Config  *m_pCfg;
@@ -41,6 +43,8 @@ namespace caredear{
 
             int sql_cmd(const char *cmd, cb_sqlfunc sql_cb);
             int sql_cmd_via_transaction(int argc, char **argv, cb_sqlfunc sql_cb);
+
+            int sql_cmd_with_specify_server(MYSQL *ms, const char *cmd, cb_sqlfunc sql_cb);
 
             /* each component's xxxOpr need override this API */
             virtual int handling_request(::google::protobuf::Message *reqobj,

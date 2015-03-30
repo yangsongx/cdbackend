@@ -30,6 +30,16 @@ using namespace google::protobuf::io;
  */
 class RegOperation : public com::caredear::Operation{
 
+        bool user_already_exist(RegisterRequest *reqobj, int *p_active_status, uint64_t *p_index);
+        int add_new_user_entry(RegisterRequest *pRegInfo);
+        int add_user_password_to_db(RegisterRequest *pRegInfo, unsigned long user_id, const char *passwd);
+        int overwrite_inactive_user_entry(RegisterRequest *pRegInfo, unsigned long user_id);
+        int add_opensips_entry(RegisterRequest *pRegInfo);
+
+        static uint64_t m_cid;
+        static int m_active_status;
+        static int cb_check_user_existence(MYSQL_RES *p_result);
+
     public:
         // constructors...
         RegOperation() {

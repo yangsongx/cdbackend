@@ -4,35 +4,34 @@
 using namespace com::caredear;
 
 
-int Config::conn_to_mysql()
+MYSQL *Config::conn_to_mysql(const char *ip, const char *usr, const char *passwd)
 {
-    int ret = -1;
+    MYSQL *s;
 
-    m_Sql = mysql_init(NULL);
-    if(m_Sql != NULL)
+    s = mysql_init(NULL);
+    if(s != NULL)
     {
-        mysql_options(m_Sql, MYSQL_OPT_CONNECT_TIMEOUT, &m_iSqlConnTimeout);
+        mysql_options(s, MYSQL_OPT_CONNECT_TIMEOUT, &m_iSqlConnTimeout);
 
-        mysql_options(m_Sql, MYSQL_OPT_READ_TIMEOUT, &m_iSqlRdTimeout);
-        mysql_options(m_Sql, MYSQL_OPT_WRITE_TIMEOUT, &m_iSqlWtTimeout);
+        mysql_options(s, MYSQL_OPT_READ_TIMEOUT, &m_iSqlRdTimeout);
+        mysql_options(s, MYSQL_OPT_WRITE_TIMEOUT, &m_iSqlWtTimeout);
 
-        if(!mysql_real_connect(m_Sql, m_strSqlIP,
-                    m_strSqlUserName,
-                    m_strSqlUserPassword,
+        if(!mysql_real_connect(s, ip,
+                    usr,
+                    passwd,
                     "", // db keep blank
                     0,  // port , take default
                     NULL,
                     0))
         {
             ERR("**failed connecting to MySQL:(%d)%s\n",
-                    mysql_errno(m_Sql), mysql_error(m_Sql));
-            mysql_close(m_Sql);
-            m_Sql = NULL;
+                    mysql_errno(s), mysql_error(s));
+            mysql_close(s);
+            s = NULL;
         }
         else
         {
             INFO("Connecting to MySQL ... [OK]\n");
-            ret = 0;
         }
 
         // TODO see not in the header
@@ -50,7 +49,7 @@ int Config::conn_to_mysql()
         ERR("***Failed init the SQL env\n");
     }
 
-    return ret;
+    return s;
 }
 
 
@@ -61,7 +60,7 @@ int Config::conn_to_mysql()
 int Config::prepare_db_and_mem()
 {
     // first, MySQL
-    conn_to_mysql();
+    m_Sql = conn_to_mysql(m_strSqlIP, m_strSqlUserName, m_strSqlUserPassword);
 
     // next, memcached
     if(strlen(m_strMemIP) == 0)
@@ -96,14 +95,17 @@ int Config::prepare_db_and_mem()
     return 0;
 }
 
-int Config::reconnect_sql()
+/**
+ * reconnecting to @ip SQL server on the @disconnectS
+ *
+ * return reconnected SQL, if sth wrong, it is NULL
+ */
+MYSQL *Config::reconnect_sql(MYSQL *disconnectS, const char *ip, const char *usr, const char *passwd)
 {
-    int ret = -1;
-
     INFO("try re-connecting to mySQL...\n");
 
-    mysql_close(m_Sql);
-    ret = conn_to_mysql();
+    mysql_close(disconnectS);
+    disconnectS = conn_to_mysql(ip, usr, passwd);
 
-    return ret;
+    return disconnectS;
 }

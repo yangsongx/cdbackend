@@ -91,7 +91,11 @@ int LoginOperation::process_user_and_credential(LoginRequest *reqobj, LoginRespo
     if(ret == CDS_ERR_SQL_DISCONNECTED)
     {
         ERR("Oh, found MySQL disconnected, try reconnecting...\n");
-        if(m_pCfg->reconnect_sql() == 0)
+
+        if(m_pCfg->reconnect_sql(m_pCfg->m_Sql,
+                    m_pCfg->m_strSqlIP,
+                    m_pCfg->m_strSqlUserName,
+                    m_pCfg->m_strSqlUserPassword) != NULL)
         {
             ret = match_user_credential_in_db(m_pCfg->m_Sql, reqobj, &cid);
         }

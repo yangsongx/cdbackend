@@ -22,11 +22,22 @@
 
 class UserRegConfig : public com::caredear::Config{
 
+protected:
+    virtual int   prepare_db_and_mem();
+
 public:
 
     /* reg-specific config data */
     int   m_iMobileVerifyExpir;
     int   m_iEmailVerifyExpir;
+
+    /* SIPs DB SQL info */
+    char  m_sipIP[32];
+    int   m_sipPort;
+    char  m_sipUser[32];
+    char  m_sipPasswd[32];
+
+    MYSQL *m_SipsSql;
 
     virtual int parse_cfg(const char *config_file);
 };

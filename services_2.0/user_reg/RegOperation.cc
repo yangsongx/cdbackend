@@ -4,6 +4,33 @@ using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
+
+uint64_t RegOperation::m_cid = -1;
+int RegOperation::m_active_status = 0;
+
+int RegOperation::cb_check_user_existence(MYSQL_RES *p_result)
+{
+    MYSQL_ROW row;
+
+    row = mysql_fetch_row(p_result);
+    if(row == NULL)
+    {
+        INFO("blank DB check result, a new user\n");
+        m_cid = -1;
+        m_active_status = 100; // magic number
+    }
+    else
+    {
+        m_cid = atol(row[0]);
+        m_active_status = atoi(row[1]);
+        INFO("an existed entry(id-%lu,status-%d)\n",
+                m_cid, m_active_status);
+    }
+
+    return 0;
+}
+
+
 /**
  * Generate a random 6-digit number, used for email/sms verify code
  *
@@ -75,6 +102,7 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
     RegisterRequest *reqobj = (RegisterRequest*)reg_req;
     RegisterResponse *respobj = (RegisterResponse *) reg_resp;
 
+    /* error checking */
     if(m_pCfg == NULL)
     {
         ERR("Non-Config info found!\n");
@@ -84,27 +112,7 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
 
     unsigned long usr_id;
     int status_flag;
-    bool existed = user_already_exist(m_pCfg->m_Sql, reqobj, &status_flag, &usr_id);
-
-    // first of all, try re-connect if possible3
-    if(existed && (status_flag == -1 && usr_id == (unsigned long) -1))
-    {
-        ERR("Oh, found MySQL disconnected, try reconnecting...\n");
-        if(m_pCfg->reconnect_sql() == 0)
-        {
-            existed = user_already_exist(m_pCfg->m_Sql, reqobj, &status_flag, &usr_id);
-        }
-        else
-        {
-            ERR("Very Bad, reconnectiong still failed\n");
-            if(compose_result(CDS_ERR_SQL_DISCONNECTED, NULL, respobj, len_resp, resp) != 0)
-            {
-                ERR("***failed serialize to resp data\n");
-            }
-            return CDS_ERR_SQL_DISCONNECTED;
-        }
-
-    }
+    bool existed = user_already_exist(reqobj, &status_flag, &usr_id);
 
     if(existed && status_flag == 1)
     {
@@ -116,12 +124,12 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
         if(existed == false)
         {
             // a new user, record it into DB
-            ret = add_new_user_entry(m_pCfg->m_Sql, reqobj);
+            ret = add_new_user_entry(reqobj);
         }
         else
         {
             INFO("Found an existed user in DB(ID-%ld), but not activated, so overwrite it!\n", usr_id);
-            ret = overwrite_inactive_user_entry(m_pCfg->m_Sql, reqobj, usr_id);
+            ret = overwrite_inactive_user_entry(reqobj, usr_id);
         }
 
         if( ret == CDS_OK
@@ -143,6 +151,299 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
         compose_result(ret, NULL, respobj, len_resp, resp);
     }
 
+
+    return ret;
+}
+
+/**
+ * Determin if the new register name existed in DB or not.
+ *
+ * @p_active_status : store the selected User's status.
+ * @p_index: stored the found user's ID(also as caredear id currently)
+ *
+ * return true means user existed, and @p_index stored the user's ID in DB
+ */
+bool RegOperation::user_already_exist(RegisterRequest *reqobj, int *p_active_status, uint64_t *p_index)
+{
+    int ret;
+    char sqlcmd[1024];
+
+    switch(reqobj->reg_type())
+    {
+        case RegLoginType::MOBILE_PHONE:
+        case RegLoginType::PHONE_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id,status FROM %s WHERE usermobile=\'%s\'",
+                    USERCENTER_MAIN_TBL, reqobj->reg_name().c_str());
+            break;
+
+        case RegLoginType::NAME_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id,status FROM %s WHERE username=\'%s\'",
+                    USERCENTER_MAIN_TBL, reqobj->reg_name().c_str());
+            break;
+
+        case RegLoginType::EMAIL_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id,status FROM %s WHERE email=\'%s\'",
+                    USERCENTER_MAIN_TBL, reqobj->reg_name().c_str());
+            break;
+
+        case RegLoginType::OTHERS:
+            // user use QQ/WeiXin/Weibo/etc...
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id,status FROM %s WHERE third=\'%s\'",
+                    USERCENTER_MAIN_TBL, reqobj->reg_name().c_str());
+            break;
+
+        default:
+            ERR("****FATAL**** unknow req type(%d)\n", reqobj->reg_type());
+            break;
+    }
+
+    ret = sql_cmd(sqlcmd, cb_check_user_existence);
+    if(ret == CDS_OK)
+    {
+        if(m_cid == (uint64_t)-1 && m_active_status == 100)
+        {
+            // a new user
+            return false;
+        }
+        else
+        {
+            *p_active_status = m_active_status;
+            *p_index = m_cid;
+            return true;
+        }
+    }
+    else
+    {
+        // FIXME = for such error case, how to handle?
+        ERR("failed execute the SQL for check user existence, mark this as new temply\n");
+        return false;
+    }
+}
+
+int RegOperation::add_new_user_entry(RegisterRequest *pRegInfo)
+{
+    int ret = CDS_OK;
+    char sqlcmd[1024];
+    char current[32]; // date '1990-12-12 12:12:12' is 20 len
+    bool bypassactivate = false;
+
+    if(current_datetime(current, sizeof(current)) != 0)
+    {
+        /* FIXME - This SHOULD NEVER happen! */
+        ERR("Warning, failed compose time, set a default time\n");
+        strcpy(current, "1990-12-12 12:12:12");
+    }
+
+
+    if(pRegInfo->has_bypass_activation() && pRegInfo->bypass_activation() == 1)
+    {
+        bypassactivate = true;
+    }
+
+    switch(pRegInfo->reg_type())
+    {
+        case RegLoginType::MOBILE_PHONE:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "INSERT INTO %s (usermobile,device,source,createtime,status) "
+                    "VALUES (\'%s\',%d,\'%s\',\'%s\',%d)",
+                    USERCENTER_MAIN_TBL,
+                    pRegInfo->reg_name().c_str(), pRegInfo->reg_device(),
+                    pRegInfo->reg_source().c_str(), current,
+                    bypassactivate == true ? 1 : 0);
+            break;
+
+        case RegLoginType::PHONE_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "INSERT INTO %s (usermobile,device,source,createtime,status) "
+                    "VALUES (\'%s\',%d,\'%s\',\'%s\',%d)",
+                    USERCENTER_MAIN_TBL,
+                    pRegInfo->reg_name().c_str(),
+                    pRegInfo->reg_device(),
+                    pRegInfo->reg_source().c_str(), current,
+                    bypassactivate == true ? 1 : 0);
+            break;
+
+        case RegLoginType::NAME_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "INSERT INTO %s (username,device,source,createtime,status) "
+                    "VALUES (\'%s\',%d,\'%s\',\'%s\',1)",
+                    USERCENTER_MAIN_TBL,
+                    pRegInfo->reg_name().c_str(),
+                    pRegInfo->reg_device(),
+                    pRegInfo->reg_source().c_str(),current);
+            break;
+
+        case RegLoginType::EMAIL_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "INSERT INTO %s (email,device,source,createtime,status) "
+                    "VALUES (\'%s\',%d,\'%s\',\'%s\',%d)",
+                    USERCENTER_MAIN_TBL,
+                    pRegInfo->reg_name().c_str(),
+                    pRegInfo->reg_device(),
+                    pRegInfo->reg_source().c_str(), current,
+                    bypassactivate == true ? 1 : 0);
+            break;
+
+        case RegLoginType::OTHERS:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "INSERT INTO %s (third,device,source,createtime,status) "
+                    "VALUES (\'%s\',%d,\'%s\',\'%s\',1)",
+                    USERCENTER_MAIN_TBL,
+                    pRegInfo->reg_name().c_str(),
+                    pRegInfo->reg_device(),
+                    pRegInfo->reg_source().c_str(), current);
+            break;
+
+        default:
+            ERR("**Warning, unknow reg type\n");
+            break;
+    }
+
+    ret = sql_cmd(sqlcmd, NULL);
+
+    if(ret == CDS_OK)
+    {
+        INFO("new reg usr insertion [OK]\n");
+
+        // opensips-specific
+        if(add_opensips_entry(pRegInfo) != CDS_OK)
+        {
+            ERR("Warning, failed add conresponding opensips DB item,please check!\n");
+        }
+        // end of opensips-specific
+
+        // Note here, we still need do a SQL query again, to get User's CID,
+        // after get this CID, we can update the password finally!
+        unsigned long cid = 0;
+        int active_flag;
+        if(user_already_exist(pRegInfo, &active_flag, &cid))
+        {
+            INFO("this new user's CID=%ld\n", cid);
+            // we don't add password for mobile+SMS verify code case
+            if(pRegInfo->reg_type() != RegLoginType::MOBILE_PHONE)
+            {
+                char finaly_passwd[64];
+                // re-use the long sqlcmd buff
+                sprintf(sqlcmd, "%ld-%s",
+                        cid, pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "");
+                get_md5(sqlcmd, strlen(sqlcmd), finaly_passwd);
+                LOG("%s --MD5--> %s\n", sqlcmd, finaly_passwd);
+
+                ret = add_user_password_to_db(pRegInfo, cid, finaly_passwd);
+            }
+        }
+        else
+        {
+            ERR("SHOULD NEVER Happend as we already insert right now!\n");
+            ret = CDS_ERR_SQL_EXECUTE_FAILED;
+        }
+    }
+    else
+    {
+        ERR("execute the SQL cmd got error:%d, insertion failed\n", ret);
+    }
+
+    return ret;
+}
+
+int RegOperation::add_user_password_to_db(RegisterRequest *pRegInfo, unsigned long user_id, const char *passwd)
+{
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE %s SET loginpassword=\'%s\' WHERE id=%ld",
+            USERCENTER_MAIN_TBL, passwd, user_id);
+
+    return sql_cmd(sqlcmd, NULL);
+}
+
+int RegOperation::overwrite_inactive_user_entry(RegisterRequest *pRegInfo, unsigned long user_id)
+{
+    char sqlcmd[1024];
+    bool bypassactivate = false;
+
+    if(pRegInfo->reg_type() == RegLoginType::MOBILE_PHONE)
+    {
+        INFO("For SMS verify case, DO NOT overwrite the DB!\n");
+        return 0;
+    }
+
+    if(pRegInfo->has_bypass_activation() && pRegInfo->bypass_activation() == 1)
+    {
+        bypassactivate = true;
+    }
+
+    // as we already knew the CID, calculate the password here.
+    char finaly_passwd[64];
+    char temp_buf[128];
+    snprintf(temp_buf, sizeof(temp_buf), "%ld-%s",
+            user_id, pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "");
+    get_md5(temp_buf, strlen(temp_buf), finaly_passwd);
+    LOG("%s --MD5--> %s\n", temp_buf, finaly_passwd);
+
+
+    switch(pRegInfo->reg_type())
+    {
+        case RegLoginType::PHONE_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET usermobile=\'%s\',loginpassword=\'%s\',device=%d,source=\'%s\',createtime=NOW(),status=%d WHERE id=%ld",
+                    USERCENTER_MAIN_TBL,
+                    pRegInfo->reg_name().c_str(), 
+                    finaly_passwd,
+                    pRegInfo->reg_device(), pRegInfo->reg_source().c_str(),
+                    bypassactivate == true ? 1 : 0,
+                    user_id);
+            break;
+
+        case RegLoginType::EMAIL_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET email=\'%s\',loginpassword=\'%s\',device=%d,source=\'%s\',createtime=NOW(),status=%d WHERE id=%ld",
+                    USERCENTER_MAIN_TBL,
+                    pRegInfo->reg_name().c_str(),
+                    finaly_passwd,
+                    pRegInfo->reg_device(), pRegInfo->reg_source().c_str(),
+                    bypassactivate == true ? 1 : 0,
+                    user_id);
+            break;
+
+        default:
+            // DO nothing here
+            ERR("unsupport reg type(line %d)\n", __LINE__);
+            break;
+    }
+
+    return sql_cmd(sqlcmd, NULL);
+}
+
+int RegOperation::add_opensips_entry(RegisterRequest *pRegInfo)
+{
+    int ret = CDS_OK;
+    char sqlcmd[1024];
+    UserRegConfig *c = (UserRegConfig *)m_pCfg;
+
+    if(c->m_SipsSql == NULL)
+    {
+        ERR("Warning, SIPs SQL unavailable!\n");
+        return ret;
+    }
+
+    if(!(pRegInfo->reg_type() == RegLoginType::MOBILE_PHONE
+            || pRegInfo->reg_type() == RegLoginType::PHONE_PASSWD))
+    {
+        // don't need take care of Non-mobile case
+        return ret;
+    }
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "INSERT INTO %s (username,domain) VALUES (\'%s\',\'rdp.caredear.com\')",
+            OPENSIPS_SUB_TBL, pRegInfo->reg_name().c_str());
+
+    // OpenSIPs is another DB, so use a different API
+    ret = sql_cmd_with_specify_server(c->m_SipsSql, sqlcmd, NULL);
 
     return ret;
 }

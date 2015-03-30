@@ -1,6 +1,26 @@
 #include "UserRegConfig.h"
 
 /**
+ * Override from Config::prepare_db_and_mem()
+ *
+ * Currently, directly return 0
+ */
+int UserRegConfig::prepare_db_and_mem()
+{
+    // parent funciton...
+    Config::prepare_db_and_mem();
+
+    // need take extra care of SIPs' DB
+    m_SipsSql = conn_to_mysql(m_sipIP, m_sipUser, m_sipPasswd);
+    if(!m_SipsSql)
+    {
+        ERR("*** Failed connect to the SIPs SQL server!\n");
+    }
+
+    return 0;
+}
+
+/**
  * Read out init config XML file
  *
  * @config_file : the XML config file name(currently, it is /etc/cds_cfg.xml)
@@ -57,6 +77,23 @@ int UserRegConfig::parse_cfg(const char *config_file)
                     ctx, buffer, sizeof(buffer));
             m_iEmailVerifyExpir = atoi(buffer);
 
+            /* next, will */
+            get_node_via_xpath("//service_2/user_register_service/sipsserver/ip",
+                    ctx, buffer, sizeof(buffer));
+            strncpy(m_sipIP, buffer, sizeof(m_sipIP));
+
+            get_node_via_xpath("//service_2/user_register_service/sipsserver/user",
+                    ctx, buffer, sizeof(buffer));
+            strncpy(m_sipUser, buffer, sizeof(m_sipUser));
+
+            get_node_via_xpath("//service_2/user_register_service/sipsserver/password",
+                    ctx, buffer, sizeof(buffer));
+            strncpy(m_sipPasswd, buffer, sizeof(m_sipPasswd));
+
+            LOG("OpenSIPs DB ip:%s\n", m_sipIP);
+
+
+            // free useless resource...
             xmlXPathFreeContext(ctx);
 
             INFO("XML config parse finished [OK]\n");

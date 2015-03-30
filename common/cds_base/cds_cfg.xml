@@ -14,6 +14,13 @@
                 <databasename></databasename>
             </sqlserver>
 
+            <!-- Register need also touch the SIPs DB -->
+            <sipsserver>
+                <ip>192.168.1.13</ip>
+                <user>opensips</user>
+                <password>opensipsrw</password>
+            </sipsserver>
+
             <!-- expiration is in second unit -->
             <mobile_verifycode_expiration>3600</mobile_verifycode_expiration>
             <email_verifycode_expiration>18000</email_verifycode_expiration>

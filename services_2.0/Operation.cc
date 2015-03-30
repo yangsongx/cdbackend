@@ -166,24 +166,37 @@ int Operation::sql_cmd_via_transaction(int argc, char **argv, cb_sqlfunc sql_cb)
 int Operation::sql_cmd(const char *cmd, cb_sqlfunc sql_cb)
 {
     int ret;
+    MYSQL     *ms = m_pCfg->m_Sql;
+
+    ret = sql_cmd_with_specify_server(ms, cmd, sql_cb);
+
+    return ret;
+}
+
+int Operation::sql_cmd_with_specify_server(MYSQL *ms, const char *cmd, cb_sqlfunc sql_cb)
+{
+    int ret;
 
     /* SQL error case protection */
-    if(m_pCfg->m_Sql == NULL)
+    if(ms == NULL)
     {
         ERR("MySQL connection not existed at all!\n");
         return CDS_ERR_SQL_DISCONNECTED;
     }
 
-    ret = execute_sql(cmd, sql_cb);
+    ret = execute_sql(ms, cmd, sql_cb);
     if(ret == CDS_ERR_SQL_DISCONNECTED)
     {
         // try reconnect the SQL, as it probably
         // disconnected after idle timeout
         INFO("SQL disconnected, try reconnect...\n");
-        if(m_pCfg->reconnect_sql() == 0)
+        if(m_pCfg->reconnect_sql(ms,
+                    m_pCfg->m_strSqlIP,
+                    m_pCfg->m_strSqlUserName,
+                    m_pCfg->m_strSqlUserPassword) != NULL)
         {
             // do it again
-            ret = execute_sql(cmd, sql_cb);
+            ret = execute_sql(ms, cmd, sql_cb);
         }
     }
 
@@ -195,10 +208,9 @@ int Operation::sql_cmd(const char *cmd, cb_sqlfunc sql_cb)
  *
  * If SQL server gone when max-idle exceed, will return CDS_ERR_SQL_DISCONNECTED, caller need try re-connect and call this util again!
  */
-int Operation::execute_sql(const char *cmd, cb_sqlfunc sql_cb)
+int Operation::execute_sql(MYSQL *ms, const char *cmd, cb_sqlfunc sql_cb)
 {
     MYSQL_RES *mresult;
-    MYSQL     *ms = m_pCfg->m_Sql;
 
     pthread_mutex_lock(&m_pCfg->m_SqlMutex);
     if(mysql_query(ms, cmd))

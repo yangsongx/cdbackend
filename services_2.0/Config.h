@@ -22,7 +22,7 @@ namespace caredear{
         int  m_iSqlRdTimeout;
         int  m_iSqlWtTimeout;
 
-    protected:
+    public:
         // SQL related config info...
         char  m_strSqlIP[32];
         char  m_strSqlUserName[32];
@@ -34,8 +34,8 @@ namespace caredear{
         int   m_iMemPort;
 
     protected:
-        int   conn_to_mysql();
-        int   prepare_db_and_mem();
+        MYSQL        *conn_to_mysql(const char *ip, const char *usr, const char *passwd);
+        virtual int   prepare_db_and_mem();
 
     public:
         ///////////////////////////////////////////
@@ -57,7 +57,7 @@ namespace caredear{
          * so they MUST override this function */
         virtual int parse_cfg(const char *config_file) = 0;
 
-        int reconnect_sql();
+        MYSQL *reconnect_sql(MYSQL *disconnectS, const char *ip, const char *usr, const char *passwd);
     };
 }   //caredear
 } // com
