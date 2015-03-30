@@ -12,16 +12,7 @@ all:
 
 .PHONY:dist
 dist:
-	-rm -rf bin/
-	-mkdir -p bin/
-	-cp common/cds_base/libcds.so bin/
-	-cp services_2.0/user_reg/urs bin/
-	-cp services_2.0/user_login/uls bin/
-	-cp services_2.0/user_activate/acts bin/
-	-cp services_2.0/user_auth/uauth bin/
-	-cp services_2.0/password_manager/passwdmgr bin/
-	-cp services_2.0/attribute_modification/attrmodify bin/
-	-tar -zcf allbin.tar.gz bin/*
+	./pack.sh
 
 .PHONY:clean
 clean:
