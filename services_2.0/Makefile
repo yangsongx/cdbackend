@@ -7,7 +7,9 @@ export BUILD_NUMBER
 # FIXME - currently, we don't contain any excluding dir
 exclude_dirs := include bin
 
-dirs := $(shell find . -maxdepth 1 -type d)
+# FIXME we need consider symbol as well, so 
+# use '! -type f' instead of '-type d'
+dirs := $(shell find . -maxdepth 1 ! -type f)
 dirs := $(basename $(patsubst ./%,%,$(dirs)))
 dirs := $(filter-out $(exclude_dirs),$(dirs))
 

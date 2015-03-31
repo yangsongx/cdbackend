@@ -71,6 +71,7 @@ int rm_qiniu_disk_file(const char *diskkey)
  */
 int mapping_file_type(const char *filename)
 {
+#if 0
     int type = FT_DOC;
     int len = strlen(filename);
     char *suffix;
@@ -115,6 +116,8 @@ int mapping_file_type(const char *filename)
     }
 
     return type;
+#endif
+    return 0;
 }
 
 /**

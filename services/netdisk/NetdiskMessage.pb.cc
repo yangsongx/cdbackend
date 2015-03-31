@@ -126,9 +126,10 @@ void protobuf_AddDesc_NetdiskMessage_2eproto() {
     "\024.com.caredear.Opcode\022\023\n\013result_code\030\002 \002"
     "(\005\022\020\n\010errormsg\030\003 \001(\t\022\023\n\013uploadtoken\030\004 \001("
     "\t\022\023\n\013downloadurl\030\005 \001(\t\022\022\n\nnetdisckey\030\006 \001"
-    "(\t*g\n\006Opcode\022\r\n\tUPLOADING\020\000\022\014\n\010UPLOADED\020"
+    "(\t*u\n\006Opcode\022\r\n\tUPLOADING\020\000\022\014\n\010UPLOADED\020"
     "\001\022\n\n\006DELETE\020\002\022\n\n\006RENAME\020\003\022\t\n\005SHARE\020\004\022\014\n\010"
-    "LISTFILE\020\005\022\017\n\013DOWNLOADURL\020\006", 507);
+    "LISTFILE\020\005\022\017\n\013DOWNLOADURL\020\006\022\014\n\010GETTOKEN\020"
+    "\007", 521);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "NetdiskMessage.proto", &protobuf_RegisterTypes);
   NetdiskRequest::default_instance_ = new NetdiskRequest();
@@ -157,6 +158,7 @@ bool Opcode_IsValid(int value) {
     case 4:
     case 5:
     case 6:
+    case 7:
       return true;
     default:
       return false;

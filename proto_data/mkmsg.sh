@@ -85,8 +85,8 @@ else
   echo "Attribute IDL generation [**failed]"
 fi
 
-# For Netdisk Service - 2.0
-protoc --cpp_out="../services_2.0/netdisk_2/" NetdiskMessage.proto
+# For Netdisk
+protoc --cpp_out="../services_2.0/netdisk/" NetdiskMessage.proto
 if [ $? -eq 0 ]; then
   echo "Netdisk IDL generation [OK]"
 else

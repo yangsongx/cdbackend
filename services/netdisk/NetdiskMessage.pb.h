@@ -45,11 +45,12 @@ enum Opcode {
   RENAME = 3,
   SHARE = 4,
   LISTFILE = 5,
-  DOWNLOADURL = 6
+  DOWNLOADURL = 6,
+  GETTOKEN = 7
 };
 bool Opcode_IsValid(int value);
 const Opcode Opcode_MIN = UPLOADING;
-const Opcode Opcode_MAX = DOWNLOADURL;
+const Opcode Opcode_MAX = GETTOKEN;
 const int Opcode_ARRAYSIZE = Opcode_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* Opcode_descriptor();

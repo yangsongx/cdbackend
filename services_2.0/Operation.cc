@@ -155,8 +155,60 @@ char *Operation::get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas
  */
 int Operation::sql_cmd_via_transaction(int argc, char **argv, cb_sqlfunc sql_cb)
 {
-    // TODO, need implementation code here...
-    return -1;
+    int i;
+    MYSQL *ms = m_pCfg->m_Sql;
+    MYSQL_RES *mresult;
+
+    pthread_mutex_lock(&m_pCfg->m_SqlMutex);
+    if(mysql_query(ms, "begin"))
+    {
+        pthread_mutex_unlock(&m_pCfg->m_SqlMutex);
+        ERR("failed do the begin transaction:%s\n", mysql_error(ms));
+        return CDS_ERR_SQL_EXECUTE_FAILED;
+    }
+
+    for(i = 0; i < argc; i++)
+    {
+        if(mysql_query(ms, argv[i]))
+        {
+            ERR("sth wrong in DB trasaction(%s), will rollback...\n",
+                    mysql_error(ms));
+            goto need_rollback;
+        }
+
+        mresult = mysql_store_result(ms);
+        if(mresult)
+            mysql_free_result(mresult);
+    }
+
+    INFO("Now, update all tables in one commit...\n");
+    if(mysql_commit(ms) == 0)
+    {
+        INFO("[OK]\n");
+    }
+    else
+    {
+        ERR("Failed commit:%s\n", mysql_error(ms));
+        goto need_rollback;
+    }
+
+    pthread_mutex_unlock(&m_pCfg->m_SqlMutex);
+
+    return CDS_OK;
+
+need_rollback:
+    pthread_mutex_unlock(&m_pCfg->m_SqlMutex);
+    INFO("will rollback as sth wrong...");
+    if(mysql_rollback(ms) == 0)
+    {
+        INFO("[OK]\n");
+    }
+    else
+    {
+        INFO("[failed:%s]\n", mysql_error(ms));
+    }
+
+    return CDS_ERR_SQL_EXECUTE_FAILED;
 }
 
 /**

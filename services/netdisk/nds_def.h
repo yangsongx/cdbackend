@@ -17,6 +17,7 @@
 
 using namespace com::caredear;
 
+#if 0
 // the file type mapped to DB
 enum FILE_TYPE {
     FT_IMAGE = 0,
@@ -26,6 +27,7 @@ enum FILE_TYPE {
     FT_SMS,         /**< backup short SMS data file */
     FT_DOC          /**< others will be considered as documents... */
 };
+#endif
 
 extern unsigned int qiniu_quota;
 extern struct sql_server_info sql_cfg;

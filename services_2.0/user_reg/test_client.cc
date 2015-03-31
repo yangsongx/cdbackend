@@ -473,6 +473,12 @@ int test_insert_new_user_password4() {
             CDS_OK);
 }
 
+int test_rollback_logic()
+{
+    printf("WOW, you need a rollback test case!\n");
+    return -1;
+}
+
 int test_ping_reg_service()
 {
     int ret = -1;
@@ -1723,6 +1729,7 @@ int main(int argc, char **argv)
     execute_ut_case(test_auth_normal_case6);
     execute_ut_case(test_auth_normal_case7);
 
+    execute_ut_case(test_rollback_logic);
 
     ///
     //TODO need add modify profile test case here...
