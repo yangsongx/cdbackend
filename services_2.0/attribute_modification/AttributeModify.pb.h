@@ -437,6 +437,13 @@ class AttributeModifyResponse : public ::google::protobuf::Message {
   inline ::std::string* release_user_mobile();
   inline void set_allocated_user_mobile(::std::string* user_mobile);
 
+  // optional int32 contain_passwd = 12;
+  inline bool has_contain_passwd() const;
+  inline void clear_contain_passwd();
+  static const int kContainPasswdFieldNumber = 12;
+  inline ::google::protobuf::int32 contain_passwd() const;
+  inline void set_contain_passwd(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:com.caredear.AttributeModifyResponse)
  private:
   inline void set_has_result_code();
@@ -461,6 +468,8 @@ class AttributeModifyResponse : public ::google::protobuf::Message {
   inline void clear_has_user_email();
   inline void set_has_user_mobile();
   inline void clear_has_user_mobile();
+  inline void set_has_contain_passwd();
+  inline void clear_has_contain_passwd();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -477,6 +486,7 @@ class AttributeModifyResponse : public ::google::protobuf::Message {
   ::std::string* user_name_;
   ::std::string* user_email_;
   ::std::string* user_mobile_;
+  ::google::protobuf::int32 contain_passwd_;
   friend void  protobuf_AddDesc_AttributeModify_2eproto();
   friend void protobuf_AssignDesc_AttributeModify_2eproto();
   friend void protobuf_ShutdownFile_AttributeModify_2eproto();
@@ -1704,6 +1714,30 @@ inline void AttributeModifyResponse::set_allocated_user_mobile(::std::string* us
     user_mobile_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:com.caredear.AttributeModifyResponse.user_mobile)
+}
+
+// optional int32 contain_passwd = 12;
+inline bool AttributeModifyResponse::has_contain_passwd() const {
+  return (_has_bits_[0] & 0x00000800u) != 0;
+}
+inline void AttributeModifyResponse::set_has_contain_passwd() {
+  _has_bits_[0] |= 0x00000800u;
+}
+inline void AttributeModifyResponse::clear_has_contain_passwd() {
+  _has_bits_[0] &= ~0x00000800u;
+}
+inline void AttributeModifyResponse::clear_contain_passwd() {
+  contain_passwd_ = 0;
+  clear_has_contain_passwd();
+}
+inline ::google::protobuf::int32 AttributeModifyResponse::contain_passwd() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyResponse.contain_passwd)
+  return contain_passwd_;
+}
+inline void AttributeModifyResponse::set_contain_passwd(::google::protobuf::int32 value) {
+  set_has_contain_passwd();
+  contain_passwd_ = value;
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyResponse.contain_passwd)
 }
 
 

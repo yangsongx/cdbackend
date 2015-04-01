@@ -38,10 +38,11 @@ void protobuf_AssignDesc_PasswordManager_2eproto() {
       "PasswordManager.proto");
   GOOGLE_CHECK(file != NULL);
   PasswordManagerRequest_descriptor_ = file->message_type(0);
-  static const int PasswordManagerRequest_offsets_[3] = {
+  static const int PasswordManagerRequest_offsets_[4] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PasswordManagerRequest, type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PasswordManagerRequest, caredear_id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PasswordManagerRequest, new_passwd_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PasswordManagerRequest, old_passwd_),
   };
   PasswordManagerRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -104,11 +105,12 @@ void protobuf_AddDesc_PasswordManager_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\025PasswordManager.proto\022\014com.caredear\"O\n"
+    "\n\025PasswordManager.proto\022\014com.caredear\"c\n"
     "\026PasswordManagerRequest\022\014\n\004type\030\001 \002(\005\022\023\n"
-    "\013caredear_id\030\002 \002(\004\022\022\n\nnew_passwd\030\003 \002(\t\"A"
-    "\n\027PasswordManagerResponse\022\023\n\013result_code"
-    "\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t", 185);
+    "\013caredear_id\030\002 \002(\004\022\022\n\nnew_passwd\030\003 \002(\t\022\022"
+    "\n\nold_passwd\030\004 \001(\t\"A\n\027PasswordManagerRes"
+    "ponse\022\023\n\013result_code\030\001 \002(\005\022\021\n\textra_msg\030"
+    "\002 \001(\t", 205);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "PasswordManager.proto", &protobuf_RegisterTypes);
   PasswordManagerRequest::default_instance_ = new PasswordManagerRequest();
@@ -131,6 +133,7 @@ struct StaticDescriptorInitializer_PasswordManager_2eproto {
 const int PasswordManagerRequest::kTypeFieldNumber;
 const int PasswordManagerRequest::kCaredearIdFieldNumber;
 const int PasswordManagerRequest::kNewPasswdFieldNumber;
+const int PasswordManagerRequest::kOldPasswdFieldNumber;
 #endif  // !_MSC_VER
 
 PasswordManagerRequest::PasswordManagerRequest()
@@ -155,6 +158,7 @@ void PasswordManagerRequest::SharedCtor() {
   type_ = 0;
   caredear_id_ = GOOGLE_ULONGLONG(0);
   new_passwd_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  old_passwd_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -166,6 +170,9 @@ PasswordManagerRequest::~PasswordManagerRequest() {
 void PasswordManagerRequest::SharedDtor() {
   if (new_passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete new_passwd_;
+  }
+  if (old_passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete old_passwd_;
   }
   if (this != default_instance_) {
   }
@@ -193,12 +200,17 @@ PasswordManagerRequest* PasswordManagerRequest::New() const {
 }
 
 void PasswordManagerRequest::Clear() {
-  if (_has_bits_[0 / 32] & 7) {
+  if (_has_bits_[0 / 32] & 15) {
     type_ = 0;
     caredear_id_ = GOOGLE_ULONGLONG(0);
     if (has_new_passwd()) {
       if (new_passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         new_passwd_->clear();
+      }
+    }
+    if (has_old_passwd()) {
+      if (old_passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        old_passwd_->clear();
       }
     }
   }
@@ -258,6 +270,23 @@ bool PasswordManagerRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(34)) goto parse_old_passwd;
+        break;
+      }
+
+      // optional string old_passwd = 4;
+      case 4: {
+        if (tag == 34) {
+         parse_old_passwd:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_old_passwd()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->old_passwd().data(), this->old_passwd().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "old_passwd");
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -307,6 +336,16 @@ void PasswordManagerRequest::SerializeWithCachedSizes(
       3, this->new_passwd(), output);
   }
 
+  // optional string old_passwd = 4;
+  if (has_old_passwd()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->old_passwd().data(), this->old_passwd().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "old_passwd");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      4, this->old_passwd(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -336,6 +375,17 @@ void PasswordManagerRequest::SerializeWithCachedSizes(
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         3, this->new_passwd(), target);
+  }
+
+  // optional string old_passwd = 4;
+  if (has_old_passwd()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->old_passwd().data(), this->old_passwd().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "old_passwd");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        4, this->old_passwd(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -369,6 +419,13 @@ int PasswordManagerRequest::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->new_passwd());
+    }
+
+    // optional string old_passwd = 4;
+    if (has_old_passwd()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->old_passwd());
     }
 
   }
@@ -407,6 +464,9 @@ void PasswordManagerRequest::MergeFrom(const PasswordManagerRequest& from) {
     if (from.has_new_passwd()) {
       set_new_passwd(from.new_passwd());
     }
+    if (from.has_old_passwd()) {
+      set_old_passwd(from.old_passwd());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -434,6 +494,7 @@ void PasswordManagerRequest::Swap(PasswordManagerRequest* other) {
     std::swap(type_, other->type_);
     std::swap(caredear_id_, other->caredear_id_);
     std::swap(new_passwd_, other->new_passwd_);
+    std::swap(old_passwd_, other->old_passwd_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

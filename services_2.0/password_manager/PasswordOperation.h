@@ -13,7 +13,14 @@ using namespace google::protobuf::io;
 
 class PasswordOperation : public com::caredear::Operation{
 
-        int modify_existed_password(const char *new_passwd, uint64_t cid);
+        static char m_md5[36];
+        static int cb_get_md5_in_db(MYSQL_RES *mresult);
+
+        int modify_existed_password(PasswordManagerRequest *reqobj);
+
+        int validation_user_password(PasswordManagerRequest *reqobj);
+
+        int write_user_password_to_db(PasswordManagerRequest *reqobj);
     public:
         // constructors...
         PasswordOperation() {

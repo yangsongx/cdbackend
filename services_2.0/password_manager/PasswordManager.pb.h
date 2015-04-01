@@ -118,6 +118,18 @@ class PasswordManagerRequest : public ::google::protobuf::Message {
   inline ::std::string* release_new_passwd();
   inline void set_allocated_new_passwd(::std::string* new_passwd);
 
+  // optional string old_passwd = 4;
+  inline bool has_old_passwd() const;
+  inline void clear_old_passwd();
+  static const int kOldPasswdFieldNumber = 4;
+  inline const ::std::string& old_passwd() const;
+  inline void set_old_passwd(const ::std::string& value);
+  inline void set_old_passwd(const char* value);
+  inline void set_old_passwd(const char* value, size_t size);
+  inline ::std::string* mutable_old_passwd();
+  inline ::std::string* release_old_passwd();
+  inline void set_allocated_old_passwd(::std::string* old_passwd);
+
   // @@protoc_insertion_point(class_scope:com.caredear.PasswordManagerRequest)
  private:
   inline void set_has_type();
@@ -126,6 +138,8 @@ class PasswordManagerRequest : public ::google::protobuf::Message {
   inline void clear_has_caredear_id();
   inline void set_has_new_passwd();
   inline void clear_has_new_passwd();
+  inline void set_has_old_passwd();
+  inline void clear_has_old_passwd();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -133,6 +147,7 @@ class PasswordManagerRequest : public ::google::protobuf::Message {
   mutable int _cached_size_;
   ::google::protobuf::uint64 caredear_id_;
   ::std::string* new_passwd_;
+  ::std::string* old_passwd_;
   ::google::protobuf::int32 type_;
   friend void  protobuf_AddDesc_PasswordManager_2eproto();
   friend void protobuf_AssignDesc_PasswordManager_2eproto();
@@ -364,6 +379,82 @@ inline void PasswordManagerRequest::set_allocated_new_passwd(::std::string* new_
     new_passwd_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:com.caredear.PasswordManagerRequest.new_passwd)
+}
+
+// optional string old_passwd = 4;
+inline bool PasswordManagerRequest::has_old_passwd() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void PasswordManagerRequest::set_has_old_passwd() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void PasswordManagerRequest::clear_has_old_passwd() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void PasswordManagerRequest::clear_old_passwd() {
+  if (old_passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    old_passwd_->clear();
+  }
+  clear_has_old_passwd();
+}
+inline const ::std::string& PasswordManagerRequest::old_passwd() const {
+  // @@protoc_insertion_point(field_get:com.caredear.PasswordManagerRequest.old_passwd)
+  return *old_passwd_;
+}
+inline void PasswordManagerRequest::set_old_passwd(const ::std::string& value) {
+  set_has_old_passwd();
+  if (old_passwd_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    old_passwd_ = new ::std::string;
+  }
+  old_passwd_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.PasswordManagerRequest.old_passwd)
+}
+inline void PasswordManagerRequest::set_old_passwd(const char* value) {
+  set_has_old_passwd();
+  if (old_passwd_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    old_passwd_ = new ::std::string;
+  }
+  old_passwd_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.PasswordManagerRequest.old_passwd)
+}
+inline void PasswordManagerRequest::set_old_passwd(const char* value, size_t size) {
+  set_has_old_passwd();
+  if (old_passwd_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    old_passwd_ = new ::std::string;
+  }
+  old_passwd_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.PasswordManagerRequest.old_passwd)
+}
+inline ::std::string* PasswordManagerRequest::mutable_old_passwd() {
+  set_has_old_passwd();
+  if (old_passwd_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    old_passwd_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:com.caredear.PasswordManagerRequest.old_passwd)
+  return old_passwd_;
+}
+inline ::std::string* PasswordManagerRequest::release_old_passwd() {
+  clear_has_old_passwd();
+  if (old_passwd_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = old_passwd_;
+    old_passwd_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void PasswordManagerRequest::set_allocated_old_passwd(::std::string* old_passwd) {
+  if (old_passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete old_passwd_;
+  }
+  if (old_passwd) {
+    set_has_old_passwd();
+    old_passwd_ = old_passwd;
+  } else {
+    clear_has_old_passwd();
+    old_passwd_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.PasswordManagerRequest.old_passwd)
 }
 
 // -------------------------------------------------------------------

@@ -23,7 +23,7 @@ int AttributeOperation::cb_query_attribute(MYSQL_RES *p_result)
 
     /* keep field-map be consistent with SELECT sql */
     col_count = mysql_num_fields(p_result);
-    if(col_count != 9 || mysql_num_rows(p_result) != 1)
+    if(col_count != 10 || mysql_num_rows(p_result) != 1)
     {
         ERR("query result probably incorrect(row:%llu,col:%d)\n",
                mysql_num_rows(p_result), col_count);
@@ -40,24 +40,36 @@ int AttributeOperation::cb_query_attribute(MYSQL_RES *p_result)
         m_QueryInfo.set_user_mobile(row[1]);
     }
 
-    if(row[2] != NULL && strlen(row[2]) > 0)
+#if 1
+    if(row[2] == NULL || (row[2] != NULL && strlen(row[2]) == 0))
     {
-        m_QueryInfo.set_user_email(row[2]);
+        INFO("a blank password\n");
+        m_QueryInfo.set_contain_passwd(0);
     }
+    else
+    {
+        m_QueryInfo.set_contain_passwd(1);
+    }
+#endif
 
     if(row[3] != NULL && strlen(row[3]) > 0)
     {
-        m_QueryInfo.set_real_name(row[3]);
+        m_QueryInfo.set_user_email(row[3]);
     }
 
     if(row[4] != NULL && strlen(row[4]) > 0)
     {
-        m_QueryInfo.set_nick_name(row[4]);
+        m_QueryInfo.set_real_name(row[4]);
     }
 
     if(row[5] != NULL && strlen(row[5]) > 0)
     {
-        if(atoi(row[5]) == 1)
+        m_QueryInfo.set_nick_name(row[5]);
+    }
+
+    if(row[6] != NULL && strlen(row[6]) > 0)
+    {
+        if(atoi(row[6]) == 1)
         {
             m_QueryInfo.set_gender(GenderType::MALE);
         }
@@ -67,19 +79,19 @@ int AttributeOperation::cb_query_attribute(MYSQL_RES *p_result)
         }
     }
 
-    if(row[6] != NULL && strlen(row[6]) > 0)
-    {
-        m_QueryInfo.set_birthday(row[6]);
-    }
-
     if(row[7] != NULL && strlen(row[7]) > 0)
     {
-        m_QueryInfo.set_head_image(row[7]);
+        m_QueryInfo.set_birthday(row[7]);
     }
 
     if(row[8] != NULL && strlen(row[8]) > 0)
     {
-        m_QueryInfo.set_head_image2(row[8]);
+        m_QueryInfo.set_head_image(row[8]);
+    }
+
+    if(row[9] != NULL && strlen(row[9]) > 0)
+    {
+        m_QueryInfo.set_head_image2(row[9]);
     }
 
     return 0;
@@ -337,10 +349,10 @@ int AttributeOperation::query_user_attribute_from_db(AttributeModifyRequest *req
     char sqlcmd[1024];
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT %s.username,%s.usermobile,%s.email,"
+            "SELECT %s.username,%s.usermobile,%s.loginpassword,%s.email,"
             "%s.realname,%s.nickname,%s.sex,%s.birthday,%s.headimg,%s.headimg2 "
             "FROM %s,%s WHERE %s.id=%s.caredearid AND %s.id=%lu",
-            USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL,
+            USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL,
             USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL,
             USERCENTER_MAIN_TBL, USERCENTER_ATTR_TBL, USERCENTER_MAIN_TBL, USERCENTER_ATTR_TBL, USERCENTER_MAIN_TBL, reqobj->caredear_id());
 

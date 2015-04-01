@@ -63,6 +63,8 @@ int     mSockReg;
 int     mSockLogin;
 int     mSockAct;
 int     mSockAuth;
+int     mSockPasswd;
+
 
 int     gPass = 0;
 int     gFail = 0;
@@ -235,6 +237,23 @@ int prepare_db_test_data()
 
     fclose(p);
 
+#if 1 // just debug code
+    sprintf(line_buf, "SELECT id,usermobile,loginpassword FROM uc_passport WHERE usermobile=\'hellomoto\'");
+    if(mysql_query(mSql, line_buf)) {
+        printf("**failed test  SQL cmd:%s\n", mysql_error(mSql));
+    } else {
+        MYSQL_RES *mresult = mysql_store_result(mSql);
+        if(mresult) {
+            MYSQL_ROW row = mysql_fetch_row(mresult);
+            if(row != NULL)
+            {
+                printf("id:%s,usermobile:%s,passwd:%s\n",
+                        row[0], row[1], row[2] != NULL ? row[2] : "holy shit");
+            }
+            mysql_free_result(mresult);
+        }
+    }
+#endif
     return 0;
 }
 
@@ -1734,7 +1753,20 @@ int main(int argc, char **argv)
     ///
     //TODO need add modify profile test case here...
     //
-    //execute_ut_case(test_change_password);
+    mSockPasswd = socket(AF_INET, SOCK_STREAM, 0);
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = inet_addr(TESTING_SERVER_IP);
+    addr.sin_port = htons(13004);
+
+    if(connect(mSockPasswd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
+        printf("***failed connect to Auth server:%d\n", errno);
+        return -1;
+    }
+
+    printf("Connecting to passwd service...[OK]\n");
+    execute_ut_case(test_change_password);
+    execute_ut_case(test_change_password2);
+    execute_ut_case(test_change_password3);
 
 
 

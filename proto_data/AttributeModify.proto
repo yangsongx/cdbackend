@@ -36,4 +36,5 @@ message AttributeModifyResponse{
     optional string   user_name = 9;
     optional string   user_email = 10;
     optional string   user_mobile = 11;
+    optional int32    contain_passwd = 12; // 0 means no password contained
 }

@@ -63,7 +63,7 @@ void protobuf_AssignDesc_AttributeModify_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(AttributeModifyRequest));
   AttributeModifyResponse_descriptor_ = file->message_type(1);
-  static const int AttributeModifyResponse_offsets_[11] = {
+  static const int AttributeModifyResponse_offsets_[12] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, result_code_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, extra_msg_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, real_name_),
@@ -75,6 +75,7 @@ void protobuf_AssignDesc_AttributeModify_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, user_name_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, user_email_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, user_mobile_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyResponse, contain_passwd_),
   };
   AttributeModifyResponse_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -130,15 +131,16 @@ void protobuf_AddDesc_AttributeModify_2eproto() {
     "name\030\004 \001(\t\022(\n\006gender\030\005 \001(\0162\030.com.caredea"
     "r.GenderType\022\020\n\010birthday\030\006 \001(\t\022\022\n\nhead_i"
     "mage\030\007 \001(\t\022\023\n\013head_image2\030\010 \001(\t\022\025\n\rnext_"
-    "sequence\030\t \001(\005\"\210\002\n\027AttributeModifyRespon"
+    "sequence\030\t \001(\005\"\240\002\n\027AttributeModifyRespon"
     "se\022\023\n\013result_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001"
     "(\t\022\021\n\treal_name\030\003 \001(\t\022\021\n\tnick_name\030\004 \001(\t"
     "\022(\n\006gender\030\005 \001(\0162\030.com.caredear.GenderTy"
     "pe\022\020\n\010birthday\030\006 \001(\t\022\022\n\nhead_image\030\007 \001(\t"
     "\022\023\n\013head_image2\030\010 \001(\t\022\021\n\tuser_name\030\t \001(\t"
     "\022\022\n\nuser_email\030\n \001(\t\022\023\n\013user_mobile\030\013 \001("
-    "\t*&\n\rAttributeType\022\n\n\006MODIFY\020\000\022\t\n\005QUERY\020"
-    "\001*!\n\nGenderType\022\010\n\004MALE\020\000\022\t\n\005FEMAL\020\001", 636);
+    "\t\022\026\n\016contain_passwd\030\014 \001(\005*&\n\rAttributeTy"
+    "pe\022\n\n\006MODIFY\020\000\022\t\n\005QUERY\020\001*!\n\nGenderType\022"
+    "\010\n\004MALE\020\000\022\t\n\005FEMAL\020\001", 660);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "AttributeModify.proto", &protobuf_RegisterTypes);
   AttributeModifyRequest::default_instance_ = new AttributeModifyRequest();
@@ -864,6 +866,7 @@ const int AttributeModifyResponse::kHeadImage2FieldNumber;
 const int AttributeModifyResponse::kUserNameFieldNumber;
 const int AttributeModifyResponse::kUserEmailFieldNumber;
 const int AttributeModifyResponse::kUserMobileFieldNumber;
+const int AttributeModifyResponse::kContainPasswdFieldNumber;
 #endif  // !_MSC_VER
 
 AttributeModifyResponse::AttributeModifyResponse()
@@ -896,6 +899,7 @@ void AttributeModifyResponse::SharedCtor() {
   user_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   user_email_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   user_mobile_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  contain_passwd_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -1001,7 +1005,7 @@ void AttributeModifyResponse::Clear() {
       }
     }
   }
-  if (_has_bits_[8 / 32] & 1792) {
+  if (_has_bits_[8 / 32] & 3840) {
     if (has_user_name()) {
       if (user_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         user_name_->clear();
@@ -1017,6 +1021,7 @@ void AttributeModifyResponse::Clear() {
         user_mobile_->clear();
       }
     }
+    contain_passwd_ = 0;
   }
 
 #undef OFFSET_OF_FIELD_
@@ -1219,6 +1224,21 @@ bool AttributeModifyResponse::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(96)) goto parse_contain_passwd;
+        break;
+      }
+
+      // optional int32 contain_passwd = 12;
+      case 12: {
+        if (tag == 96) {
+         parse_contain_passwd:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &contain_passwd_)));
+          set_has_contain_passwd();
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -1349,6 +1369,11 @@ void AttributeModifyResponse::SerializeWithCachedSizes(
       11, this->user_mobile(), output);
   }
 
+  // optional int32 contain_passwd = 12;
+  if (has_contain_passwd()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(12, this->contain_passwd(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -1469,6 +1494,11 @@ void AttributeModifyResponse::SerializeWithCachedSizes(
         11, this->user_mobile(), target);
   }
 
+  // optional int32 contain_passwd = 12;
+  if (has_contain_passwd()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(12, this->contain_passwd(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -1559,6 +1589,13 @@ int AttributeModifyResponse::ByteSize() const {
           this->user_mobile());
     }
 
+    // optional int32 contain_passwd = 12;
+    if (has_contain_passwd()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->contain_passwd());
+    }
+
   }
   if (!unknown_fields().empty()) {
     total_size +=
@@ -1621,6 +1658,9 @@ void AttributeModifyResponse::MergeFrom(const AttributeModifyResponse& from) {
     if (from.has_user_mobile()) {
       set_user_mobile(from.user_mobile());
     }
+    if (from.has_contain_passwd()) {
+      set_contain_passwd(from.contain_passwd());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -1656,6 +1696,7 @@ void AttributeModifyResponse::Swap(AttributeModifyResponse* other) {
     std::swap(user_name_, other->user_name_);
     std::swap(user_email_, other->user_email_);
     std::swap(user_mobile_, other->user_mobile_);
+    std::swap(contain_passwd_, other->contain_passwd_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
