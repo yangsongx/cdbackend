@@ -218,37 +218,49 @@ need_rollback:
 int Operation::sql_cmd(const char *cmd, cb_sqlfunc sql_cb)
 {
     int ret;
-    MYSQL     *ms = m_pCfg->m_Sql;
 
-    ret = sql_cmd_with_specify_server(ms, cmd, sql_cb);
+    // BY default, use the default m_Sql data member
+    ret = sql_cmd_with_specify_server(&(m_pCfg->m_Sql), cmd, sql_cb);
 
     return ret;
 }
 
-int Operation::sql_cmd_with_specify_server(MYSQL *ms, const char *cmd, cb_sqlfunc sql_cb)
+/**
+ * Another API, which require caller specify @pms, which is a pointer to pointer.
+ * We need this as this MySQL * variable probably can been overwritten if SQL idle
+ * for 8 hours re-connection.
+ *
+ */
+int Operation::sql_cmd_with_specify_server(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb)
 {
     int ret;
 
     /* SQL error case protection */
-    if(ms == NULL)
+    if(pms == NULL)
     {
         ERR("MySQL connection not existed at all!\n");
         return CDS_ERR_SQL_DISCONNECTED;
     }
 
-    ret = execute_sql(ms, cmd, sql_cb);
+    ret = execute_sql(pms, cmd, sql_cb);
     if(ret == CDS_ERR_SQL_DISCONNECTED)
     {
         // try reconnect the SQL, as it probably
         // disconnected after idle timeout
         INFO("SQL disconnected, try reconnect...\n");
-        if(m_pCfg->reconnect_sql(ms,
-                    m_pCfg->m_strSqlIP,
-                    m_pCfg->m_strSqlUserName,
-                    m_pCfg->m_strSqlUserPassword) != NULL)
+        *pms = m_pCfg->reconnect_sql(*pms,
+                m_pCfg->m_strSqlIP,
+                m_pCfg->m_strSqlUserName,
+                m_pCfg->m_strSqlUserPassword);
+
+        if(*pms != NULL)
         {
             // do it again
-            ret = execute_sql(ms, cmd, sql_cb);
+            ret = execute_sql(pms, cmd, sql_cb);
+        }
+        else
+        {
+            ERR("What a pity, failed reconnecting to the SQL\n");
         }
     }
 
@@ -260,25 +272,25 @@ int Operation::sql_cmd_with_specify_server(MYSQL *ms, const char *cmd, cb_sqlfun
  *
  * If SQL server gone when max-idle exceed, will return CDS_ERR_SQL_DISCONNECTED, caller need try re-connect and call this util again!
  */
-int Operation::execute_sql(MYSQL *ms, const char *cmd, cb_sqlfunc sql_cb)
+int Operation::execute_sql(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb)
 {
     MYSQL_RES *mresult;
 
     pthread_mutex_lock(&m_pCfg->m_SqlMutex);
-    if(mysql_query(ms, cmd))
+    if(mysql_query(*pms, cmd))
     {
         pthread_mutex_unlock(&m_pCfg->m_SqlMutex);
         ERR("**failed execute SQL cmd:(%d)%s\n",
-                mysql_errno(ms), mysql_error(ms));
+                mysql_errno(*pms), mysql_error(*pms));
 
-        if(mysql_errno(ms) == CR_SERVER_GONE_ERROR)
+        if(mysql_errno(*pms) == CR_SERVER_GONE_ERROR)
         {
             return CDS_ERR_SQL_DISCONNECTED;
         }
 
         return CDS_ERR_SQL_EXECUTE_FAILED;
     }
-    mresult = mysql_store_result(ms);
+    mresult = mysql_store_result(*pms);
     pthread_mutex_unlock(&m_pCfg->m_SqlMutex);
 
     if(sql_cb != NULL)

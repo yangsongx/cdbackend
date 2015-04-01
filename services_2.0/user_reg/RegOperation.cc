@@ -443,7 +443,7 @@ int RegOperation::add_opensips_entry(RegisterRequest *pRegInfo)
             OPENSIPS_SUB_TBL, pRegInfo->reg_name().c_str());
 
     // OpenSIPs is another DB, so use a different API
-    ret = sql_cmd_with_specify_server(c->m_SipsSql, sqlcmd, NULL);
+    ret = sql_cmd_with_specify_server(&(c->m_SipsSql), sqlcmd, NULL);
 
     return ret;
 }

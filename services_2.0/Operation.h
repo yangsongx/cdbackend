@@ -1,3 +1,10 @@
+/**
+ * A Base Class for all daemon operation, which usually manipulate the
+ * DB or memcached.
+ *
+ * \history
+ * [2015-04-01] Try fix the SQL time-out reconnecting BUG
+ */
 #ifndef _COM_CDS_OPERATION_H
 #define _COM_CDS_OPERATION_H
 
@@ -24,7 +31,7 @@ namespace caredear{
 
 
     class Operation {
-            int execute_sql(MYSQL *ms, const char *cmd, cb_sqlfunc sql_cb);
+            int execute_sql(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb);
 
         public:
             Config  *m_pCfg;
@@ -44,7 +51,7 @@ namespace caredear{
             int sql_cmd(const char *cmd, cb_sqlfunc sql_cb);
             int sql_cmd_via_transaction(int argc, char **argv, cb_sqlfunc sql_cb);
 
-            int sql_cmd_with_specify_server(MYSQL *ms, const char *cmd, cb_sqlfunc sql_cb);
+            int sql_cmd_with_specify_server(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb);
 
             /* each component's xxxOpr need override this API */
             virtual int handling_request(::google::protobuf::Message *reqobj,

@@ -1,7 +1,51 @@
 #include "AuthOperation.h"
 
-#include "usr_auth_db.h"
+struct auth_data_wrapper AuthOperation::m_AuthWrapper;
 
+int AuthOperation::cb_token_info_query(MYSQL_RES *mresult)
+{
+    MYSQL_ROW row;
+
+    if(mysql_num_rows(mresult) > 1)
+    {
+        ERR("**Warning, multiple hit for token auth!\n");
+    }
+
+    // set below magic number to indciate error case
+    m_AuthWrapper.adw_cid = -1;
+    m_AuthWrapper.adw_lastlogin = -1;
+
+    row = mysql_fetch_row(mresult);
+    if(row != NULL)
+    {
+        if(row[0] != NULL)
+        {
+            m_AuthWrapper.adw_cid = atol(row[0]);
+        }
+
+        if(row[1] != NULL)
+        {
+            m_AuthWrapper.adw_lastlogin = atol(row[1]);
+        }
+    }
+    else
+    {
+        ERR("shit, didn't find any match auth data in DB!\n");
+    }
+
+    return 0;
+}
+
+/**
+ * The auth memcache layout:
+ *
+ *     KEY        |   CID   |  session  |   lastlogin |
+ * ---------------+-----------------------------------------
+ *   token value  |   xx        xxx           xxxxxx
+ * ---------------+-----------------------------------------
+ *
+ *
+ */
 int AuthOperation::split_val_into_fields(char *value, struct auth_data_wrapper *w)
 {
     char *c, *s, *l;
@@ -26,6 +70,83 @@ int AuthOperation::split_val_into_fields(char *value, struct auth_data_wrapper *
     }
 
     return 0;
+}
+
+int AuthOperation::set_token_info_to_db(AuthRequest *reqobj)
+{
+    int ret = -1;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE %s SET lastoperatetime=NOW() WHERE ticket=\'%s\'",
+            USERCENTER_SESSION_TBL, reqobj->auth_token().c_str());
+
+    KPI("Will try update last login DB data...\n");
+    ret = sql_cmd(sqlcmd, NULL);
+    if(ret == CDS_OK)
+    {
+        KPI("Update the DB ... [OK]\n");
+    }
+    else
+    {
+        KPI("Update the DB failed(%d)!\n", ret);
+    }
+
+    return ret;
+}
+
+/**
+ * Will get all needed info from SQL, and store them into @w
+ *
+ *
+ */
+int AuthOperation::get_token_info_from_db(AuthRequest *reqobj, AuthResponse *respobj, struct auth_data_wrapper *w)
+{
+    int ret = -1;
+    char sqlcmd[1024];
+
+    /* FIXME how can we handle with XMPP AUTH case ? */
+    if(is_xmpp_auth(reqobj))
+    {
+        LOG("For XMPP case, don't consider the session\n");
+        snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT caredearid,UNIX_TIMESTAMP(lastoperatetime) FROM %s "
+            "WHERE ticket=\'%s\'",
+            USERCENTER_SESSION_TBL, reqobj->auth_token().c_str());
+    }
+    else
+    {
+        snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT caredearid,UNIX_TIMESTAMP(lastoperatetime) FROM %s "
+            "WHERE ticket=\'%s\' AND session=\'%s\'",
+            USERCENTER_SESSION_TBL, reqobj->auth_token().c_str(), reqobj->auth_session().c_str());
+    }
+
+    ret = sql_cmd(sqlcmd, cb_token_info_query);
+    if(ret == CDS_OK)
+    {
+        if(m_AuthWrapper.adw_cid == (uint64_t)-1 && m_AuthWrapper.adw_lastlogin == -1)
+        {
+            ERR("SQL query the %s failed\n", reqobj->auth_token().c_str());
+            return CDS_ERR_UMATCH_USER_INFO;
+        }
+
+        // well, copy the callback's value into the @w parameter
+        memcpy(w, &m_AuthWrapper, sizeof(m_AuthWrapper));
+    }
+
+    return ret;
+}
+
+bool AuthOperation::is_xmpp_auth(AuthRequest *reqobj)
+{
+    bool xmpp = false;
+
+    if(!strcmp(reqobj->auth_session().c_str(), "XMPP")
+            && reqobj->auth_sysid() == 99)
+        xmpp = true;
+
+    return xmpp;
 }
 
 /**
@@ -78,6 +199,13 @@ bool AuthOperation::is_allowed_access(AuthRequest *reqobj)
     map<int, session_db_cfg_t>::iterator it;
     UserAuthConfig *conf = (UserAuthConfig *)m_pCfg;
 
+    /* FIXME special handling for XMPP */
+    if(is_xmpp_auth(reqobj))
+    {
+        INFO("==An XMPP REQ, consider it as allowed==\n");
+        return true;
+    }
+
     it = conf->m_sessionCfg.find(reqobj->auth_sysid());
     if(it != conf->m_sessionCfg.end())
     {
@@ -105,35 +233,21 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
 
 
     // first try from mem
-#if 1
     p_val = get_mem_value(reqobj->auth_token().c_str(), &val_len, NULL /* don't need the CAS */);
-#else
-    p_val = get_token_info_from_mem(m_pCfg->m_Memc, reqobj->auth_token().c_str(), &val_len);
-#endif
     if(p_val)
     {
         // got value from mem, parse it...
         split_val_into_fields(p_val, w);
 
-        if(strcmp(reqobj->auth_session().c_str(), w->adw_session))
+        /* FIXME - currently, for XMPP case, we don't need check
+         * session with mem/db value */
+        if(!is_xmpp_auth(reqobj) && strcmp(reqobj->auth_session().c_str(), w->adw_session))
         {
             ERR("(%s %s) <---->mem(%s), SESSION-mismacth, re-count on DB..\n",
                     reqobj->auth_token().c_str(), reqobj->auth_session().c_str(),
                     w->adw_session);
 
-            ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
-            if(ret == CDS_ERR_SQL_DISCONNECTED)
-            {
-                /* FIXME if use Operation::sql_cmd() */
-                if(m_pCfg->reconnect_sql(m_pCfg->m_Sql,
-                    m_pCfg->m_strSqlIP,
-                    m_pCfg->m_strSqlUserName,
-                    m_pCfg->m_strSqlUserPassword) != NULL)
-
-                {
-                    ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
-                }
-            }
+            ret = get_token_info_from_db(reqobj, respobj, w);
         }
         free(p_val);
     }
@@ -141,18 +255,7 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
     {
         // didn't get the mem val, try on DB...
         INFO("not found in mem, go to DB...\n");
-        ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
-        if(ret == CDS_ERR_SQL_DISCONNECTED)
-        {
-            /* FIXME if use Operation::sql_cmd() */
-            if(m_pCfg->reconnect_sql(m_pCfg->m_Sql,
-                    m_pCfg->m_strSqlIP,
-                    m_pCfg->m_strSqlUserName,
-                    m_pCfg->m_strSqlUserPassword) != NULL)
-            {
-                ret = get_token_info_from_db(m_pCfg->m_Sql, reqobj, respobj, w);
-            }
-        }
+        ret = get_token_info_from_db(reqobj, respobj, w);
     }
 
     return ret;
@@ -168,35 +271,25 @@ int AuthOperation::update_session_lastoperatetime(AuthRequest *reqobj, struct au
     char value[128];
     time_t cur;
 
+#if 1
+    if(is_xmpp_auth(reqobj)){
+        printf("the session in w:%s\n", w->adw_session);
+    }
+#endif
+
     time(&cur);
     sprintf(value, "%ld %s %ld",
             w->adw_cid, w->adw_session, cur);
+
     // mem FIXME - directly set, not using CAS
-#if 1
     rc = (memcached_return_t) set_mem_value(reqobj->auth_token().c_str(), value);
     if(rc != MEMCACHED_SUCCESS)
     {
         ERR("**failed set mem :%d\n", rc);
     }
-#else
-    rc = set_token_info_to_mem(m_pCfg->m_Memc, reqobj->auth_token().c_str(), w);
-    if(rc != MEMCACHED_SUCCESS)
-    {
-        if(rc == MEMCACHED_DATA_EXISTS)
-        {
-            INFO("WOW, CAS found target already modified by others, need retry CAS again...\n");
-            rc = set_token_info_to_mem(m_pCfg->m_Memc, reqobj->auth_token().c_str(), w);
-            INFO("try again result:%d\n", rc);
-        }
-        else
-        {
-            ERR("***Failed update token info to mem:%d\n", rc);
-        }
-    }
-#endif
 
     // SQL
-    set_token_info_to_db(m_pCfg->m_Sql, reqobj);
+    set_token_info_to_db(reqobj);
 
     return 0;
 }

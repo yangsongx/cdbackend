@@ -27,10 +27,18 @@ struct auth_data_wrapper{
 
 class AuthOperation : public com::caredear::Operation {
 
+    static struct auth_data_wrapper  m_AuthWrapper;
+    static int cb_token_info_query(MYSQL_RES *p_result);
+
+    bool is_xmpp_auth(AuthRequest *reqobj);
+
     int check_token(AuthRequest *reqobj, struct auth_data_wrapper *w);
     bool is_allowed_access(AuthRequest *reqobj);
     int auth_token_in_session(AuthRequest *reqobj, AuthResponse *respobj, struct auth_data_wrapper *w);
     int update_session_lastoperatetime(AuthRequest *reqobj, struct auth_data_wrapper *w);
+
+    int set_token_info_to_db(AuthRequest *reqobj);
+    int get_token_info_from_db(AuthRequest *reqobj, AuthResponse *respobj, struct auth_data_wrapper *w);
 
 protected:
     int split_val_into_fields(char *value, struct auth_data_wrapper *w);

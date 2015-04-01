@@ -5,114 +5,114 @@
 
 function pre_init()
 {
-    rm -rf bin/
-    mkdir -p bin
+    rm -rf native/
+    mkdir -p native
 }
 
 # FIXME - do we need the .so or the .deb ?
 function pre_baseso()
 {
     echo -n "prepare the base SO..."
-    cp common/cds_base/libcds.so bin/
-    cp common/cds_base/cds_cfg.xml bin/
+    cp common/cds_base/libcds.so native/
+    cp common/cds_base/cds_cfg.xml native/
     echo "\n the base so library creation [OK]"
 }
 
 function pre_user_reg()
 {
-    mkdir -p bin/user_reg
-    echo "#!/bin/bash"> bin/user_reg/run
-    echo "./urs -u root -vvv -p 13000 >reg.log" >> bin/user_reg/run
-    chmod a+x bin/user_reg/run
+    mkdir -p native/user_reg
+    echo "#!/bin/bash"> native/user_reg/run
+    echo "./urs -u root -vvv -p 13000 >reg.log" >> native/user_reg/run
+    chmod a+x native/user_reg/run
 
-    cp services_2.0/user_reg/urs bin/user_reg/
+    cp services_2.0/user_reg/urs native/user_reg/
 }
 
 function pre_user_login()
 {
-    mkdir -p bin/user_login
-    echo "#!/bin/bash"> bin/user_login/run
-    echo "./uls -u root -vvv -p 13001 >login.log" >> bin/user_login/run
-    chmod a+x bin/user_login/run
+    mkdir -p native/user_login
+    echo "#!/bin/bash"> native/user_login/run
+    echo "./uls -u root -vvv -p 13001 >login.log" >> native/user_login/run
+    chmod a+x native/user_login/run
 
-    cp services_2.0/user_login/uls bin/user_login/
+    cp services_2.0/user_login/uls native/user_login/
 }
 
 function pre_user_activate()
 {
-    mkdir -p bin/user_activate
-    echo "#!/bin/bash"> bin/user_activate/run
-    echo "./acts -u root -vvv -p 13002 >activation.log" >> bin/user_activate/run
-    chmod a+x bin/user_activate/run
+    mkdir -p native/user_activate
+    echo "#!/bin/bash"> native/user_activate/run
+    echo "./acts -u root -vvv -p 13002 >activation.log" >> native/user_activate/run
+    chmod a+x native/user_activate/run
 
-    cp services_2.0/user_activate/acts bin/user_activate/
+    cp services_2.0/user_activate/acts native/user_activate/
 }
 
 function pre_user_auth()
 {
-    mkdir -p bin/user_auth
-    echo "#!/bin/bash"> bin/user_auth/run
-    echo "./acts -u root -vvv -p 13003 >user_authentication.log" >> bin/user_auth/run
-    chmod a+x bin/user_auth/run
+    mkdir -p native/user_auth
+    echo "#!/bin/bash"> native/user_auth/run
+    echo "./acts -u root -vvv -p 13003 >user_authentication.log" >> native/user_auth/run
+    chmod a+x native/user_auth/run
 
-    cp services_2.0/user_auth/uauth bin/user_auth/
+    cp services_2.0/user_auth/uauth native/user_auth/
 }
 
 function pre_user_passwd()
 {
-    mkdir -p bin/password_manager/
-    echo "#!/bin/bash"> bin/password_manager/run
-    echo "./passwdmgr -u root -vvv -p 13004 >user_authentication.log" >> bin/password_manager/run
-    chmod a+x bin/password_manager/run
+    mkdir -p native/password_manager/
+    echo "#!/bin/bash"> native/password_manager/run
+    echo "./passwdmgr -u root -vvv -p 13004 >user_authentication.log" >> native/password_manager/run
+    chmod a+x native/password_manager/run
 
-    cp services_2.0/password_manager/passwdmgr bin/password_manager/
+    cp services_2.0/password_manager/passwdmgr native/password_manager/
 }
 
 function pre_user_attr()
 {
-    mkdir -p bin/attribute_modification/
-    echo "#!/bin/bash"> bin/attribute_modification/run
-    echo "./attrmodify -u root -vvv -p 13005 >attr.log" >> bin/attribute_modification/run
-    chmod a+x bin/attribute_modification/run
+    mkdir -p native/attribute_modification/
+    echo "#!/bin/bash"> native/attribute_modification/run
+    echo "./attrmodify -u root -vvv -p 13005 >attr.log" >> native/attribute_modification/run
+    chmod a+x native/attribute_modification/run
 
-    cp services_2.0/attribute_modification/attrmodify bin/attribute_modification/
+    cp services_2.0/attribute_modification/attrmodify native/attribute_modification/
 }
 
 function pre_update_profile()
 {
-    mkdir -p bin/update_profile/
-    echo "#!/bin/bash"> bin/update_profile/run
-    echo "./upusr -u root -vvv -p 13006 >up.log" >> bin/update_profile/run
-    chmod a+x bin/update_profile/run
+    mkdir -p native/update_profile/
+    echo "#!/bin/bash"> native/update_profile/run
+    echo "./upusr -u root -vvv -p 13006 >up.log" >> native/update_profile/run
+    chmod a+x native/update_profile/run
 
-    cp services_2.0/update_profile/upusr bin/update_profile/
+    cp services_2.0/update_profile/upusr native/update_profile/
 }
 
 function pre_verifycode()
 {
-    mkdir -p bin/verify_code/
-    echo "#!/bin/bash"> bin/verify_code/run
-    echo "./vcs -u root -vvv -p 13007 >vc.log" >> bin/verify_code/run
-    chmod a+x bin/verify_code/run
+    mkdir -p native/verify_code/
+    echo "#!/bin/bash"> native/verify_code/run
+    echo "./vcs -u root -vvv -p 13007 >vc.log" >> native/verify_code/run
+    chmod a+x native/verify_code/run
 
-    cp services_2.0/verify_code/vcs bin/verify_code/
+    cp services_2.0/verify_code/vcs native/verify_code/
 }
 
 function pre_sips()
 {
-    mkdir -p bin/opensips_account/
-    echo "#!/bin/bash"> bin/opensips_account/run
-    echo "./opas -u root -vvv -p 12002 >vc.log" >> bin/opensips_account/run
-    chmod a+x bin/opensips_account/run
+    mkdir -p native/opensips_account/
+    echo "#!/bin/bash"> native/opensips_account/run
+    echo "./opas -u root -vvv -p 12002 >vc.log" >> native/opensips_account/run
+    chmod a+x native/opensips_account/run
 
-    cp services_2.0/opensips_account/opas bin/opensips_account/
+    cp services_2.0/opensips_account/opas native/opensips_account/
 }
 
 function gen_package_sh()
 {
-    echo "#!/bin/bash"> bin/startall
-    echo "svscan . &" >> bin/startall
-    chmod a+x bin/startall
+    echo "#!/bin/bash"> native/startall
+    echo "svscan . &" >> native/startall
+    chmod a+x native/startall
 
 
     echo "#!/bin/bash" > backend.sh
@@ -123,12 +123,12 @@ function gen_package_sh()
     echo "">>backend.sh
     echo "  if [ -n \"\$NEEDSO\" ]; then" >> backend.sh
     echo "    echo \"You need libcds.so\"">>backend.sh
-    echo "    cp bin/libcds.so /usr/lib/">>backend.sh
+    echo "    cp native/libcds.so /usr/lib/">>backend.sh
     echo "  else">>backend.sh
     echo "    echo \"You don't need libcds.so\"">>backend.sh
     echo "  fi">>backend.sh
-    echo "  #rm bin/libcds.so">>backend.sh
-    echo "  #rm bin/cds_cfg.xml">>backend.sh
+    echo "  #rm native/libcds.so">>backend.sh
+    echo "  #rm native/cds_cfg.xml">>backend.sh
     echo "  rm t">>backend.sh
     echo "}">>backend.sh
     echo "case \"\$1\" in">>backend.sh
@@ -139,7 +139,7 @@ function gen_package_sh()
     echo "extract;">>backend.sh
     echo "exit">>backend.sh
 
-    tar -zcf temp.tar.gz bin/*
+    tar -zcf temp.tar.gz native/*
     uuencode temp.tar.gz t >>backend.sh
 
     chmod a+x backend.sh

@@ -260,7 +260,7 @@ int auth_token_via_socket(int as, char *user, char * domain, char *password)
 
     obj.auth_token = password;
     obj.auth_session = "XMPP";
-    obj.auth_sysid = 9; //FIXME how to set these fields?
+    obj.auth_sysid = 99; //FIXME how to set these fields? currently it is a 99 magic number
 
     req_len = com__caredear__auth_request__get_packed_size(&obj) + sizeof(unsigned short);
 

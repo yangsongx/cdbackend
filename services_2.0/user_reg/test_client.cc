@@ -1397,10 +1397,22 @@ int test_ping_auth_service() {
     return ret;
 }
 
+
+// check if a normal login is correct or NOT
+int test_xmpp_auth_logic()
+{
+    // simulate the xmpp_auth_2/ component
+    return _auth_testing(
+            "aa776f46-cc18-4c44-a7c5-124c7afc45bf", // token, DO NOT MODIFY, it is prebuilt-in TOKEN(normal good token)
+            "XMPP",
+            99,
+            CDS_OK);
+}
+
 // a normal pass auth case
 int test_auth_normal_case() {
     return _auth_testing(
-            "aa776f46-cc18-4c44-a7c5-124c7afc45bf",  // DO NOT MODIFY
+            "aa776f46-cc18-4c44-a7c5-124c7afc45bf",  // DO NOT MODIFY, it is a prebuilt-in UUID
             "2", // DO NOT MODIFY
             2, // sys ID, DO NOT MODIFY
             CDS_OK);
@@ -1537,6 +1549,23 @@ int test_auth_normal_case7() {
             CDS_ERR_UMATCH_USER_INFO);
 }
 
+// check if a normal login(with time update)
+int test_xmpp_auth_logic2()
+{
+    // simulate the xmpp_auth_2/ component
+    return _auth_testing(
+            "xmpptoken-cc18-4c44-a7c5-124c7afc45bf", // token, DO NOT MODIFY, it is prebuilt-in TOKEN(normal good token, with time needs updated)
+            "XMPP",
+            99,
+            CDS_OK);
+}
+
+// Check above test updated the DB
+int test_xmpp_auth_logic3()
+{
+    return -1;
+}
+
 /////////////////////////////////////////////////////////////////////
 // modify profile test
 /////////////////////////////////////////////////////////////////////
@@ -1667,7 +1696,7 @@ int main(int argc, char **argv)
 
     if(connect(mSockLogin, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         printf("***failed connect to Login server:%d\n", errno);
-        return -1;
+        goto end_of_testing;
     }
 
     printf("Connecting to Login service...[OK]\n");
@@ -1706,7 +1735,7 @@ int main(int argc, char **argv)
 
     if(connect(mSockAct, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         printf("***failed connect to Activation server:%d\n", errno);
-        return -1;
+        goto end_of_testing;
     }
 
     printf("Connecting to Activation service...[OK]\n");
@@ -1734,12 +1763,13 @@ int main(int argc, char **argv)
 
     if(connect(mSockAuth, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         printf("***failed connect to Auth server:%d\n", errno);
-        return -1;
+        goto end_of_testing;
     }
 
     printf("Connecting to Auth service...[OK]\n");
 
     execute_ut_case(test_ping_auth_service);
+    execute_ut_case(test_xmpp_auth_logic);
     execute_ut_case(test_auth_normal_case);
     execute_ut_case(test_auth_normal_case2);
     execute_ut_case(test_auth_normal_case3);
@@ -1747,6 +1777,8 @@ int main(int argc, char **argv)
     execute_ut_case(test_auth_normal_case5);
     execute_ut_case(test_auth_normal_case6);
     execute_ut_case(test_auth_normal_case7);
+    execute_ut_case(test_xmpp_auth_logic2);
+    execute_ut_case(test_xmpp_auth_logic3);
 
     execute_ut_case(test_rollback_logic);
 
@@ -1760,7 +1792,7 @@ int main(int argc, char **argv)
 
     if(connect(mSockPasswd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         printf("***failed connect to Auth server:%d\n", errno);
-        return -1;
+        goto end_of_testing;
     }
 
     printf("Connecting to passwd service...[OK]\n");
@@ -1772,7 +1804,7 @@ int main(int argc, char **argv)
 
     //misc testing...
     //execute_ut_case(test_sql_auto_reconnect);
-
+end_of_testing:
     //
     // summary
     //

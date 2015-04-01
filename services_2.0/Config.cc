@@ -102,10 +102,12 @@ int Config::prepare_db_and_mem()
  */
 MYSQL *Config::reconnect_sql(MYSQL *disconnectS, const char *ip, const char *usr, const char *passwd)
 {
+    MYSQL *m;
     INFO("try re-connecting to mySQL...\n");
 
     mysql_close(disconnectS);
-    disconnectS = conn_to_mysql(ip, usr, passwd);
 
-    return disconnectS;
+    m = conn_to_mysql(ip, usr, passwd);
+
+    return m;
 }

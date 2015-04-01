@@ -1,7 +1,4 @@
-#include "usr_auth_db.h"
-
 #include "UserAuthConfig.h"
-
 
 UserAuthConfig::UserAuthConfig()
 {
@@ -76,9 +73,51 @@ int UserAuthConfig::parse_cfg(const char *config_file)
 
 int UserAuthConfig::readout_db_session_conf()
 {
-    if(m_Sql != NULL)
+
+    if(!m_Sql)
     {
-        store_db_session_conf(m_Sql, &m_sessionCfg);
+        ERR("NULL SQL, don't try get session config data from DB\n");
+        return -1;
+    }
+
+    /* FIXME, don't use mutex here as it is only happen in init procedure */
+
+    if(mysql_query(m_Sql, "SELECT sysid,isorder,lefttime,type FROM uc.uc_sys_sessionconf"))
+    {
+        ERR("Failed check the login password:%s\n", mysql_error(m_Sql));
+        return -1;
+    }
+
+    MYSQL_RES *mresult;
+    MYSQL_ROW  row;
+    mresult = mysql_store_result(m_Sql);
+
+    if(mresult)
+    {
+        int sysid;
+        session_db_cfg_t t;
+
+        if(mysql_num_fields(mresult) != 4)
+        {
+            ERR("Warning, session conf select col should be 4, don't process this!\n");
+            return -1;
+        }
+
+        // store the whole data one-by-one
+        while((row = mysql_fetch_row(mresult)) != NULL)
+        {
+            sysid = atoi(row[0]);
+            t.sfg_allow_multilogin = atoi(row[1]);
+            t.sfg_expiration = atol(row[2]);
+            t.sfg_type = atoi(row[3]);
+            m_sessionCfg.insert(map<int, session_db_cfg_t>::value_type(sysid, t));
+        }
+
+        mysql_free_result(mresult);
+    }
+    else
+    {
+        ERR("should never happen here.");
     }
 
     return 0;

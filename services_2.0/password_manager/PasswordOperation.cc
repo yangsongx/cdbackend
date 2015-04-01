@@ -34,8 +34,7 @@ int PasswordOperation::validation_user_password(PasswordManagerRequest *reqobj)
             "SELECT loginpassword FROM %s WHERE id=%lu",
             USERCENTER_MAIN_TBL, reqobj->caredear_id());
 
-    ret = sql_cmd(sqlcmd, cb_get_md5_in_db);
-    if(ret == CDS_OK)
+    if(sql_cmd(sqlcmd, cb_get_md5_in_db) == CDS_OK)
     {
         char md5data[64];
         // get the md5 in db, compare it with incoming passwd
@@ -46,6 +45,10 @@ int PasswordOperation::validation_user_password(PasswordManagerRequest *reqobj)
             INFO("Good, password correct\n");
             ret = 0;
         }
+    }
+    else
+    {
+        LOG("the select passwd failed\n");
     }
 
     return ret;
@@ -75,6 +78,7 @@ int PasswordOperation::modify_existed_password(PasswordManagerRequest *reqobj)
 
     if(reqobj->has_old_passwd())
     {
+        printf("you have old password\n");
         // User contained the old password, need match existed password before overwite
         // this with the new passwd
         if(validation_user_password(reqobj) == 0)
@@ -89,6 +93,8 @@ int PasswordOperation::modify_existed_password(PasswordManagerRequest *reqobj)
     }
     else
     {
+        printf("the req type:%d\n", reqobj->type());
+
         if(reqobj->type() == PasswordType::FORGET)
         {
             // for forget password, we directly overwrite the DB pasword

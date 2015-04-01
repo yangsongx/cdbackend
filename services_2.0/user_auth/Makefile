@@ -10,7 +10,6 @@ SRC = usr_auth_service.cc \
       UserAuth.pb.cc \
       AuthOperation.cc \
       UserAuthConfig.cc \
-      usr_auth_db.cc \
       $(BASECLS)Config.cc \
       $(BASECLS)Operation.cc
 
