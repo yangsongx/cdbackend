@@ -27,6 +27,7 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* PasswordManagerResponse_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   PasswordManagerResponse_reflection_ = NULL;
+const ::google::protobuf::EnumDescriptor* PasswordType_descriptor_ = NULL;
 
 }  // namespace
 
@@ -71,6 +72,7 @@ void protobuf_AssignDesc_PasswordManager_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(PasswordManagerResponse));
+  PasswordType_descriptor_ = file->enum_type(0);
 }
 
 namespace {
@@ -105,12 +107,13 @@ void protobuf_AddDesc_PasswordManager_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\025PasswordManager.proto\022\014com.caredear\"c\n"
-    "\026PasswordManagerRequest\022\014\n\004type\030\001 \002(\005\022\023\n"
-    "\013caredear_id\030\002 \002(\004\022\022\n\nnew_passwd\030\003 \002(\t\022\022"
-    "\n\nold_passwd\030\004 \001(\t\"A\n\027PasswordManagerRes"
-    "ponse\022\023\n\013result_code\030\001 \002(\005\022\021\n\textra_msg\030"
-    "\002 \001(\t", 205);
+    "\n\025PasswordManager.proto\022\014com.caredear\"\177\n"
+    "\026PasswordManagerRequest\022(\n\004type\030\001 \002(\0162\032."
+    "com.caredear.PasswordType\022\023\n\013caredear_id"
+    "\030\002 \002(\004\022\022\n\nnew_passwd\030\003 \002(\t\022\022\n\nold_passwd"
+    "\030\004 \001(\t\"A\n\027PasswordManagerResponse\022\023\n\013res"
+    "ult_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t*&\n\014Pas"
+    "swordType\022\n\n\006MODIFY\020\000\022\n\n\006FORGET\020\001", 273);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "PasswordManager.proto", &protobuf_RegisterTypes);
   PasswordManagerRequest::default_instance_ = new PasswordManagerRequest();
@@ -126,6 +129,20 @@ struct StaticDescriptorInitializer_PasswordManager_2eproto {
     protobuf_AddDesc_PasswordManager_2eproto();
   }
 } static_descriptor_initializer_PasswordManager_2eproto_;
+const ::google::protobuf::EnumDescriptor* PasswordType_descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return PasswordType_descriptor_;
+}
+bool PasswordType_IsValid(int value) {
+  switch(value) {
+    case 0:
+    case 1:
+      return true;
+    default:
+      return false;
+  }
+}
+
 
 // ===================================================================
 
@@ -228,13 +245,18 @@ bool PasswordManagerRequest::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required int32 type = 1;
+      // required .com.caredear.PasswordType type = 1;
       case 1: {
         if (tag == 8) {
+          int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
-                 input, &type_)));
-          set_has_type();
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          if (::com::caredear::PasswordType_IsValid(value)) {
+            set_type(static_cast< ::com::caredear::PasswordType >(value));
+          } else {
+            mutable_unknown_fields()->AddVarint(1, value);
+          }
         } else {
           goto handle_unusual;
         }
@@ -316,9 +338,10 @@ failure:
 void PasswordManagerRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:com.caredear.PasswordManagerRequest)
-  // required int32 type = 1;
+  // required .com.caredear.PasswordType type = 1;
   if (has_type()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->type(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      1, this->type(), output);
   }
 
   // required uint64 caredear_id = 2;
@@ -356,9 +379,10 @@ void PasswordManagerRequest::SerializeWithCachedSizes(
 ::google::protobuf::uint8* PasswordManagerRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // @@protoc_insertion_point(serialize_to_array_start:com.caredear.PasswordManagerRequest)
-  // required int32 type = 1;
+  // required .com.caredear.PasswordType type = 1;
   if (has_type()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->type(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      1, this->type(), target);
   }
 
   // required uint64 caredear_id = 2;
@@ -400,11 +424,10 @@ int PasswordManagerRequest::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required int32 type = 1;
+    // required .com.caredear.PasswordType type = 1;
     if (has_type()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
-          this->type());
+        ::google::protobuf::internal::WireFormatLite::EnumSize(this->type());
     }
 
     // required uint64 caredear_id = 2;

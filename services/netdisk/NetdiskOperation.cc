@@ -25,6 +25,8 @@ int NetdiskOperation::cb_query_user_entry(MYSQL_RES *p_result)
 {
     MYSQL_ROW row;
 
+    m_cbFlag = 0;
+
     row = mysql_fetch_row(p_result);
     if(row != NULL)
     {
@@ -33,12 +35,11 @@ int NetdiskOperation::cb_query_user_entry(MYSQL_RES *p_result)
             ERR("Warning, there're multi-user entry, check DB!\n");
         }
 
-        m_cbFlag = 1;
-    }
-    else
-    {
-        // not existed yet, so tell caller to new user entry.
-        m_cbFlag = 0;
+        if(row[0] != NULL)
+        {
+            // return the user ID
+            m_cbFlag = atoi(row[0]);
+        }
     }
 
     return 0;
@@ -163,9 +164,48 @@ int NetdiskOperation::record_file_info_to_db(NetdiskRequest *p_obj)
     int ret = CDS_OK;
     char sqlcmd[1024];
     char sqlcmd2[1024];
+    int uid; // ID in USERS DB
     const char *filename = p_obj->filename().c_str();
     const int filesize = p_obj->filesize();
-    //int type = mapping_file_type(filename);
+
+    /* 2015-4-1 the record file to DB need be complicated than
+     * we supposed */
+#if 1
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT ID FROM %s WHERE USER_NAME=\'%s\'",
+            NETDISK_USER_TBL, p_obj->user().c_str());
+    ret = sql_cmd(sqlcmd, cb_query_user_entry);
+    if(ret == CDS_OK && m_cbFlag > 0)
+    {
+        // got the user id
+        uid = m_cbFlag;
+
+        snprintf(sqlcmd, sizeof(sqlcmd),
+                "SELECT ISDELETE FROM %s WHERE OWNER=%d AND MD5=\'%s\'",
+                NETDISK_FILE_TBL, uid, p_obj->md5().c_str());
+        ret = sql_cmd(sqlcmd, cb_query_user_entry);
+        if(ret == CDS_OK && m_cbFlag > 0)
+        {
+            INFO("an existed file under cur usr, with delete set\n");
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET ISDELETE=0 WHERE OWNER=%d AND MD5=\'%s\'",
+                    NETDISK_FILE_TBL, uid, p_obj->md5().c_str());
+            ret = sql_cmd(sqlcmd, NULL);
+            if(ret == CDS_OK)
+            {
+                INFO("UPDATE the exsited file flag OK\n");
+            }
+            else
+            {
+                ERR("A pity, failed update the file flag\n");
+            }
+
+            // return here, othwerwise, go below further more update steps...
+            return ret;
+        }
+
+    }
+#endif
 
     // add quota
     snprintf(sqlcmd, sizeof(sqlcmd),

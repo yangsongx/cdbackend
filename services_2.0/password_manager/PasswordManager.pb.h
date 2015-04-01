@@ -23,6 +23,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
@@ -37,6 +38,25 @@ void protobuf_ShutdownFile_PasswordManager_2eproto();
 class PasswordManagerRequest;
 class PasswordManagerResponse;
 
+enum PasswordType {
+  MODIFY = 0,
+  FORGET = 1
+};
+bool PasswordType_IsValid(int value);
+const PasswordType PasswordType_MIN = MODIFY;
+const PasswordType PasswordType_MAX = FORGET;
+const int PasswordType_ARRAYSIZE = PasswordType_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* PasswordType_descriptor();
+inline const ::std::string& PasswordType_Name(PasswordType value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    PasswordType_descriptor(), value);
+}
+inline bool PasswordType_Parse(
+    const ::std::string& name, PasswordType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<PasswordType>(
+    PasswordType_descriptor(), name, value);
+}
 // ===================================================================
 
 class PasswordManagerRequest : public ::google::protobuf::Message {
@@ -92,12 +112,12 @@ class PasswordManagerRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required int32 type = 1;
+  // required .com.caredear.PasswordType type = 1;
   inline bool has_type() const;
   inline void clear_type();
   static const int kTypeFieldNumber = 1;
-  inline ::google::protobuf::int32 type() const;
-  inline void set_type(::google::protobuf::int32 value);
+  inline ::com::caredear::PasswordType type() const;
+  inline void set_type(::com::caredear::PasswordType value);
 
   // required uint64 caredear_id = 2;
   inline bool has_caredear_id() const;
@@ -148,7 +168,7 @@ class PasswordManagerRequest : public ::google::protobuf::Message {
   ::google::protobuf::uint64 caredear_id_;
   ::std::string* new_passwd_;
   ::std::string* old_passwd_;
-  ::google::protobuf::int32 type_;
+  int type_;
   friend void  protobuf_AddDesc_PasswordManager_2eproto();
   friend void protobuf_AssignDesc_PasswordManager_2eproto();
   friend void protobuf_ShutdownFile_PasswordManager_2eproto();
@@ -257,7 +277,7 @@ class PasswordManagerResponse : public ::google::protobuf::Message {
 
 // PasswordManagerRequest
 
-// required int32 type = 1;
+// required .com.caredear.PasswordType type = 1;
 inline bool PasswordManagerRequest::has_type() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -271,11 +291,12 @@ inline void PasswordManagerRequest::clear_type() {
   type_ = 0;
   clear_has_type();
 }
-inline ::google::protobuf::int32 PasswordManagerRequest::type() const {
+inline ::com::caredear::PasswordType PasswordManagerRequest::type() const {
   // @@protoc_insertion_point(field_get:com.caredear.PasswordManagerRequest.type)
-  return type_;
+  return static_cast< ::com::caredear::PasswordType >(type_);
 }
-inline void PasswordManagerRequest::set_type(::google::protobuf::int32 value) {
+inline void PasswordManagerRequest::set_type(::com::caredear::PasswordType value) {
+  assert(::com::caredear::PasswordType_IsValid(value));
   set_has_type();
   type_ = value;
   // @@protoc_insertion_point(field_set:com.caredear.PasswordManagerRequest.type)
@@ -571,6 +592,11 @@ inline void PasswordManagerResponse::set_allocated_extra_msg(::std::string* extr
 namespace google {
 namespace protobuf {
 
+template <> struct is_proto_enum< ::com::caredear::PasswordType> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::PasswordType>() {
+  return ::com::caredear::PasswordType_descriptor();
+}
 
 }  // namespace google
 }  // namespace protobuf

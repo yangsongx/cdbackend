@@ -348,6 +348,15 @@ int AttributeOperation::query_user_attribute_from_db(AttributeModifyRequest *req
     int ret = CDS_OK;
     char sqlcmd[1024];
 
+#if 1 // use a new SQL format
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT %s.username,%s.usermobile,%s.loginpassword,%s.email,"
+            "%s.realname,%s.nickname,%s.sex,%s.birthday,%s.headimg,%s.headimg2 "
+            "FROM %s LEFT JOIN %s ON %s.id=%s.caredearid WHERE %s.id=%lu",
+            USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL,
+            USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL,
+            USERCENTER_MAIN_TBL, USERCENTER_ATTR_TBL, USERCENTER_MAIN_TBL, USERCENTER_ATTR_TBL, USERCENTER_MAIN_TBL, reqobj->caredear_id());
+#else
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT %s.username,%s.usermobile,%s.loginpassword,%s.email,"
             "%s.realname,%s.nickname,%s.sex,%s.birthday,%s.headimg,%s.headimg2 "
@@ -355,6 +364,7 @@ int AttributeOperation::query_user_attribute_from_db(AttributeModifyRequest *req
             USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL,
             USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL,
             USERCENTER_MAIN_TBL, USERCENTER_ATTR_TBL, USERCENTER_MAIN_TBL, USERCENTER_ATTR_TBL, USERCENTER_MAIN_TBL, reqobj->caredear_id());
+#endif
 
     ret = sql_cmd(sqlcmd, cb_query_attribute);
     if(ret == CDS_OK)

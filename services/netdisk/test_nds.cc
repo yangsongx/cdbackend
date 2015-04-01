@@ -51,6 +51,9 @@ int     gFail = 0;
 char    gBuffer[1024];
 char    gUploadToken[256];
 
+int  glb_uid;
+int  glb_count;
+
 Qiniu_Client gQn;
 
 typedef struct _file_info{
@@ -235,6 +238,16 @@ void traverse_test_file()
         }
     }
 
+    list<file_info_t>::iterator it;
+    char cmd[128];
+    for(it = g_FileList.begin(); it != g_FileList.end(); it++){
+        sprintf(cmd, "DELETE FROM FILES WHERE MD5=\'%s\'",
+                it->f_md5);
+        if(mysql_query(mSql, cmd)){
+            printf("**Warning, seems failed delete the prebuilt-file md5 in DB\n");
+        }
+    }
+
     closedir(dir);
 }
 
@@ -310,6 +323,7 @@ int _send_nds_req(const char *usr, Opcode op, const char *fn, int size, const ch
 int test_normal_file_upload()
 {
     file_info_t item = g_FileList.front();
+
     return _send_nds_req(
             "13022593515", // DO NOT MODIFY, this is for tianfeng
             Opcode::UPLOADING,
@@ -411,6 +425,133 @@ int test_duplicated_file_upload2()
         return -1;
     }
 }
+
+// try confirm existed user and file would cause a IS_DELETE flag reset
+// the IS_DELETE record can be prepraed by prebuilt-file
+int test_duplicated_file_upload3()
+{
+    char cmd[1024];
+    MYSQL_ROW row;
+    MYSQL_RES *mresult;
+    int uid = -1;
+    char name[] = "for_delete";
+
+    file_info_t item = g_FileList.front();
+
+    // prepare DB
+    sprintf(cmd, "SELECT ID FROM USERS WHERE USER_NAME=\'%s\'", name);
+    if(mysql_query(mSql, cmd)){
+        printf("**failed query the file in DB:%s\n", mysql_error(mSql));
+        return -1;
+    } else{
+        mresult = mysql_store_result(mSql);
+        if(mresult) {
+            row = mysql_fetch_row(mresult);
+            if(row != NULL) {
+                uid = atoi(row[0]);
+                printf(" %s ==> ID-%d\n",name, uid);
+            }
+
+            mysql_free_result(mresult);
+        }
+    }
+
+    if(uid == -1) {
+        printf("a new user for %s, need get a uid\n", name);
+        sprintf(cmd, "INSERT INTO USERS (USER_NAME,USED_SIZE,USER_QUOTA,CREATE_TIME) "
+            "VALUES (\'%s\',2,10000,NOW())",
+            name);
+
+        if(mysql_query(mSql, cmd)){
+            printf("**failed query the file in DB:%s\n", mysql_error(mSql));
+            return -1;
+        } else{
+            printf(" insert the USER OK...\n");
+            sprintf(cmd, "SELECT ID FROM USERS WHERE USER_NAME=\'%s\'",
+                    name);
+            if(mysql_query(mSql, cmd)){
+                printf("**failed query the file in DB:%s\n", mysql_error(mSql));
+                return -1;
+            }
+            else
+            {
+                mresult = mysql_store_result(mSql);
+                if(mresult) {
+                    row = mysql_fetch_row(mresult);
+                    if(row != NULL) {
+                        uid = atoi(row[0]);
+                        printf("Wow, finally, I still get the ID-%d\n", uid);
+                    } else
+                    {
+                        printf("balnk reuslt, SHOULD NEVER happend\n");
+                    }
+                    mysql_free_result(mresult);
+                }
+            }
+        }
+    } 
+
+    if(uid == -1){
+        printf("Pity, uid is -1, case failed\n");
+        return -1;
+    }
+
+    sprintf(cmd, "DELETE FROM FILES WHERE MD5=\'%s\' AND OWNER=%d",
+            item.f_md5, uid);
+    mysql_query(mSql, cmd);
+
+    sprintf(cmd, "INSERT INTO FILES (FILENAME,MD5,ISDELETE,OWNER) "
+            "VALUES (\'abc\',\'%s\',1,%d)",
+            item.f_md5, uid);
+    if(mysql_query(mSql, cmd)) {
+        printf("failed insert file:%s\n", mysql_error(mSql));
+        printf("the failed cmd:%s\n", cmd);
+        return -1;
+    } else {
+        printf("new file record OK\n");
+    }
+
+    printf("All prepration steps finished, try the deletion and upload re-store case..\n");
+
+    // for later case
+    glb_uid = uid;
+    return _send_nds_req(
+            name, // DO NOT MODIFY, as this is for delete case
+            Opcode::UPLOADING,
+            "abc", // ABC
+            32,
+            item.f_md5,
+            CDS_FILE_ALREADY_EXISTED);
+}
+// consecutive case of previously case, make sure delete is re-set
+int test_duplicated_file_upload4()
+{
+    int ret = -1;
+    char cmd[128];
+    MYSQL_RES *mresult;
+    MYSQL_ROW row;
+    file_info_t item = g_FileList.front();
+
+    sprintf(cmd, "SELECT ISDELETE FROM FILES WHERE OWNER=%d AND MD5=\'%s\'",
+           glb_uid, item.f_md5);
+    if(mysql_query(mSql, cmd)){
+        printf("**failed query the delete flag in DB:%s\n", mysql_error(mSql));
+    } else{
+        mresult = mysql_store_result(mSql);
+        if(mresult) {
+            row = mysql_fetch_row(mresult);
+            if(row != 0){
+                printf("The delet flag=%s\n", row[0]);
+                if(!strcmp(row[0], "0"))
+                    ret = 0;
+            }
+            mysql_free_result(mresult);
+        }
+    }
+
+    return ret;
+}
+
 // try upload an already exceed quota file
 int test_bad_file_upload()
 {
@@ -498,6 +639,8 @@ int main(int argc, char **argv) {
 
     execute_ut_case(test_duplicated_file_upload);
     execute_ut_case(test_duplicated_file_upload2);
+    execute_ut_case(test_duplicated_file_upload3);
+    execute_ut_case(test_duplicated_file_upload4);
 
     execute_ut_case(test_bad_file_upload);
 

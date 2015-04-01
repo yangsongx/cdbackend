@@ -89,6 +89,14 @@ int PasswordOperation::modify_existed_password(PasswordManagerRequest *reqobj)
     }
     else
     {
+        if(reqobj->type() == PasswordType::FORGET)
+        {
+            // for forget password, we directly overwrite the DB pasword
+            ret = write_user_password_to_db(reqobj);
+        }
+        else
+        {
+
         // didn't contained the old password, need make sure DB also be blank
         m_md5[0] = 0x31;
         snprintf(sqlcmd, sizeof(sqlcmd),
@@ -99,12 +107,14 @@ int PasswordOperation::modify_existed_password(PasswordManagerRequest *reqobj)
         if(ret == CDS_OK && strlen(m_md5) == 0)
         {
             INFO("User original password is blank, so directly set new passwd\n");
-            return write_user_password_to_db(reqobj);
+            ret = write_user_password_to_db(reqobj);
         }
         else
         {
             ERR("seems you already had a passwd, need validate that one before change to a new passwd\n");
             ret = CDS_ERR_INCORRECT_CODE;
+        }
+
         }
     }
 

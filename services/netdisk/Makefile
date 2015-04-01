@@ -65,5 +65,5 @@ test_nds:$(TESTOBJS)
 
 .PHONY:clean
 clean:
-	rm -rf *.o nds a.out
+	rm -rf *.o nds a.out test_nds
 	find $(QINIU_SDK) -name '*.o' -exec rm -rf {} ";"
