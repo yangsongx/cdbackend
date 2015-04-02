@@ -3,6 +3,8 @@
 
 message SipAccountRequest {
     required string user_name = 1; // user's name (mobile number, or others like email?)
+    required string session = 2;  //  need below 2 fields, to select a unique token for given name
+    required int32  sysid = 3;
 }
 
 message SipAccountResponse {

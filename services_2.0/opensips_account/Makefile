@@ -2,15 +2,20 @@
 #
 DEBUG=true
 CDSBASE = ../../common/cds_base/
+BASECLS=../
 
 CC = g++
 
 SRC = opensips_account_service.cc \
-      SipAccount.pb.cc
+      $(BASECLS)Config.cc \
+      $(BASECLS)Operation.cc \
+      SipAccount.pb.cc \
+      SipConfig.cc \
+      SipOperation.cc
 
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = -I$(CDSBASE) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
+CXXFLAGS = -I$(CDSBASE) -I $(BASECLS) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
 
 # Release should use -O2
 

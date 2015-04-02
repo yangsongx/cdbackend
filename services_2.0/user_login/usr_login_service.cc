@@ -66,6 +66,8 @@ int uls_handler(int size, void *req, int *len_resp, void *resp)
         {
             ERR("** failed seriliaze for the error case\n");
         }
+
+        ret = CDS_GENERIC_ERROR;
     }
 
     return ret;

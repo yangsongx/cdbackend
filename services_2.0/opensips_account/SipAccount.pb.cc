@@ -35,8 +35,10 @@ void protobuf_AssignDesc_SipAccount_2eproto() {
       "SipAccount.proto");
   GOOGLE_CHECK(file != NULL);
   SipAccountRequest_descriptor_ = file->message_type(0);
-  static const int SipAccountRequest_offsets_[1] = {
+  static const int SipAccountRequest_offsets_[3] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SipAccountRequest, user_name_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SipAccountRequest, session_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(SipAccountRequest, sysid_),
   };
   SipAccountRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -99,9 +101,10 @@ void protobuf_AddDesc_SipAccount_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\020SipAccount.proto\"&\n\021SipAccountRequest\022"
-    "\021\n\tuser_name\030\001 \002(\t\";\n\022SipAccountResponse"
-    "\022\014\n\004code\030\001 \002(\005\022\027\n\017user_credential\030\002 \001(\t", 119);
+    "\n\020SipAccount.proto\"F\n\021SipAccountRequest\022"
+    "\021\n\tuser_name\030\001 \002(\t\022\017\n\007session\030\002 \002(\t\022\r\n\005s"
+    "ysid\030\003 \002(\005\";\n\022SipAccountResponse\022\014\n\004code"
+    "\030\001 \002(\005\022\027\n\017user_credential\030\002 \001(\t", 151);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "SipAccount.proto", &protobuf_RegisterTypes);
   SipAccountRequest::default_instance_ = new SipAccountRequest();
@@ -122,6 +125,8 @@ struct StaticDescriptorInitializer_SipAccount_2eproto {
 
 #ifndef _MSC_VER
 const int SipAccountRequest::kUserNameFieldNumber;
+const int SipAccountRequest::kSessionFieldNumber;
+const int SipAccountRequest::kSysidFieldNumber;
 #endif  // !_MSC_VER
 
 SipAccountRequest::SipAccountRequest()
@@ -144,6 +149,8 @@ void SipAccountRequest::SharedCtor() {
   ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
   user_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  session_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  sysid_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -155,6 +162,9 @@ SipAccountRequest::~SipAccountRequest() {
 void SipAccountRequest::SharedDtor() {
   if (user_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete user_name_;
+  }
+  if (session_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete session_;
   }
   if (this != default_instance_) {
   }
@@ -182,10 +192,18 @@ SipAccountRequest* SipAccountRequest::New() const {
 }
 
 void SipAccountRequest::Clear() {
-  if (has_user_name()) {
-    if (user_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-      user_name_->clear();
+  if (_has_bits_[0 / 32] & 7) {
+    if (has_user_name()) {
+      if (user_name_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        user_name_->clear();
+      }
     }
+    if (has_session()) {
+      if (session_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        session_->clear();
+      }
+    }
+    sysid_ = 0;
   }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -210,6 +228,38 @@ bool SipAccountRequest::MergePartialFromCodedStream(
             this->user_name().data(), this->user_name().length(),
             ::google::protobuf::internal::WireFormat::PARSE,
             "user_name");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(18)) goto parse_session;
+        break;
+      }
+
+      // required string session = 2;
+      case 2: {
+        if (tag == 18) {
+         parse_session:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_session()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->session().data(), this->session().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "session");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(24)) goto parse_sysid;
+        break;
+      }
+
+      // required int32 sysid = 3;
+      case 3: {
+        if (tag == 24) {
+         parse_sysid:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &sysid_)));
+          set_has_sysid();
         } else {
           goto handle_unusual;
         }
@@ -252,6 +302,21 @@ void SipAccountRequest::SerializeWithCachedSizes(
       1, this->user_name(), output);
   }
 
+  // required string session = 2;
+  if (has_session()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->session().data(), this->session().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "session");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      2, this->session(), output);
+  }
+
+  // required int32 sysid = 3;
+  if (has_sysid()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(3, this->sysid(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -273,6 +338,22 @@ void SipAccountRequest::SerializeWithCachedSizes(
         1, this->user_name(), target);
   }
 
+  // required string session = 2;
+  if (has_session()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->session().data(), this->session().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "session");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->session(), target);
+  }
+
+  // required int32 sysid = 3;
+  if (has_sysid()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(3, this->sysid(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -290,6 +371,20 @@ int SipAccountRequest::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->user_name());
+    }
+
+    // required string session = 2;
+    if (has_session()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->session());
+    }
+
+    // required int32 sysid = 3;
+    if (has_sysid()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->sysid());
     }
 
   }
@@ -322,6 +417,12 @@ void SipAccountRequest::MergeFrom(const SipAccountRequest& from) {
     if (from.has_user_name()) {
       set_user_name(from.user_name());
     }
+    if (from.has_session()) {
+      set_session(from.session());
+    }
+    if (from.has_sysid()) {
+      set_sysid(from.sysid());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -339,7 +440,7 @@ void SipAccountRequest::CopyFrom(const SipAccountRequest& from) {
 }
 
 bool SipAccountRequest::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
+  if ((_has_bits_[0] & 0x00000007) != 0x00000007) return false;
 
   return true;
 }
@@ -347,6 +448,8 @@ bool SipAccountRequest::IsInitialized() const {
 void SipAccountRequest::Swap(SipAccountRequest* other) {
   if (other != this) {
     std::swap(user_name_, other->user_name_);
+    std::swap(session_, other->session_);
+    std::swap(sysid_, other->sysid_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

@@ -69,7 +69,7 @@ int Config::prepare_db_and_mem()
         return 0;
     }
 
-    // next, it is the memcached.
+    // here means memcach is available
     char mem_cfg [128];
     snprintf(mem_cfg, sizeof(mem_cfg),
             "--SERVER=%s:%d", m_strMemIP, m_iMemPort);

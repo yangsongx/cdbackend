@@ -66,6 +66,7 @@ enum {
     CDS_USR_AUTH,
     CDS_USR_PASSWD,
     CDS_NETDISK,
+    CDS_SIPS,
 };
 
 

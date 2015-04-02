@@ -7,6 +7,8 @@ function pre_init()
 {
     rm -rf native/
     mkdir -p native
+    mkdir -p native/dep/
+    cp 3rd_party/prebuilt/*.so native/dep/
 }
 
 # FIXME - do we need the .so or the .deb ?
@@ -108,18 +110,41 @@ function pre_sips()
     cp services_2.0/opensips_account/opas native/opensips_account/
 }
 
+function pre_netdisk()
+{
+    mkdir -p native/netdisk/
+    echo "#!/bin/bash"> native/netdisk/run
+    echo "./nds -u root -vvv -p 12001 >nds.log" >> native/netdisk/run
+    chmod a+x native/netdisk/run
+
+    cp services_2.0/netdisk/nds native/netdisk/
+}
+
 function gen_package_sh()
 {
+    # create start and stop script
     echo "#!/bin/bash"> native/startall
     echo "svscan . &" >> native/startall
     chmod a+x native/startall
 
+    echo "#!/bin/bash" > native/stopall
+    echo "for file in ./*">>native/stopall
+    echo "do">>native/stopall
+    echo "  if test -d \$file">>native/stopall
+    echo "  then">>native/stopall
+    echo "    echo \"dir is \$file\"">>native/stopall
+    echo "  fi">>native/stopall
+    echo "done">>native/stopall
+    chmod a+x native/stopall
+
 
     echo "#!/bin/bash" > backend.sh
+    echo "#DO NOT MODIFY this script, it is auto-generated">>backend.sh
     echo "echo \"Will deploy the daemon services... \"" >> backend.sh
     echo "function extract() {">>backend.sh
     echo "  uudecode \$0">>backend.sh
     echo "  tar -zxvf t">>backend.sh
+    echo "  cp native/dep/*.so /usr/lib/">>backend.sh
     echo "">>backend.sh
     echo "  if [ -n \"\$NEEDSO\" ]; then" >> backend.sh
     echo "    echo \"You need libcds.so\"">>backend.sh
@@ -127,8 +152,16 @@ function gen_package_sh()
     echo "  else">>backend.sh
     echo "    echo \"You don't need libcds.so\"">>backend.sh
     echo "  fi">>backend.sh
+    echo "">>backend.sh
+    echo "  if [ -d \"/opt/native\" ]; then">>backend.sh
+    echo "    cp native/* /opt/native/">>backend.sh
+    echo "  else">>backend.sh
+    echo "    mv native/ /opt">>backend.sh
+    echo "  fi">>backend.sh
+    echo "">>backend.sh
     echo "  #rm native/libcds.so">>backend.sh
     echo "  #rm native/cds_cfg.xml">>backend.sh
+    echo "  /sbin/ldconfig &">>backend.sh
     echo "  rm t">>backend.sh
     echo "}">>backend.sh
     echo "case \"\$1\" in">>backend.sh
@@ -165,6 +198,7 @@ function release_backend()
     pre_verifycode;
 
     pre_sips;
+    pre_netdisk;
 
     gen_package_sh;
 }

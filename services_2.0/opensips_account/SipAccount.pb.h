@@ -101,16 +101,41 @@ class SipAccountRequest : public ::google::protobuf::Message {
   inline ::std::string* release_user_name();
   inline void set_allocated_user_name(::std::string* user_name);
 
+  // required string session = 2;
+  inline bool has_session() const;
+  inline void clear_session();
+  static const int kSessionFieldNumber = 2;
+  inline const ::std::string& session() const;
+  inline void set_session(const ::std::string& value);
+  inline void set_session(const char* value);
+  inline void set_session(const char* value, size_t size);
+  inline ::std::string* mutable_session();
+  inline ::std::string* release_session();
+  inline void set_allocated_session(::std::string* session);
+
+  // required int32 sysid = 3;
+  inline bool has_sysid() const;
+  inline void clear_sysid();
+  static const int kSysidFieldNumber = 3;
+  inline ::google::protobuf::int32 sysid() const;
+  inline void set_sysid(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:SipAccountRequest)
  private:
   inline void set_has_user_name();
   inline void clear_has_user_name();
+  inline void set_has_session();
+  inline void clear_has_session();
+  inline void set_has_sysid();
+  inline void clear_has_sysid();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   ::std::string* user_name_;
+  ::std::string* session_;
+  ::google::protobuf::int32 sysid_;
   friend void  protobuf_AddDesc_SipAccount_2eproto();
   friend void protobuf_AssignDesc_SipAccount_2eproto();
   friend void protobuf_ShutdownFile_SipAccount_2eproto();
@@ -293,6 +318,106 @@ inline void SipAccountRequest::set_allocated_user_name(::std::string* user_name)
     user_name_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:SipAccountRequest.user_name)
+}
+
+// required string session = 2;
+inline bool SipAccountRequest::has_session() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void SipAccountRequest::set_has_session() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void SipAccountRequest::clear_has_session() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void SipAccountRequest::clear_session() {
+  if (session_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    session_->clear();
+  }
+  clear_has_session();
+}
+inline const ::std::string& SipAccountRequest::session() const {
+  // @@protoc_insertion_point(field_get:SipAccountRequest.session)
+  return *session_;
+}
+inline void SipAccountRequest::set_session(const ::std::string& value) {
+  set_has_session();
+  if (session_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    session_ = new ::std::string;
+  }
+  session_->assign(value);
+  // @@protoc_insertion_point(field_set:SipAccountRequest.session)
+}
+inline void SipAccountRequest::set_session(const char* value) {
+  set_has_session();
+  if (session_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    session_ = new ::std::string;
+  }
+  session_->assign(value);
+  // @@protoc_insertion_point(field_set_char:SipAccountRequest.session)
+}
+inline void SipAccountRequest::set_session(const char* value, size_t size) {
+  set_has_session();
+  if (session_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    session_ = new ::std::string;
+  }
+  session_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SipAccountRequest.session)
+}
+inline ::std::string* SipAccountRequest::mutable_session() {
+  set_has_session();
+  if (session_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    session_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:SipAccountRequest.session)
+  return session_;
+}
+inline ::std::string* SipAccountRequest::release_session() {
+  clear_has_session();
+  if (session_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = session_;
+    session_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void SipAccountRequest::set_allocated_session(::std::string* session) {
+  if (session_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete session_;
+  }
+  if (session) {
+    set_has_session();
+    session_ = session;
+  } else {
+    clear_has_session();
+    session_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:SipAccountRequest.session)
+}
+
+// required int32 sysid = 3;
+inline bool SipAccountRequest::has_sysid() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void SipAccountRequest::set_has_sysid() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void SipAccountRequest::clear_has_sysid() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void SipAccountRequest::clear_sysid() {
+  sysid_ = 0;
+  clear_has_sysid();
+}
+inline ::google::protobuf::int32 SipAccountRequest::sysid() const {
+  // @@protoc_insertion_point(field_get:SipAccountRequest.sysid)
+  return sysid_;
+}
+inline void SipAccountRequest::set_sysid(::google::protobuf::int32 value) {
+  set_has_sysid();
+  sysid_ = value;
+  // @@protoc_insertion_point(field_set:SipAccountRequest.sysid)
 }
 
 // -------------------------------------------------------------------
