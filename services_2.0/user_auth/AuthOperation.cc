@@ -1,3 +1,10 @@
+/**
+ * User Auth operation class
+ *
+ * \history
+ * [2015-04-02] Fix a mem value miss-field bug (normally, value is in 3 column, we need avoid Non-3 column case)
+ *
+ */
 #include "AuthOperation.h"
 
 struct auth_data_wrapper AuthOperation::m_AuthWrapper;
@@ -18,6 +25,8 @@ int AuthOperation::cb_token_info_query(MYSQL_RES *mresult)
     row = mysql_fetch_row(mresult);
     if(row != NULL)
     {
+        /* FIXME for XMPP, we need select the session as well
+         * so the column would be 3 */
         if(row[0] != NULL)
         {
             m_AuthWrapper.adw_cid = atol(row[0]);
@@ -26,6 +35,16 @@ int AuthOperation::cb_token_info_query(MYSQL_RES *mresult)
         if(row[1] != NULL)
         {
             m_AuthWrapper.adw_lastlogin = atol(row[1]);
+        }
+
+        if(mysql_num_fields(mresult) == 3)
+        {
+            INFO("the SQL SELECTION got 3 column, probably in XMPP case\n");
+            if(row[2] != NULL)
+            {
+                // TODO - make sure the 64-byte is enough for session store
+                strncpy(m_AuthWrapper.adw_session, row[2], 64);
+            }
         }
     }
     else
@@ -45,9 +64,13 @@ int AuthOperation::cb_token_info_query(MYSQL_RES *mresult)
  * ---------------+-----------------------------------------
  *
  *
+ * return the column count of mem value, this is to help caller know
+ * the mem val is malform or NOT (see the \history at the start of this source file
+ * for more details).
  */
 int AuthOperation::split_val_into_fields(char *value, struct auth_data_wrapper *w)
 {
+    int col_cnt = 0;
     char *c, *s, *l;
     char *saveptr;
 
@@ -58,18 +81,21 @@ int AuthOperation::split_val_into_fields(char *value, struct auth_data_wrapper *
 
     if((c = strtok_r((char *)value, " ", &saveptr)) != NULL)
     {
+        col_cnt++;
         w->adw_cid = atol(c);
         if((s = strtok_r(NULL, " ", &saveptr)) != NULL)
         {
+            col_cnt++;
             strcpy(w->adw_session, s);
             if((l = strtok_r(NULL, " " , &saveptr)) != NULL)
             {
+                col_cnt++;
                 w->adw_lastlogin = atol(l);
             }
         }
     }
 
-    return 0;
+    return col_cnt;
 }
 
 int AuthOperation::set_token_info_to_db(AuthRequest *reqobj)
@@ -110,7 +136,7 @@ int AuthOperation::get_token_info_from_db(AuthRequest *reqobj, AuthResponse *res
     {
         LOG("For XMPP case, don't consider the session\n");
         snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT caredearid,UNIX_TIMESTAMP(lastoperatetime) FROM %s "
+            "SELECT caredearid,UNIX_TIMESTAMP(lastoperatetime),session FROM %s "
             "WHERE ticket=\'%s\'",
             USERCENTER_SESSION_TBL, reqobj->auth_token().c_str());
     }
@@ -230,24 +256,38 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
     int ret = CDS_OK;
     char  *p_val;
     size_t val_len;
-
+    int i;
 
     // first try from mem
     p_val = get_mem_value(reqobj->auth_token().c_str(), &val_len, NULL /* don't need the CAS */);
     if(p_val)
     {
         // got value from mem, parse it...
-        split_val_into_fields(p_val, w);
-
-        /* FIXME - currently, for XMPP case, we don't need check
-         * session with mem/db value */
-        if(!is_xmpp_auth(reqobj) && strcmp(reqobj->auth_session().c_str(), w->adw_session))
+        i = split_val_into_fields(p_val, w);
+        if(i != 3)
         {
-            ERR("(%s %s) <---->mem(%s), SESSION-mismacth, re-count on DB..\n",
+            /* Why 3 ?
+             *
+             * mem value is in 3 column, see comments in @split_val_into_fields()
+             */
+            ERR("Attention, mem val had %d column, it SHOULD be 3, so we had to go to DB\n", i);
+            ret = get_token_info_from_db(reqobj, respobj, w);
+        }
+
+        else
+        {
+
+            /* FIXME - currently, for XMPP case, we don't need check
+            * session with mem/db value */
+            if(!is_xmpp_auth(reqobj) && strcmp(reqobj->auth_session().c_str(), w->adw_session))
+            {
+                ERR("(%s %s) <---->mem(%s), SESSION-mismacth, re-count on DB..\n",
                     reqobj->auth_token().c_str(), reqobj->auth_session().c_str(),
                     w->adw_session);
 
-            ret = get_token_info_from_db(reqobj, respobj, w);
+                ret = get_token_info_from_db(reqobj, respobj, w);
+            }
+
         }
         free(p_val);
     }

@@ -1566,6 +1566,11 @@ int test_xmpp_auth_logic3()
     return -1;
 }
 
+int test_misfield_mem_auth()
+{
+    printf("need set mem and Db with miss field\n");
+    return -1;
+}
 /////////////////////////////////////////////////////////////////////
 // modify profile test
 /////////////////////////////////////////////////////////////////////
@@ -1779,6 +1784,7 @@ int main(int argc, char **argv)
     execute_ut_case(test_auth_normal_case7);
     execute_ut_case(test_xmpp_auth_logic2);
     execute_ut_case(test_xmpp_auth_logic3);
+    execute_ut_case(test_misfield_mem_auth);
 
     execute_ut_case(test_rollback_logic);
 

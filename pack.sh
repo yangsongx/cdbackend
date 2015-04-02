@@ -54,7 +54,7 @@ function pre_user_auth()
 {
     mkdir -p native/user_auth
     echo "#!/bin/bash"> native/user_auth/run
-    echo "./acts -u root -vvv -p 13003 >user_authentication.log" >> native/user_auth/run
+    echo "./uauth -u root -vvv -p 13003 >user_authentication.log" >> native/user_auth/run
     chmod a+x native/user_auth/run
 
     cp services_2.0/user_auth/uauth native/user_auth/
@@ -64,7 +64,7 @@ function pre_user_passwd()
 {
     mkdir -p native/password_manager/
     echo "#!/bin/bash"> native/password_manager/run
-    echo "./passwdmgr -u root -vvv -p 13004 >user_authentication.log" >> native/password_manager/run
+    echo "./passwdmgr -u root -vvv -p 13004 >passwd.log" >> native/password_manager/run
     chmod a+x native/password_manager/run
 
     cp services_2.0/password_manager/passwdmgr native/password_manager/
@@ -154,7 +154,7 @@ function gen_package_sh()
     echo "  fi">>backend.sh
     echo "">>backend.sh
     echo "  if [ -d \"/opt/native\" ]; then">>backend.sh
-    echo "    cp native/* /opt/native/">>backend.sh
+    echo "    cp -rf native/* /opt/native/">>backend.sh
     echo "  else">>backend.sh
     echo "    mv native/ /opt">>backend.sh
     echo "  fi">>backend.sh
