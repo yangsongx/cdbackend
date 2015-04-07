@@ -99,6 +99,7 @@ int RegOperation::compose_result(int code, const char *errmsg, ::google::protobu
 int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::google::protobuf::Message *reg_resp, int *len_resp, void *resp)
 {
     int ret = 0;
+    char buf[32];
     RegisterRequest *reqobj = (RegisterRequest*)reg_req;
     RegisterResponse *respobj = (RegisterResponse *) reg_resp;
 
@@ -117,6 +118,10 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
     if(existed && status_flag == 1)
     {
         ret = CDS_ERR_USER_ALREADY_EXISTED;
+        /* FIXME, as .proto already define the numeric cid as string
+         * we set it as string here */
+        snprintf(buf, sizeof(buf), "%lu", usr_id);
+        respobj->set_caredear_id(buf);
         compose_result(ret, "User Existed Already", respobj, len_resp, resp);
     }
     else
@@ -124,7 +129,7 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
         if(existed == false)
         {
             // a new user, record it into DB
-            ret = add_new_user_entry(reqobj);
+            ret = add_new_user_entry(reqobj, &usr_id);
         }
         else
         {
@@ -147,6 +152,9 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
             // need update them into DB for later verification...
             ret = record_user_verifiy_code(m_pCfg->m_Sql, reqobj, respobj, (UserRegConfig *)m_pCfg);
         }
+
+        snprintf(buf, sizeof(buf), "%lu", usr_id);
+        respobj->set_caredear_id(buf);
 
         compose_result(ret, NULL, respobj, len_resp, resp);
     }
@@ -224,7 +232,7 @@ bool RegOperation::user_already_exist(RegisterRequest *reqobj, int *p_active_sta
     }
 }
 
-int RegOperation::add_new_user_entry(RegisterRequest *pRegInfo)
+int RegOperation::add_new_user_entry(RegisterRequest *pRegInfo, uint64_t *cid)
 {
     int ret = CDS_OK;
     char sqlcmd[1024];
@@ -318,22 +326,22 @@ int RegOperation::add_new_user_entry(RegisterRequest *pRegInfo)
 
         // Note here, we still need do a SQL query again, to get User's CID,
         // after get this CID, we can update the password finally!
-        unsigned long cid = 0;
+        //unsigned long cid = 0;
         int active_flag;
-        if(user_already_exist(pRegInfo, &active_flag, &cid))
+        if(user_already_exist(pRegInfo, &active_flag, cid))
         {
-            INFO("this new user's CID=%ld\n", cid);
+            INFO("this new user's CID=%ld\n", *cid);
             // we don't add password for mobile+SMS verify code case
             if(pRegInfo->reg_type() != RegLoginType::MOBILE_PHONE)
             {
                 char finaly_passwd[64];
                 // re-use the long sqlcmd buff
                 sprintf(sqlcmd, "%ld-%s",
-                        cid, pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "");
+                        *cid, pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "");
                 get_md5(sqlcmd, strlen(sqlcmd), finaly_passwd);
                 LOG("%s --MD5--> %s\n", sqlcmd, finaly_passwd);
 
-                ret = add_user_password_to_db(pRegInfo, cid, finaly_passwd);
+                ret = add_user_password_to_db(pRegInfo, *cid, finaly_passwd);
             }
         }
         else

@@ -107,7 +107,7 @@ int AuthOperation::set_token_info_to_db(AuthRequest *reqobj)
             "UPDATE %s SET lastoperatetime=NOW() WHERE ticket=\'%s\'",
             USERCENTER_SESSION_TBL, reqobj->auth_token().c_str());
 
-    KPI("Will try update last login DB data...\n");
+    KPI("Will try update last login DB data(token:%s)...\n", reqobj->auth_token().c_str());
     ret = sql_cmd(sqlcmd, NULL);
     if(ret == CDS_OK)
     {

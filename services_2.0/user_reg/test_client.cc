@@ -31,6 +31,8 @@
 
 #include <openssl/md5.h>
 
+#include <libmemcached/memcached.h>
+
 #include "cds_public.h"
 
 
@@ -65,6 +67,7 @@ int     mSockAct;
 int     mSockAuth;
 int     mSockPasswd;
 
+memcached_st *mMemc;
 
 int     gPass = 0;
 int     gFail = 0;
@@ -206,8 +209,20 @@ int try_conn_db(const char *config_file)
                     return -1;
                 }
             }
-            //
 
+            // next, for memcached, we suppose the server is the same as uauth's...
+            get_node_via_xpath("//service_2/user_auth_service/memcache/ip",
+                    ctx, sips_ip, sizeof(sips_ip));
+
+            get_node_via_xpath("//service_2/user_auth_service/memcache/port",
+                    ctx, sips_user, sizeof(sips_user));
+            char memc[128];
+            sprintf(memc, "--SERVER=%s:%s", sips_ip, sips_user);
+            mMemc = memcached(memc, strlen(memc));
+            if(mMemc != NULL)
+            {
+                printf(" Good to connect to memcached server\n");
+            }
         }
 
         xmlFreeDoc(doc);
@@ -255,6 +270,92 @@ int prepare_db_test_data()
     }
 #endif
     return 0;
+}
+
+// TODO need below util to reset mem value for prebuilt-in data
+static void sync_mem_data_with_db(const char *key)
+{
+    memcached_return_t rc;
+    char *val;
+    size_t valen;
+    char buf[256];
+
+    if(!mMemc)
+    {
+        printf("seems memcached server unavailable, ignore the mem parepare step\n");
+        return;
+    }
+
+    val = memcached_get_by_key(mMemc, NULL, 0,
+            key, strlen(key),
+            &valen, 0, &rc);
+    if(val != NULL)
+    {
+        if(rc == MEMCACHED_SUCCESS) {
+            printf("%s --> %s\n", key, val);
+        }
+
+        sprintf(buf, "SELECT UNIX_TIMESTAMP(lastoperatetime) FROM uc.uc_session WHERE ticket=\'%s\'",
+                key);
+
+        if(mysql_query(mSql, buf)){
+            printf("failed get the prebuilt-in DB time\n");
+        } else {
+            MYSQL_RES *mresult;
+            mresult = mysql_store_result(mSql);
+            if(mresult) {
+                MYSQL_ROW row;
+                row = mysql_fetch_row(mresult);
+                printf("time in DB:%s\n", row[0]);
+                int idx = 0;
+                int third_col = 0;
+                char *p = val;
+                while(p[idx++] != '\0') {
+                    if(p[idx] == ' '){
+                        if(third_col++ == 1){
+                            printf("Wow, the third location\n");
+                            memcpy(p + idx + 1, row[0], strlen(row[0]));
+                            break;
+                        }
+                    }
+                }
+
+                printf("After tweak, the new mem val:%s\n", val);
+                // set it back
+                rc = memcached_set(mMemc, key, strlen(key),
+                        val, strlen(val),
+                        0, 0);
+                if(rc == MEMCACHED_SUCCESS)
+                    printf("set back to memcach OK\n");
+
+                mysql_free_result(mresult);
+            }
+        }
+
+        // set the mem back
+        free(val);
+    }
+    else
+    {
+        printf("Well, %s key is not existed, probably this is the first time of run testing\n", key);
+    }
+}
+
+int prepare_memcach_test_data()
+{
+    int ret = -1;
+
+    if(!mMemc)
+    {
+        printf("seems memcached server unavailable, ignore the mem parepare step\n");
+        return -1;
+    }
+
+    // make mem and DB data consistent
+    sync_mem_data_with_db("xmpptoken-cc18-4c44-a7c5-124c7afc45bf");
+    sync_mem_data_with_db("22776f46-cc18-4c44-a7c5-124c7afc45bf");
+
+    return ret;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -1563,7 +1664,39 @@ int test_xmpp_auth_logic2()
 // Check above test updated the DB
 int test_xmpp_auth_logic3()
 {
-    return -1;
+    int ret = -1;
+    char sqlcmd[256];
+    time_t cur;
+
+    time(&cur);
+
+    sprintf(sqlcmd, "SELECT UNIX_TIMESTAMP(lastoperatetime) FROM uc.uc_session "
+            "WHERE ticket=\'xmpptoken-cc18-4c44-a7c5-124c7afc45bf\'");
+    if(mysql_query(mSql, sqlcmd))
+    {
+        printf("failed get the xmpp token from DB:%s\n", mysql_error(mSql));
+        return -1;
+    }
+
+    MYSQL_RES *mresult;
+    mresult = mysql_store_result(mSql);
+    if(mresult)
+    {
+        MYSQL_ROW row;
+
+        row = mysql_fetch_row(mresult);
+        long a = atol(row[0]);
+        printf("    time in DB:%ld, cur time:%ld, delta=%ld sec\n",
+                a, cur, labs(a-cur));
+        if(labs(a - cur) <= 60) {
+            ret = 0;
+        } else {
+            printf("  oh, exceed the 60 seoncd, seems time didn't updated in DB\n");
+        }
+        mysql_free_result(mresult);
+    }
+
+    return ret;
 }
 
 int test_misfield_mem_auth()
@@ -1660,6 +1793,10 @@ int main(int argc, char **argv)
     {
         printf("Prepare DB... [Failed]\n");
         return -1;
+    }
+
+    if(prepare_memcach_test_data() == -1){
+        printf("Warning, memcach data preparation wrong, continue anyway\n");
     }
 
     printf("Prepare DB... [OK]\n");
@@ -1811,6 +1948,16 @@ int main(int argc, char **argv)
     //misc testing...
     //execute_ut_case(test_sql_auto_reconnect);
 end_of_testing:
+
+    printf("\n\n release useless resource...");
+
+    mysql_close(mSql);
+
+    if(mMemc != NULL)
+        memcached_free(mMemc);
+
+    printf("[OK]\n\n");
+
     //
     // summary
     //
@@ -1818,6 +1965,7 @@ end_of_testing:
     printf("Totally %d case tested, %d [OK], %d [Failed]\n",
             gPass + gFail, gPass, gFail);
     //close(mSock);
+
 
     return 0;
 }

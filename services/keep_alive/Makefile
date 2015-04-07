@@ -9,7 +9,7 @@ CFLAGS += -I /usr/include/libxml2/ -W -Wall
 
 # Release should use -O2
 
-ifeq ($(DEBUG),false)
+ifneq ($(DEBUG),false)
 CFLAGS += -O2
 else
 CFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0

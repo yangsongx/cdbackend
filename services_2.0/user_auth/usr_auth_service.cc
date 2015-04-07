@@ -2,6 +2,9 @@
  * User Auth Service (UAS)
  *
  * Target binary is uauth(User Auth)
+ *
+ * \history
+ * [2015-040-03] Removed the pthread_mutex_t in this file, as sql mutex should be in Operation class
  */
 
 #ifdef CHECK_MEM_LEAK
@@ -22,7 +25,6 @@ using namespace com::caredear;
 using namespace google::protobuf::io;
 
 UserAuthConfig  g_info;
-pthread_mutex_t  uas_mutex;
 
 /* a start time entry, used for keep alive report the
  * program running life time */
@@ -122,17 +124,6 @@ int main(int argc, char **argv)
     if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {
         ERR("*** Warning Failed init the whole service!\n");
-    }
-
-    /* TODO 2015-3-13
-     * Actually, the Config obj had a mutex as well,
-     * temp use a global mutex here,
-     *
-     * check the Config.h header comments for more details...
-     */
-    if(pthread_mutex_init(&uas_mutex, NULL) != 0)
-    {
-        ERR("*** Warning, failed create mutex IPC objs:%d\n", errno);
     }
 
     cfg.ac_cfgfile = NULL;

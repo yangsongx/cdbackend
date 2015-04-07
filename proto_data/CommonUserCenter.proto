@@ -9,6 +9,8 @@ enum RegLoginType{
     OTHERS = 5;
     CID_PASSWD = 6; // using caredear ID login
     LOG_OUT = 7; // User want to log out
+    BOTH_PHONE_NAME = 8; // below two are available for ShenZhen's Web/BBS
+    BOTH_EMAIL_NAME = 9;
 }
 
 enum DeviceType{

@@ -59,10 +59,6 @@
                     "To: \"Caredear Server\" <server@caredear.com>\n"   \
                     "Subject: keep_alive PING report\n\n"
 
-static int  global_mail_count = 0;
-
-static int  meet_error = 0;
-
 static char ka_ip[32] = KA_DEFIP;
 static int  ka_port = KA_DEFPORT;
 static int  ka_maxmail = KA_MAXMAIL;
@@ -80,6 +76,7 @@ enum {
     USR_AUTH,
     USR_PASSWD,
     USR_NETDISK,
+    USR_SIPS,
 };
 
 /* Be consistent with the CDS components... */
@@ -129,6 +126,10 @@ static char *map_component_code(int code, char *component)
             strcpy(component, "Netdisk(nds)");
             break;
 
+        case USR_SIPS:
+            strcpy(component, "OpenSIPs(opas)");
+            break;
+
         default:
             strcpy(component, "Unknow");
                 break;
@@ -158,7 +159,6 @@ static void send_out_email(char *mail_body)
     char mail_cmd[256];
     FILE *p;
     pid_t pid;
-    struct timeval t1;
 
     p = fopen(KA_MAILMSG, "w");
     if(!p)
@@ -173,17 +173,6 @@ static void send_out_email(char *mail_body)
     fclose(p);
 
     LOG("%s", mail_cmd);
-
-    global_mail_count++;
-    gettimeofday(&t1, NULL);
-    end_time = t1.tv_sec;
-
-    if(((end_time - start_time) < 8*3600) && global_mail_count > ka_maxmail)
-    {
-        ERR("Too many error mails, stop sending to avoid spam\n");
-        return;
-    }
-
 
     pid = fork();
     if(pid == 0)
@@ -276,16 +265,13 @@ int parse_cfgfile(const char *filename)
 void alive_ping()
 {
     int s;
-    int result;
     struct sockaddr_in addr;
     ssize_t rc;
-    time_t  t;
     struct ping_response resp;
     char    buff[256];
     char    errmsg[128];
     char    cur[64];
     char    comp[64];
-    struct timeval t1;
 
     KPI("Ping begin!\n");
 
@@ -302,7 +288,8 @@ void alive_ping()
     addr.sin_port = htons(ka_port);
     if(connect(s, (const struct sockaddr *)&addr, sizeof(addr)) == -1)
     {
-        sprintf(errmsg, "failed connect to server:%d\n", errno);
+        sprintf(errmsg, "failed connect to server(%s:%d):%d\n",
+                ka_ip, ka_port, errno);
         goto fail_ping;
     }
 
@@ -313,18 +300,20 @@ void alive_ping()
     const char ka_ping_payload[2] = {0x34, 0x12};
 
     rc = write(s, ka_ping_payload, 2);
-    LOG("Client-----(%d bytes data)---->Server\n", rc);
+    LOG("Client-----(%ld bytes data)---->Server\n", rc);
     if(rc > 0)
     {
         rc = read(s, &resp, sizeof(resp));
         if(rc > 0)
         {
-            LOG("Client<----(%d bytes data)-----Server\n", rc);
+            LOG("Client<----(%ld bytes data)-----Server\n", rc);
             current_datetime(cur, sizeof(cur));
 
             snprintf(buff, sizeof(buff),
-                    "%s:[%s] ===>me: code=%d, life=%.2f Days\n",
-                        cur, map_component_code(resp.pr_component, comp), resp.pr_code, ((float)resp.pr_life / 86400.0f));
+                    "%s:[%s] ===(%s:%d)===>me: code=%d, life=%.2f Days\n",
+                        cur, map_component_code(resp.pr_component, comp),
+                        ka_ip, ka_port,
+                        resp.pr_code, ((float)resp.pr_life / 86400.0f));
                 ERR("%s", buff);
 
                 send_out_email(buff);
@@ -377,7 +366,7 @@ int main(int argc, char **argv)
     struct timeval t;
     char   cfgfile[256];
 
-    struct timeval t1, t2;
+    struct timeval t1;
 
 
     homedir = getenv("HOME");
