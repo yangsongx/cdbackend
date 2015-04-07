@@ -360,8 +360,6 @@ static void sync_mem_data_with_db(const char *key)
 
 int prepare_memcach_test_data()
 {
-    int ret = -1;
-
     if(!mMemc)
     {
         printf("seems memcached server unavailable, ignore the mem parepare step\n");
@@ -372,7 +370,7 @@ int prepare_memcach_test_data()
     sync_mem_data_with_db("xmpptoken-cc18-4c44-a7c5-124c7afc45bf");
     sync_mem_data_with_db("22776f46-cc18-4c44-a7c5-124c7afc45bf");
 
-    return ret;
+    return 0;
 }
 
 /////////////////////////////////////////////////////////////////////

@@ -10,6 +10,7 @@
 
 #include <google/protobuf/message.h>
 #include "Config.h"
+#include "uuid.h"
 
 // some common definiton, such as DB's table name
 //
@@ -42,11 +43,12 @@ namespace caredear{
             int set_conf(Config *c);
             int keep_alive(const char *db_tbl, const char *col_name = "id");
 
-            /* below 3 APIs aim to collect all components' memcached related
+            /* below 4 APIs aim to collect all components' memcached related
              * operation here */
             int set_mem_value(const char *key, const char *value, uint32_t flag = 0, time_t expiration = 0);
             int set_mem_value_with_cas(const char *key, const char *value, uint32_t flag = 0, time_t expiration = 0);
             char *get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas);
+            int  rm_mem_value(const char *key);
 
             int sql_cmd(const char *cmd, cb_sqlfunc sql_cb);
             int sql_cmd_via_transaction(int argc, char **argv, cb_sqlfunc sql_cb);
@@ -63,6 +65,22 @@ namespace caredear{
                     ::google::protobuf::Message *obj,
                     int *p_resplen,
                     void *p_respdata) = 0;
+
+            /* FIXME seems put uuid into CDS is not a good idea, I decide pack it as a static(public) here */
+            static int get_uuid(char *result) {
+                uuid_t id;
+                uuid_generate(id);
+                /* NOTE - actually, we can call uuid_unparse() to below code line! */
+                sprintf(result,
+                        "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+                        id[0], id[1], id[2], id[3],
+                        id[4], id[5],
+                        id[6], id[7],
+                        id[8], id[9],
+                        id[10], id[11], id[12], id[13], id[14], id[15]);
+                /* currently always return 0 */
+                return 0;
+            }
     };
 }
 }

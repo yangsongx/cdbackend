@@ -1,6 +1,7 @@
 # Makefile for User Profile Modification
 #
 DEBUG=true
+THIRD_PARTY=../../3rd_party/
 CDSBASE = ../../common/cds_base/
 
 CC = g++
@@ -24,7 +25,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L /usr/local/lib/ -L $(CDSBASE) -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs`
+LDFLAGS = -L /usr/local/lib/ -L $(CDSBASE) -L $(THIRD_PARTY)libuuid/ -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached -luuid-static `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.

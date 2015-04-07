@@ -112,6 +112,15 @@ int Operation::set_mem_value_with_cas(const char *key, const char *value, uint32
     return rc;
 }
 
+int Operation::rm_mem_value(const char *key)
+{
+    memcached_return_t rc;
+
+    rc = memcached_delete(m_pCfg->m_Memc, key, strlen(key), 0/* expiration */);
+
+    return (rc == MEMCACHED_SUCCESS ? 0 : 1);
+}
+
 /**
  *
  *

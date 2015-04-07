@@ -1,6 +1,7 @@
 # Makefile for User Login Service(ULS)
 #
 DEBUG=true
+THIRD_PARTY=../../3rd_party/
 CDSBASE = ../../common/cds_base/
 BASECLS=../
 
@@ -10,8 +11,6 @@ SRC = usr_login_service.cc \
       $(BASECLS)CommonUserCenter.pb.cc \
       $(BASECLS)Config.cc \
       $(BASECLS)Operation.cc \
-      usr_login_db.cc \
-      usr_login_mem.cc \
       UserLogin.pb.cc \
       UserLoginConfig.cc \
       LoginOperation.cc
@@ -28,7 +27,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L . -L $(CDSBASE) -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs` -luuid-static
+LDFLAGS = -L . -L $(CDSBASE) -L $(THIRD_PARTY)libuuid -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs` -luuid-static
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.

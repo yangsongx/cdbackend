@@ -1,7 +1,10 @@
 #include "LoginOperation.h"
-#include "usr_login_db.h"
 
 int LoginOperation::m_shenzhenFlag = 0;
+int LoginOperation::m_result= 0;
+char LoginOperation::m_buffer[512];
+
+uint64_t LoginOperation::m_cid = (uint64_t) -1;
 
 int LoginOperation::cb_get_shenzhen_flag(MYSQL_RES *mresult)
 {
@@ -22,6 +25,98 @@ int LoginOperation::cb_get_shenzhen_flag(MYSQL_RES *mresult)
 
     return 0;
 }
+
+int LoginOperation::cb_check_name(MYSQL_RES *mresult)
+{
+    MYSQL_ROW row;
+
+    m_cid = (uint64_t) -1;
+
+    if(!mresult)
+    {
+        return -1;
+    }
+
+    row = mysql_fetch_row(mresult);
+    if(row != NULL)
+    {
+        //Wow, DB record meet
+        if(mysql_num_rows(mresult) != 1)
+        {
+            INFO("Warning, CID matching returned NON-1 result, please check the DB!\n");
+        }
+
+        if(row[0] != NULL)
+        {
+            m_cid = atol(row[0]);
+        }
+    }
+
+    return 0;
+}
+
+int LoginOperation::cb_check_accode(MYSQL_RES *mresult)
+{
+    MYSQL_ROW row;
+
+    m_result = 0;
+
+    if(!mresult)
+    {
+        return -1;
+    }
+
+    row = mysql_fetch_row(mresult);
+    if(row != NULL)
+    {
+        //Wow, DB record meet
+        if(mysql_num_rows(mresult) != 1)
+        {
+            INFO("Warning, CID matching returned NON-1 result, please check the DB!\n");
+        }
+
+        // this is status field
+        if(row[1] != NULL && atoi(row[1]) == 0)
+        {
+            m_result = CDS_ERR_INACTIVATED;
+        }
+        else
+        {
+            // this is OK
+            m_result = CDS_OK;
+        }
+    }
+    else
+    {
+        m_result = CDS_ERR_UMATCH_USER_INFO;
+    }
+
+    return 0;
+}
+
+int LoginOperation::cb_wr_db_session(MYSQL_RES *mresult)
+{
+    MYSQL_ROW row;
+
+    m_buffer[0] = '\0';
+
+    if(!mresult)
+    {
+        return -1;
+    }
+
+    row = mysql_fetch_row(mresult);
+    if(row != NULL)
+    {
+        if(row[0] != NULL)
+        {
+            strncpy(m_buffer, row[0], sizeof(m_buffer));
+        }
+    }
+
+    return 0;
+}
+
 /**
  * Inner wrapper util for mem+DB set
  *
@@ -32,7 +127,7 @@ int LoginOperation::update_usercenter_session(LoginRequest *reqobj, struct user_
     memcached_return_t rc;
 
     //MEM
-    rc = set_session_info_to_mem(m_pCfg->m_Memc, reqobj, u);
+    rc = set_session_info_to_mem(reqobj, u);
     if(rc != MEMCACHED_SUCCESS)
     {
         // FIXME as login set mem won't be the same as all existed mem key,
@@ -42,14 +137,12 @@ int LoginOperation::update_usercenter_session(LoginRequest *reqobj, struct user_
 
     // SQL
     char oldtoken[64]; // store old token before overwrite the DB
-    if(set_session_info_to_db(m_pCfg->m_Sql, u, oldtoken) == 1)
+    if(set_session_info_to_db(u, oldtoken) == 1)
     {
         // need delete old token's memcach
-        memcached_return_t rc = rm_session_info_from_mem(m_pCfg->m_Memc, oldtoken);
-        if(rc != MEMCACHED_SUCCESS)
+        if(rm_mem_value(oldtoken) != 0)
         {
-            ERR("**Failed delete key(%s) from mem:%d\n",
-                    oldtoken, rc);
+            ERR("**Failed delete key(%s) from mem\n", oldtoken);
         }
         else
         {
@@ -101,25 +194,92 @@ int LoginOperation::compose_result(int code, const char *errmsg, ::google::proto
     return ((p_obj->SerializeToCodedStream(&cos) == true) ? 0 : -1);
 }
 
+int LoginOperation::match_user_credential_in_db(LoginRequest *reqobj, unsigned long *p_cid)
+{
+    int ret;
+    char sqlcmd[1024];
+
+    switch(reqobj->login_type())
+    {
+        case RegLoginType::MOBILE_PHONE:
+        case RegLoginType::PHONE_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id FROM %s WHERE usermobile=\'%s\'",
+                    USERCENTER_MAIN_TBL,
+                    reqobj->login_name().c_str());
+            break;
+
+        case RegLoginType::NAME_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id FROM %s WHERE username=\'%s\'",
+                    USERCENTER_MAIN_TBL,
+                    reqobj->login_name().c_str());
+            break;
+
+        case RegLoginType::EMAIL_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id FROM %s WHERE email=\'%s\'",
+                    USERCENTER_MAIN_TBL,
+                    reqobj->login_name().c_str());
+            break;
+
+        case RegLoginType::OTHERS:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id FROM %s WHERE third=\'%s\'",
+                    USERCENTER_MAIN_TBL,
+                    reqobj->login_name().c_str());
+            break;
+
+        case RegLoginType::CID_PASSWD:
+            // TODO how to handle with CareDear ID login?
+            break;
+
+        default:
+            break;
+    }
+
+    ret = sql_cmd(sqlcmd, cb_check_name);
+    if(ret == CDS_OK)
+    {
+        if(m_cid == (uint64_t) -1)
+        {
+            // this means DB didn't contain such record
+            ret = CDS_ERR_UMATCH_USER_INFO;
+        }
+        else
+        {
+            *p_cid = m_cid;
+            INFO("name[%s] ==> cid[%ld]\n",reqobj->login_name().c_str(), *p_cid);
+            
+            // next, we will try compose the passwd based on the got cid
+            if(reqobj->login_type() != RegLoginType::MOBILE_PHONE)
+            {
+                char md5data[64];
+                // can re-use the sqlcmd here.
+                sprintf(sqlcmd, "%ld-%s", *p_cid, reqobj->login_password().c_str());
+                get_md5(sqlcmd, strlen(sqlcmd), md5data);
+                LOG("phase-I cipher[%s] ==> phase-II cipher[%s]\n", sqlcmd, md5data);
+
+                ret = compare_user_password_wth_cid(reqobj, md5data, *p_cid);
+            }
+            else
+            {
+                // For phone+SMS, we only compare the accode..., password is SMS code,not encrypt string
+                ret = compare_user_smscode_wth_cid(reqobj, reqobj->login_password().c_str(), *p_cid);
+            }
+        }
+    }
+
+    return ret;
+}
+
 int LoginOperation::process_user_and_credential(LoginRequest *reqobj, LoginResponse *respobj)
 {
     int ret = -1;
     unsigned long cid = -1;
 
-    ret = match_user_credential_in_db(m_pCfg->m_Sql, reqobj, &cid);
+    ret = match_user_credential_in_db(reqobj, &cid);
 
-    if(ret == CDS_ERR_SQL_DISCONNECTED)
-    {
-        ERR("Oh, found MySQL disconnected, try reconnecting...\n");
-
-        if(m_pCfg->reconnect_sql(m_pCfg->m_Sql,
-                    m_pCfg->m_strSqlIP,
-                    m_pCfg->m_strSqlUserName,
-                    m_pCfg->m_strSqlUserPassword) != NULL)
-        {
-            ret = match_user_credential_in_db(m_pCfg->m_Sql, reqobj, &cid);
-        }
-    }
 
     if(ret == CDS_OK)
     {
@@ -127,7 +287,11 @@ int LoginOperation::process_user_and_credential(LoginRequest *reqobj, LoginRespo
         INFO("%s ==> %ld,[Login OK]\n", reqobj->login_name().c_str(), cid);
 
         char uuiddata[64]; // string like '3ab554e6-1533-4cea-9f6d-26edfd869c6e'
+#if 1
+        get_uuid(uuiddata);
+#else
         gen_uuid(uuiddata);
+#endif
         struct user_session us;
         us.us_cid = cid;
         us.us_sessionid = reqobj->login_session().c_str();
@@ -255,4 +419,131 @@ int LoginOperation::get_shenzhen_flag_from_db(uint64_t cid)
     }
 
     return ret;
+}
+
+int LoginOperation::compare_user_password_wth_cid(LoginRequest *reqobj, const char *targetdata, uint64_t cid)
+{
+    int ret = CDS_GENERIC_ERROR;
+    int compare_result = 0;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT id,status FROM %s WHERE id=%ld AND loginpassword=\'%s\'",
+            USERCENTER_MAIN_TBL, cid, targetdata);
+    ret = sql_cmd(sqlcmd, cb_check_accode); // use the same cb as accode case
+    if(ret == CDS_OK)
+    {
+        compare_result = m_result;
+        INFO("the compare result:%d\n", compare_result);
+    }
+
+
+
+    return compare_result;
+}
+
+int LoginOperation::compare_user_smscode_wth_cid(LoginRequest *reqobj, const char *code, uint64_t cid)
+{
+    int ret = CDS_GENERIC_ERROR;
+    int compare_result = 0;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT id,status FROM %s WHERE id=%lu AND accode=\'%s\'",
+            USERCENTER_MAIN_TBL, cid, code);
+
+
+    ret = sql_cmd(sqlcmd, cb_check_accode);
+    if(ret == CDS_OK)
+    {
+        compare_result = m_result;
+        INFO("the compare result:%d\n", compare_result);
+    }
+
+    return compare_result;
+}
+
+/**
+ *
+ * return 1 will store the old session ticket(token) to @old.
+ */
+int LoginOperation::set_session_info_to_db(struct user_session *u, char *old)
+{
+    int ret = 0;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT ticket FROM %s WHERE caredearid=%lu AND session=\'%s\'",
+            USERCENTER_MAIN_TBL, u->us_cid, u->us_sessionid);
+
+
+    ret = sql_cmd(sqlcmd, cb_wr_db_session);
+    if(ret == CDS_OK)
+    {
+        if(strlen(m_buffer) == 0)
+        {
+            // new session
+            insert_new_session_in_db(u);
+            ret = 1;
+        }
+        else
+        {
+            // old existed session
+            strcpy(old, m_buffer);
+            INFO("Will obsolete token(%s)...\n", old);
+            overwrite_existed_session_in_db(u);
+        }
+    }
+
+    return ret;
+}
+
+int LoginOperation::insert_new_session_in_db(struct user_session *u)
+{
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "INSERT INTO %s (caredearid,ticket,session,lastoperatetime) VALUES "
+            "(%ld,\'%s\',\'%s\',NOW())",
+            USERCENTER_SESSION_TBL,
+            u->us_cid, u->us_token, u->us_sessionid);
+
+    sql_cmd(sqlcmd, NULL);
+
+    return 0;
+}
+
+int LoginOperation::overwrite_existed_session_in_db(struct user_session *u)
+{
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE %s SET ticket=\'%s\',lastoperatetime=NOW() WHERE caredearid=%ld AND session=\'%s\'",
+            USERCENTER_MAIN_TBL, u->us_token,
+            u->us_cid, u->us_sessionid);
+
+    sql_cmd(sqlcmd, NULL);
+
+    return 0;
+}
+
+memcached_return_t LoginOperation::set_session_info_to_mem(LoginRequest *reqobj, struct user_session *u)
+{
+    memcached_return_t rc;
+    char val[128];
+    time_t current;
+
+    time(&current);
+
+    /* FIXME login sys id probably different with auth sys id ? */
+    sprintf(val, "%ld %s %ld",
+            u->us_cid, reqobj->login_session().c_str(), current);
+
+    rc = memcached_set(m_pCfg->m_Memc,
+            u->us_token, strlen(u->us_token),
+            val, strlen(val),
+            0,
+            0);
+
+    return rc;
 }

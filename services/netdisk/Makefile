@@ -1,7 +1,8 @@
 # Makefile for NetDisk Service
 #
 DEBUG=true
-QINIU_SDK = ../../3rd_party/qiniu-sdk/
+THIRD_PARTY=../../3rd_party/
+QINIU_SDK = $(THIRD_PARTY)qiniu-sdk/
 BASECLS=../../services_2.0/
 
 CC = g++
@@ -41,7 +42,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L ../../common/cds_base/ -L $(QINIU_SDK) -lcds -pthread -levent -lcurl -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs`
+LDFLAGS = -L ../../common/cds_base/ -L $(QINIU_SDK) -L $(THIRD_PARTY)libuuid/ -lcds -pthread -levent -lcurl -lssl -lcrypto -lxml2 -lprotobuf -lmemcached -luuid-static `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.

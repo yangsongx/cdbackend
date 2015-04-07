@@ -1,6 +1,7 @@
 # Makefile for User Registration Service(URS)
 #
 DEBUG=true
+THIRD_PARTY=../../3rd_party/
 CDSBASE = ../../common/cds_base/
 LOGINBASE=../user_login/
 ACTIVATEBASE=../user_activate/
@@ -39,7 +40,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -L . -L $(CDSBASE) -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs` -luuid-static
+LDFLAGS = -L . -L $(CDSBASE) -L $(THIRD_PARTY)libuuid/ -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs` -luuid-static
 TESTLDFLAGS = -lprotobuf -lxml2 `mysql_config --libs` -lssl -lcrypto -lmemcached
 
 # Let static link as default
