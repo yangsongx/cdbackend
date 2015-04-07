@@ -59,6 +59,10 @@ using namespace com::caredear;
 using namespace google::protobuf::io;
 
 MYSQL  *mSql;
+char sqlip[32];
+char sqluser[32];
+char sqlpasswd[32];
+
 MYSQL  *mSqlSips;
 
 int     mSockReg;
@@ -126,9 +130,6 @@ int get_node_via_xpath(const char *xpath, xmlXPathContextPtr ctx, char *result, 
 
 int try_conn_db(const char *config_file)
 {
-    char sqlip[32];
-    char sqluser[32];
-    char sqlpasswd[32];
     xmlDocPtr doc;
     xmlXPathContextPtr ctx;
 
@@ -253,13 +254,15 @@ int prepare_db_test_data()
     fclose(p);
 
 #if 1 // just debug code
+    MYSQL_RES *mresult;
+    MYSQL_ROW row;
     sprintf(line_buf, "SELECT id,usermobile,loginpassword FROM uc_passport WHERE usermobile=\'hellomoto\'");
     if(mysql_query(mSql, line_buf)) {
         printf("**failed test  SQL cmd:%s\n", mysql_error(mSql));
     } else {
-        MYSQL_RES *mresult = mysql_store_result(mSql);
+        mresult = mysql_store_result(mSql);
         if(mresult) {
-            MYSQL_ROW row = mysql_fetch_row(mresult);
+            row = mysql_fetch_row(mresult);
             if(row != NULL)
             {
                 printf("id:%s,usermobile:%s,passwd:%s\n",
@@ -267,6 +270,20 @@ int prepare_db_test_data()
             }
             mysql_free_result(mresult);
         }
+    }
+
+    if(mysql_query(mSql, "show global variables")){
+        printf("**failed get value:%s\n", mysql_error(mSql));
+    } else {
+        mresult = mysql_store_result(mSql);
+        row = mysql_fetch_row(mresult);
+        printf("Cool!\n");
+        if(row != NULL){
+            printf("  %s\n", row[0]);
+        }
+
+        mysql_free_result(mresult);
+
     }
 #endif
     return 0;
@@ -1720,40 +1737,154 @@ int test_change_password2() {
 int test_change_password3() {
     return -1;
 }
+
+// inner util for ping specified @s socket
+int _ping_service(int s) {
+    int ret = -1;
+    const char payload[2] = {0x34, 0x12};
+    size_t rc;
+    char back[512];
+    rc = write(s, payload, sizeof(payload));
+    if(rc > 0) {
+        rc = read(s, back, sizeof(back));
+        if(rc > 0) {
+            ret = *(int *)back;
+            printf("the ping result code = %d\n", ret);
+        }
+    }
+
+    return ret;
+}
+
 /////////////////////////////////////////////////////////////////////
 // misc test
 /////////////////////////////////////////////////////////////////////
 int test_sql_auto_reconnect() {
-    // the DATABASE conn is mSql
+    // get the timeout
+    if(mysql_query(mSql, "show global variables LIKE \'wait_timeout\'")){
+        printf("failed get the idle timeout:%s\n", mysql_error(mSql));
+        return -1;
+    }
 
-    //int i = 16;
-    printf("SUB code, SQL auto-reconnect testing...\n");
-   // while(1)
-    {
-    printf("press any key to continue...\n");
-    getchar();
-    printf("\n\nNow, try do a query here:");
-    char cmd[78];
-    sprintf(cmd, "SELECT id FROM uc.uc_passport");
-    if(mysql_query(mSql, cmd)) {
-        printf("SQL query failed:(%d):%s\n",
-                mysql_errno(mSql), mysql_error(mSql));
-    } else {
-        printf("SQL execute [OK]\n");
-        MYSQL_RES *mresult = mysql_store_result(mSql);
-        if(mresult) {
-            MYSQL_ROW row = mysql_fetch_row(mresult);
-            if(row != NULL)
+    int ret = -1;
+    int flag = 0;
+    char origin_timeout[32];
+
+    MYSQL_RES *mresult;
+    MYSQL_ROW row;
+    int i,j;
+    mresult = mysql_store_result(mSql);
+    if(mresult) {
+        printf("the timeout related config info:\n");
+        while((row = mysql_fetch_row(mresult)) != NULL) {
+            i = mysql_num_fields(mresult);
+            for(j=0; j < i; j++)
             {
-                printf("%s\n", row[0]);
+              printf("%s  ", row[j]);
+            }
+            printf("\n");
+
+            strcpy(origin_timeout, row[1]);
+            printf("the original timeout is %s seconds\n", origin_timeout);
+        }
+        mysql_free_result(mresult);
+
+        // try set a shorter timeout
+        if(mysql_query(mSql, "set global wait_timeout=5")) {
+            printf("can't set the timeout with short time:%s\n",
+                    mysql_error(mSql));
+            return -1;
+        }
+
+        mresult = mysql_store_result(mSql);
+
+        printf("set the timeout in a short time\n");
+        for(i = 0 ; i < 7; i++){
+            printf("waiting for timeout (%d second)\n", i);
+            sleep(1);
+        }
+        printf("now, timeout for the SQL, try the re-connecting feature\n");
+
+        // below will try connect to all service..
+
+        if(_ping_service(mSockReg) != 0) {
+            printf("reg service ping under timeout case failed\n");
+            flag ++;
+        }
+        if(_ping_service(mSockLogin) != 0) {
+            printf("login service ping under timeout case failed\n");
+            flag ++;
+        }
+        if(_ping_service(mSockAct) != 0) {
+            printf("activation service ping under timeout case failed\n");
+            flag ++;
+        }
+        if(_ping_service(mSockAuth) != 0) {
+            printf("auth service ping under timeout case failed\n");
+            flag ++;
+        }
+        if(_ping_service(mSockPasswd) != 0) {
+            printf("passwd service ping under timeout case failed\n");
+            flag ++;
+        }
+
+        if(mresult) mysql_free_result(mresult);
+
+        // before return, need restore the time
+        char tmp[128];
+        sprintf(tmp, "set global wait_timeout=%s", origin_timeout);
+        printf("the tmp=%s\n", tmp);
+        if(mysql_query(mSql, tmp)){
+            printf("Warning ***, failed restore the timeout value:%s\n",
+                    mysql_error(mSql));
+            if(mysql_errno(mSql) == CR_SERVER_GONE_ERROR) {
+
+                // timeout, reconnect again!
+            mSql = mysql_init(NULL);
+            if(mSql != NULL){
+                int a = 1;
+                /* begin set some options before real connect */
+                //mysql_options(mSql, MYSQL_OPT_RECONNECT, &a);
+                a = 2;
+                mysql_options(mSql, MYSQL_OPT_CONNECT_TIMEOUT, &a);
+                mysql_options(mSql, MYSQL_OPT_READ_TIMEOUT, &a);
+                printf("Set SQL options...\n");
+
+                if(!mysql_real_connect(mSql, sqlip, sqluser, sqlpasswd,
+                            "uc", 0, NULL, 0)) {
+                    printf("error for mysql_real_connect():%s\n",
+                            mysql_error(mSql));
+                    return -1;
+                }
+
+                if(mysql_query(mSql, tmp)){
+                    printf("SHIT, still failed to restore the original time\n");
+                } else {
+                    printf("restore it OK after reconnecting\n");
+                }
+
             }
 
-            mysql_free_result(mresult);
+            }
+        } else {
+            mresult = mysql_store_result(mSql);
+            if(mresult) {
+                mysql_free_result(mresult);
+            }
+            printf("restore the timeout to default value.\n");
+        }
+
+        if(flag == 0)
+        {
+            ret = 0;
+        }
+        else
+        {
+            ret = -1;
         }
     }
-    }
 
-    return -1;
+    return ret;
 }
 
 /**
@@ -1946,7 +2077,7 @@ int main(int argc, char **argv)
 
 
     //misc testing...
-    //execute_ut_case(test_sql_auto_reconnect);
+    execute_ut_case(test_sql_auto_reconnect);
 end_of_testing:
 
     printf("\n\n release useless resource...");
