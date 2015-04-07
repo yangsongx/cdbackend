@@ -65,8 +65,9 @@ enum {
     CDS_USR_ACTIVATION,
     CDS_USR_AUTH,
     CDS_USR_PASSWD,
-    CDS_NETDISK,
+    CDS_NETDISK, /* 5 */
     CDS_SIPS,
+    CDS_ATTRIBUTE_MODIFY,
 };
 
 

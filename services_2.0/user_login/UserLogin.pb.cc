@@ -59,10 +59,11 @@ void protobuf_AssignDesc_UserLogin_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(LoginRequest));
   LoginResponse_descriptor_ = file->message_type(1);
-  static const int LoginResponse_offsets_[3] = {
+  static const int LoginResponse_offsets_[4] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginResponse, result_code_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginResponse, extra_msg_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginResponse, token_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LoginResponse, existed_in_shenzhen_),
   };
   LoginResponse_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -116,9 +117,10 @@ void protobuf_AddDesc_UserLogin_2eproto() {
     "\022\025\n\rlogin_session\030\002 \002(\t\022\022\n\nlogin_name\030\003 "
     "\002(\t\022\026\n\016login_password\030\004 \002(\t\022\023\n\013login_sys"
     "id\030\005 \002(\t\022\025\n\rlogout_ticket\030\006 \001(\t\022-\n\013devic"
-    "e_type\030\007 \001(\0162\030.com.caredear.DeviceType\"F"
+    "e_type\030\007 \001(\0162\030.com.caredear.DeviceType\"c"
     "\n\rLoginResponse\022\023\n\013result_code\030\001 \002(\005\022\021\n\t"
-    "extra_msg\030\002 \001(\t\022\r\n\005token\030\003 \001(\t", 350);
+    "extra_msg\030\002 \001(\t\022\r\n\005token\030\003 \001(\t\022\033\n\023existe"
+    "d_in_shenzhen\030\004 \001(\005", 379);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserLogin.proto", &protobuf_RegisterTypes);
   LoginRequest::default_instance_ = new LoginRequest();
@@ -713,6 +715,7 @@ void LoginRequest::Swap(LoginRequest* other) {
 const int LoginResponse::kResultCodeFieldNumber;
 const int LoginResponse::kExtraMsgFieldNumber;
 const int LoginResponse::kTokenFieldNumber;
+const int LoginResponse::kExistedInShenzhenFieldNumber;
 #endif  // !_MSC_VER
 
 LoginResponse::LoginResponse()
@@ -737,6 +740,7 @@ void LoginResponse::SharedCtor() {
   result_code_ = 0;
   extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   token_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  existed_in_shenzhen_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -778,8 +782,18 @@ LoginResponse* LoginResponse::New() const {
 }
 
 void LoginResponse::Clear() {
-  if (_has_bits_[0 / 32] & 7) {
-    result_code_ = 0;
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<LoginResponse*>(16)->f) - \
+   reinterpret_cast<char*>(16))
+
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
+  } while (0)
+
+  if (_has_bits_[0 / 32] & 15) {
+    ZR_(result_code_, existed_in_shenzhen_);
     if (has_extra_msg()) {
       if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         extra_msg_->clear();
@@ -791,6 +805,10 @@ void LoginResponse::Clear() {
       }
     }
   }
+
+#undef OFFSET_OF_FIELD_
+#undef ZR_
+
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -849,6 +867,21 @@ bool LoginResponse::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(32)) goto parse_existed_in_shenzhen;
+        break;
+      }
+
+      // optional int32 existed_in_shenzhen = 4;
+      case 4: {
+        if (tag == 32) {
+         parse_existed_in_shenzhen:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &existed_in_shenzhen_)));
+          set_has_existed_in_shenzhen();
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -903,6 +936,11 @@ void LoginResponse::SerializeWithCachedSizes(
       3, this->token(), output);
   }
 
+  // optional int32 existed_in_shenzhen = 4;
+  if (has_existed_in_shenzhen()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(4, this->existed_in_shenzhen(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -940,6 +978,11 @@ void LoginResponse::SerializeWithCachedSizes(
         3, this->token(), target);
   }
 
+  // optional int32 existed_in_shenzhen = 4;
+  if (has_existed_in_shenzhen()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(4, this->existed_in_shenzhen(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -971,6 +1014,13 @@ int LoginResponse::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->token());
+    }
+
+    // optional int32 existed_in_shenzhen = 4;
+    if (has_existed_in_shenzhen()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->existed_in_shenzhen());
     }
 
   }
@@ -1009,6 +1059,9 @@ void LoginResponse::MergeFrom(const LoginResponse& from) {
     if (from.has_token()) {
       set_token(from.token());
     }
+    if (from.has_existed_in_shenzhen()) {
+      set_existed_in_shenzhen(from.existed_in_shenzhen());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -1036,6 +1089,7 @@ void LoginResponse::Swap(LoginResponse* other) {
     std::swap(result_code_, other->result_code_);
     std::swap(extra_msg_, other->extra_msg_);
     std::swap(token_, other->token_);
+    std::swap(existed_in_shenzhen_, other->existed_in_shenzhen_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

@@ -288,6 +288,13 @@ class LoginResponse : public ::google::protobuf::Message {
   inline ::std::string* release_token();
   inline void set_allocated_token(::std::string* token);
 
+  // optional int32 existed_in_shenzhen = 4;
+  inline bool has_existed_in_shenzhen() const;
+  inline void clear_existed_in_shenzhen();
+  static const int kExistedInShenzhenFieldNumber = 4;
+  inline ::google::protobuf::int32 existed_in_shenzhen() const;
+  inline void set_existed_in_shenzhen(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:com.caredear.LoginResponse)
  private:
   inline void set_has_result_code();
@@ -296,14 +303,17 @@ class LoginResponse : public ::google::protobuf::Message {
   inline void clear_has_extra_msg();
   inline void set_has_token();
   inline void clear_has_token();
+  inline void set_has_existed_in_shenzhen();
+  inline void clear_has_existed_in_shenzhen();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   ::std::string* extra_msg_;
-  ::std::string* token_;
   ::google::protobuf::int32 result_code_;
+  ::google::protobuf::int32 existed_in_shenzhen_;
+  ::std::string* token_;
   friend void  protobuf_AddDesc_UserLogin_2eproto();
   friend void protobuf_AssignDesc_UserLogin_2eproto();
   friend void protobuf_ShutdownFile_UserLogin_2eproto();
@@ -926,6 +936,30 @@ inline void LoginResponse::set_allocated_token(::std::string* token) {
     token_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:com.caredear.LoginResponse.token)
+}
+
+// optional int32 existed_in_shenzhen = 4;
+inline bool LoginResponse::has_existed_in_shenzhen() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void LoginResponse::set_has_existed_in_shenzhen() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void LoginResponse::clear_has_existed_in_shenzhen() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void LoginResponse::clear_existed_in_shenzhen() {
+  existed_in_shenzhen_ = 0;
+  clear_has_existed_in_shenzhen();
+}
+inline ::google::protobuf::int32 LoginResponse::existed_in_shenzhen() const {
+  // @@protoc_insertion_point(field_get:com.caredear.LoginResponse.existed_in_shenzhen)
+  return existed_in_shenzhen_;
+}
+inline void LoginResponse::set_existed_in_shenzhen(::google::protobuf::int32 value) {
+  set_has_existed_in_shenzhen();
+  existed_in_shenzhen_ = value;
+  // @@protoc_insertion_point(field_set:com.caredear.LoginResponse.existed_in_shenzhen)
 }
 
 

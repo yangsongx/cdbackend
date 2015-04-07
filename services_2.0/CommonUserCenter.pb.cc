@@ -61,12 +61,13 @@ void protobuf_AddDesc_CommonUserCenter_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\026CommonUserCenter.proto\022\014com.caredear*~"
-    "\n\014RegLoginType\022\020\n\014MOBILE_PHONE\020\001\022\020\n\014EMAI"
-    "L_PASSWD\020\002\022\017\n\013NAME_PASSWD\020\003\022\020\n\014PHONE_PAS"
-    "SWD\020\004\022\n\n\006OTHERS\020\005\022\016\n\nCID_PASSWD\020\006\022\013\n\007LOG"
-    "_OUT\020\007*:\n\nDeviceType\022\013\n\007ANDROID\020\000\022\007\n\003IOS"
-    "\020\001\022\016\n\nCAREDEAROS\020\002\022\006\n\002PC\020\003", 226);
+    "\n\026CommonUserCenter.proto\022\014com.caredear*\250"
+    "\001\n\014RegLoginType\022\020\n\014MOBILE_PHONE\020\001\022\020\n\014EMA"
+    "IL_PASSWD\020\002\022\017\n\013NAME_PASSWD\020\003\022\020\n\014PHONE_PA"
+    "SSWD\020\004\022\n\n\006OTHERS\020\005\022\016\n\nCID_PASSWD\020\006\022\013\n\007LO"
+    "G_OUT\020\007\022\023\n\017BOTH_PHONE_NAME\020\010\022\023\n\017BOTH_EMA"
+    "IL_NAME\020\t*:\n\nDeviceType\022\013\n\007ANDROID\020\000\022\007\n\003"
+    "IOS\020\001\022\016\n\nCAREDEAROS\020\002\022\006\n\002PC\020\003", 269);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "CommonUserCenter.proto", &protobuf_RegisterTypes);
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_CommonUserCenter_2eproto);
@@ -91,6 +92,8 @@ bool RegLoginType_IsValid(int value) {
     case 5:
     case 6:
     case 7:
+    case 8:
+    case 9:
       return true;
     default:
       return false;

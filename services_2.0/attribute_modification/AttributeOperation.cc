@@ -186,6 +186,10 @@ int AttributeOperation::insert_usr_attr_to_db(AttributeModifyRequest *reqobj)
     {
         strcat(insert_str, "headimg2,");
     }
+    if(reqobj->has_existed_in_shenzhen())
+    {
+        strcat(insert_str, "issync,");
+    }
 
     len = strlen(insert_str);
     insert_str[len - 1] = ')';
@@ -229,6 +233,12 @@ int AttributeOperation::insert_usr_attr_to_db(AttributeModifyRequest *reqobj)
     {
         snprintf(buffer, sizeof(buffer), "\'%s\',",
                 reqobj->head_image2().c_str());
+        strcat(insert_str, buffer);
+    }
+    if(reqobj->has_existed_in_shenzhen())
+    {
+        snprintf(buffer, sizeof(buffer), "%d,",
+                reqobj->existed_in_shenzhen());
         strcat(insert_str, buffer);
     }
 
@@ -299,6 +309,13 @@ int AttributeOperation::update_usr_attr_to_db(AttributeModifyRequest *reqobj)
     {
         snprintf(buffer, sizeof(buffer), "headimg2=\'%s\',",
                 reqobj->head_image2().c_str());
+        strcat(set_str, buffer);
+    }
+
+    if(reqobj->has_existed_in_shenzhen())
+    {
+        snprintf(buffer, sizeof(buffer), "issync=%d,",
+                reqobj->existed_in_shenzhen());
         strcat(set_str, buffer);
     }
 

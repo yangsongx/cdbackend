@@ -20,6 +20,7 @@ message AttributeModifyRequest {
     optional string   head_image= 7;
     optional string   head_image2= 8;  // a larger image
     optional int32    next_sequence = 9; // used if there're two many segment response data
+    optional int32    existed_in_shenzhen = 10; // flag, 0 means ShenZhen didn't contained this user's attribute info
 }
 
 message AttributeModifyResponse{

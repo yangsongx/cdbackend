@@ -219,6 +219,13 @@ class AttributeModifyRequest : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 next_sequence() const;
   inline void set_next_sequence(::google::protobuf::int32 value);
 
+  // optional int32 existed_in_shenzhen = 10;
+  inline bool has_existed_in_shenzhen() const;
+  inline void clear_existed_in_shenzhen();
+  static const int kExistedInShenzhenFieldNumber = 10;
+  inline ::google::protobuf::int32 existed_in_shenzhen() const;
+  inline void set_existed_in_shenzhen(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:com.caredear.AttributeModifyRequest)
  private:
   inline void set_has_req_type();
@@ -239,6 +246,8 @@ class AttributeModifyRequest : public ::google::protobuf::Message {
   inline void clear_has_head_image2();
   inline void set_has_next_sequence();
   inline void clear_has_next_sequence();
+  inline void set_has_existed_in_shenzhen();
+  inline void clear_has_existed_in_shenzhen();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -253,6 +262,7 @@ class AttributeModifyRequest : public ::google::protobuf::Message {
   ::std::string* head_image_;
   ::std::string* head_image2_;
   ::google::protobuf::int32 next_sequence_;
+  ::google::protobuf::int32 existed_in_shenzhen_;
   friend void  protobuf_AddDesc_AttributeModify_2eproto();
   friend void protobuf_AssignDesc_AttributeModify_2eproto();
   friend void protobuf_ShutdownFile_AttributeModify_2eproto();
@@ -977,6 +987,30 @@ inline void AttributeModifyRequest::set_next_sequence(::google::protobuf::int32 
   set_has_next_sequence();
   next_sequence_ = value;
   // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyRequest.next_sequence)
+}
+
+// optional int32 existed_in_shenzhen = 10;
+inline bool AttributeModifyRequest::has_existed_in_shenzhen() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+inline void AttributeModifyRequest::set_has_existed_in_shenzhen() {
+  _has_bits_[0] |= 0x00000200u;
+}
+inline void AttributeModifyRequest::clear_has_existed_in_shenzhen() {
+  _has_bits_[0] &= ~0x00000200u;
+}
+inline void AttributeModifyRequest::clear_existed_in_shenzhen() {
+  existed_in_shenzhen_ = 0;
+  clear_has_existed_in_shenzhen();
+}
+inline ::google::protobuf::int32 AttributeModifyRequest::existed_in_shenzhen() const {
+  // @@protoc_insertion_point(field_get:com.caredear.AttributeModifyRequest.existed_in_shenzhen)
+  return existed_in_shenzhen_;
+}
+inline void AttributeModifyRequest::set_existed_in_shenzhen(::google::protobuf::int32 value) {
+  set_has_existed_in_shenzhen();
+  existed_in_shenzhen_ = value;
+  // @@protoc_insertion_point(field_set:com.caredear.AttributeModifyRequest.existed_in_shenzhen)
 }
 
 // -------------------------------------------------------------------

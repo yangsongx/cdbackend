@@ -14,6 +14,8 @@ using namespace google::protobuf::io;
 
 class LoginOperation : public com::caredear::Operation {
 
+    static int m_shenzhenFlag;
+    static int cb_get_shenzhen_flag(MYSQL_RES *mresult);
 
     int update_usercenter_session(LoginRequest *reqobj, struct user_session *u);
 
@@ -21,6 +23,7 @@ class LoginOperation : public com::caredear::Operation {
     int process_user_and_credential(LoginRequest *reqobj, LoginResponse *respobj);
 
     int add_device_type(LoginRequest *reqobj);
+    int get_shenzhen_flag_from_db(uint64_t cid);
 
 public:
     LoginOperation() {

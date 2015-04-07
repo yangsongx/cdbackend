@@ -19,4 +19,5 @@ message LoginResponse{
     required int32  result_code = 1; //CDS_XXX error code
     optional string extra_msg = 2;
     optional string token = 3;
+    optional int32  existed_in_shenzhen = 4; // flag, 0 means ShenZhen didn't contained this user's attribute info
 }

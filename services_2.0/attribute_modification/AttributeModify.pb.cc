@@ -40,7 +40,7 @@ void protobuf_AssignDesc_AttributeModify_2eproto() {
       "AttributeModify.proto");
   GOOGLE_CHECK(file != NULL);
   AttributeModifyRequest_descriptor_ = file->message_type(0);
-  static const int AttributeModifyRequest_offsets_[9] = {
+  static const int AttributeModifyRequest_offsets_[10] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, req_type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, caredear_id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, real_name_),
@@ -50,6 +50,7 @@ void protobuf_AssignDesc_AttributeModify_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, head_image_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, head_image2_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, next_sequence_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(AttributeModifyRequest, existed_in_shenzhen_),
   };
   AttributeModifyRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -124,23 +125,24 @@ void protobuf_AddDesc_AttributeModify_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\025AttributeModify.proto\022\014com.caredear\"\376\001"
+    "\n\025AttributeModify.proto\022\014com.caredear\"\233\002"
     "\n\026AttributeModifyRequest\022-\n\010req_type\030\001 \002"
     "(\0162\033.com.caredear.AttributeType\022\023\n\013cared"
     "ear_id\030\002 \002(\004\022\021\n\treal_name\030\003 \001(\t\022\021\n\tnick_"
     "name\030\004 \001(\t\022(\n\006gender\030\005 \001(\0162\030.com.caredea"
     "r.GenderType\022\020\n\010birthday\030\006 \001(\t\022\022\n\nhead_i"
     "mage\030\007 \001(\t\022\023\n\013head_image2\030\010 \001(\t\022\025\n\rnext_"
-    "sequence\030\t \001(\005\"\240\002\n\027AttributeModifyRespon"
-    "se\022\023\n\013result_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001"
-    "(\t\022\021\n\treal_name\030\003 \001(\t\022\021\n\tnick_name\030\004 \001(\t"
-    "\022(\n\006gender\030\005 \001(\0162\030.com.caredear.GenderTy"
-    "pe\022\020\n\010birthday\030\006 \001(\t\022\022\n\nhead_image\030\007 \001(\t"
-    "\022\023\n\013head_image2\030\010 \001(\t\022\021\n\tuser_name\030\t \001(\t"
-    "\022\022\n\nuser_email\030\n \001(\t\022\023\n\013user_mobile\030\013 \001("
-    "\t\022\026\n\016contain_passwd\030\014 \001(\005*&\n\rAttributeTy"
-    "pe\022\n\n\006MODIFY\020\000\022\t\n\005QUERY\020\001*!\n\nGenderType\022"
-    "\010\n\004MALE\020\000\022\t\n\005FEMAL\020\001", 660);
+    "sequence\030\t \001(\005\022\033\n\023existed_in_shenzhen\030\n "
+    "\001(\005\"\240\002\n\027AttributeModifyResponse\022\023\n\013resul"
+    "t_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t\022\021\n\treal_"
+    "name\030\003 \001(\t\022\021\n\tnick_name\030\004 \001(\t\022(\n\006gender\030"
+    "\005 \001(\0162\030.com.caredear.GenderType\022\020\n\010birth"
+    "day\030\006 \001(\t\022\022\n\nhead_image\030\007 \001(\t\022\023\n\013head_im"
+    "age2\030\010 \001(\t\022\021\n\tuser_name\030\t \001(\t\022\022\n\nuser_em"
+    "ail\030\n \001(\t\022\023\n\013user_mobile\030\013 \001(\t\022\026\n\016contai"
+    "n_passwd\030\014 \001(\005*&\n\rAttributeType\022\n\n\006MODIF"
+    "Y\020\000\022\t\n\005QUERY\020\001*!\n\nGenderType\022\010\n\004MALE\020\000\022\t"
+    "\n\005FEMAL\020\001", 689);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "AttributeModify.proto", &protobuf_RegisterTypes);
   AttributeModifyRequest::default_instance_ = new AttributeModifyRequest();
@@ -197,6 +199,7 @@ const int AttributeModifyRequest::kBirthdayFieldNumber;
 const int AttributeModifyRequest::kHeadImageFieldNumber;
 const int AttributeModifyRequest::kHeadImage2FieldNumber;
 const int AttributeModifyRequest::kNextSequenceFieldNumber;
+const int AttributeModifyRequest::kExistedInShenzhenFieldNumber;
 #endif  // !_MSC_VER
 
 AttributeModifyRequest::AttributeModifyRequest()
@@ -227,6 +230,7 @@ void AttributeModifyRequest::SharedCtor() {
   head_image_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   head_image2_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   next_sequence_ = 0;
+  existed_in_shenzhen_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -316,7 +320,7 @@ void AttributeModifyRequest::Clear() {
       }
     }
   }
-  next_sequence_ = 0;
+  ZR_(next_sequence_, existed_in_shenzhen_);
 
 #undef OFFSET_OF_FIELD_
 #undef ZR_
@@ -485,6 +489,21 @@ bool AttributeModifyRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(80)) goto parse_existed_in_shenzhen;
+        break;
+      }
+
+      // optional int32 existed_in_shenzhen = 10;
+      case 10: {
+        if (tag == 80) {
+         parse_existed_in_shenzhen:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &existed_in_shenzhen_)));
+          set_has_existed_in_shenzhen();
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -586,6 +605,11 @@ void AttributeModifyRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(9, this->next_sequence(), output);
   }
 
+  // optional int32 existed_in_shenzhen = 10;
+  if (has_existed_in_shenzhen()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(10, this->existed_in_shenzhen(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -673,6 +697,11 @@ void AttributeModifyRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(9, this->next_sequence(), target);
   }
 
+  // optional int32 existed_in_shenzhen = 10;
+  if (has_existed_in_shenzhen()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(10, this->existed_in_shenzhen(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -748,6 +777,13 @@ int AttributeModifyRequest::ByteSize() const {
           this->next_sequence());
     }
 
+    // optional int32 existed_in_shenzhen = 10;
+    if (has_existed_in_shenzhen()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->existed_in_shenzhen());
+    }
+
   }
   if (!unknown_fields().empty()) {
     total_size +=
@@ -804,6 +840,9 @@ void AttributeModifyRequest::MergeFrom(const AttributeModifyRequest& from) {
     if (from.has_next_sequence()) {
       set_next_sequence(from.next_sequence());
     }
+    if (from.has_existed_in_shenzhen()) {
+      set_existed_in_shenzhen(from.existed_in_shenzhen());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -837,6 +876,7 @@ void AttributeModifyRequest::Swap(AttributeModifyRequest* other) {
     std::swap(head_image_, other->head_image_);
     std::swap(head_image2_, other->head_image2_);
     std::swap(next_sequence_, other->next_sequence_);
+    std::swap(existed_in_shenzhen_, other->existed_in_shenzhen_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

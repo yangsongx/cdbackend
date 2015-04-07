@@ -1,7 +1,27 @@
 #include "LoginOperation.h"
 #include "usr_login_db.h"
 
+int LoginOperation::m_shenzhenFlag = 0;
 
+int LoginOperation::cb_get_shenzhen_flag(MYSQL_RES *mresult)
+{
+    MYSQL_ROW row;
+    row = mysql_fetch_row(mresult);
+
+    m_shenzhenFlag = 0;
+    if(row != NULL)
+    {
+        if(mysql_num_rows(mresult) > 1)
+        {
+            ERR("Warning, unique-CID SHOULD only match one single result!\n");
+        }
+
+        if(row[0] != NULL)
+            m_shenzhenFlag = atoi(row[0]);
+    }
+
+    return 0;
+}
 /**
  * Inner wrapper util for mem+DB set
  *
@@ -116,6 +136,9 @@ int LoginOperation::process_user_and_credential(LoginRequest *reqobj, LoginRespo
         update_usercenter_session(reqobj, &us);
 
         respobj->set_token(uuiddata);
+#if 1 // add a ShenZheng-specific flag
+        respobj->set_existed_in_shenzhen(get_shenzhen_flag_from_db(cid));
+#endif
     }
     else
     {
@@ -211,6 +234,24 @@ int LoginOperation::handling_request(::google::protobuf::Message *login_req, ::g
     if(compose_result(ret, NULL, respobj, len_resp, resp) != 0)
     {
         ERR("**failed serialize data for login result\n");
+    }
+
+    return ret;
+}
+
+int LoginOperation::get_shenzhen_flag_from_db(uint64_t cid)
+{
+    char sqlcmd[1024];
+    int ret = 0;
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT issync FROM %s WHERE caredearid=%lu",
+            USERCENTER_ATTR_TBL, cid);
+
+    ret = sql_cmd(sqlcmd, cb_get_shenzhen_flag);
+    if(ret == CDS_OK)
+    {
+        ret = m_shenzhenFlag;
     }
 
     return ret;

@@ -18,6 +18,7 @@ using namespace com::caredear;
 using namespace google::protobuf::io;
 
 AttributeConfig g_info;
+time_t  g_start;
 
 int attribute_handler(int size, void *req, int *len_resp, void *resp)
 {
@@ -71,10 +72,22 @@ int ping_attr_handler(int size, void *req, int *len_resp, void *resp)
     ret = opr.keep_alive(USERCENTER_ATTR_TBL);
     LOG("PING ALIVE result=%d\n", ret);
 
-    *len_resp = 4;
-    *(int *)resp = ret;
+    // Next, compose a response payload...
+    int *ptr = (int *)resp;
 
-    return 0;
+    *ptr = ret;
+    *(ptr + 1) = CDS_ATTRIBUTE_MODIFY; // tell ping source that who am I
+
+    time_t cur;
+    time(&cur);
+    cur -= g_start;
+    LOG("delta time is (%lu)\n", cur);
+    memcpy(ptr + 2, &cur, 8); // 64-bit machine, it is 8-byte for long
+
+    // all length
+    *len_resp = (4+4+8);
+
+    return ret;
 }
 
 int main(int argc, char **argv)
@@ -86,6 +99,7 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
+    time(&g_start);
 
     if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {
