@@ -221,18 +221,28 @@ class ActivateResponse : public ::google::protobuf::Message {
   inline ::std::string* release_extra_msg();
   inline void set_allocated_extra_msg(::std::string* extra_msg);
 
+  // optional uint64 caredear_id = 3;
+  inline bool has_caredear_id() const;
+  inline void clear_caredear_id();
+  static const int kCaredearIdFieldNumber = 3;
+  inline ::google::protobuf::uint64 caredear_id() const;
+  inline void set_caredear_id(::google::protobuf::uint64 value);
+
   // @@protoc_insertion_point(class_scope:com.caredear.ActivateResponse)
  private:
   inline void set_has_result_code();
   inline void clear_has_result_code();
   inline void set_has_extra_msg();
   inline void clear_has_extra_msg();
+  inline void set_has_caredear_id();
+  inline void clear_has_caredear_id();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   ::std::string* extra_msg_;
+  ::google::protobuf::uint64 caredear_id_;
   ::google::protobuf::int32 result_code_;
   friend void  protobuf_AddDesc_UserActivation_2eproto();
   friend void protobuf_AssignDesc_UserActivation_2eproto();
@@ -527,6 +537,30 @@ inline void ActivateResponse::set_allocated_extra_msg(::std::string* extra_msg) 
     extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:com.caredear.ActivateResponse.extra_msg)
+}
+
+// optional uint64 caredear_id = 3;
+inline bool ActivateResponse::has_caredear_id() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void ActivateResponse::set_has_caredear_id() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void ActivateResponse::clear_has_caredear_id() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void ActivateResponse::clear_caredear_id() {
+  caredear_id_ = GOOGLE_ULONGLONG(0);
+  clear_has_caredear_id();
+}
+inline ::google::protobuf::uint64 ActivateResponse::caredear_id() const {
+  // @@protoc_insertion_point(field_get:com.caredear.ActivateResponse.caredear_id)
+  return caredear_id_;
+}
+inline void ActivateResponse::set_caredear_id(::google::protobuf::uint64 value) {
+  set_has_caredear_id();
+  caredear_id_ = value;
+  // @@protoc_insertion_point(field_set:com.caredear.ActivateResponse.caredear_id)
 }
 
 

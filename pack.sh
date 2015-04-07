@@ -142,20 +142,22 @@ function gen_package_sh()
     echo "killall urs uls acts uauth passwdmgr attrmodify nds opas upusr vcs">>native/startall
     echo "sleep 2">>native/startall
 
-    echo "for file in ./*">>native/startall
-    echo "do">>native/startall
-    echo "  if test -d \$file">>native/startall
-    echo "  then">>native/startall
-    echo "    rm -rf \$file/supervise">>native/startall
-    echo "  fi">>native/startall
-    echo "done">>native/startall
+    echo "">>native/startall
 
     echo "for file in ./*">>native/startall
     echo "do">>native/startall
     echo "  if test -d \$file">>native/startall
     echo "  then">>native/startall
     echo "    echo \"dir is \$file\"">>native/startall
-    echo "    supervise \$file &">>native/startall
+
+    echo "    if test -d \$file/supervise">>native/startall
+    echo "    then">>native/startall
+    echo "      svc -u \$file">>native/startall
+    echo "    else">>native/startall
+    echo "      supervise \$file &">>native/startall
+    echo "    fi">>native/startall
+
+
     echo "  fi">>native/startall
     echo "done">>native/startall
     chmod a+x native/startall

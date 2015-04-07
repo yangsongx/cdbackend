@@ -14,4 +14,5 @@ message ActivateRequest{
 message ActivateResponse{
     required int32  result_code = 1; //CDS_XXX error code
     optional string extra_msg = 2;
+    optional uint64 caredear_id = 3;
 }

@@ -55,9 +55,10 @@ void protobuf_AssignDesc_UserActivation_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(ActivateRequest));
   ActivateResponse_descriptor_ = file->message_type(1);
-  static const int ActivateResponse_offsets_[2] = {
+  static const int ActivateResponse_offsets_[3] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ActivateResponse, result_code_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ActivateResponse, extra_msg_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ActivateResponse, caredear_id_),
   };
   ActivateResponse_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -109,8 +110,9 @@ void protobuf_AddDesc_UserActivation_2eproto() {
     "mmonUserCenter.proto\"r\n\017ActivateRequest\022"
     "1\n\ractivate_type\030\001 \002(\0162\032.com.caredear.Re"
     "gLoginType\022\025\n\ractivate_name\030\002 \002(\t\022\025\n\ract"
-    "ivate_code\030\003 \002(\t\":\n\020ActivateResponse\022\023\n\013"
-    "result_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t", 236);
+    "ivate_code\030\003 \002(\t\"O\n\020ActivateResponse\022\023\n\013"
+    "result_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t\022\023\n\013"
+    "caredear_id\030\003 \001(\004", 257);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "UserActivation.proto", &protobuf_RegisterTypes);
   ActivateRequest::default_instance_ = new ActivateRequest();
@@ -482,6 +484,7 @@ void ActivateRequest::Swap(ActivateRequest* other) {
 #ifndef _MSC_VER
 const int ActivateResponse::kResultCodeFieldNumber;
 const int ActivateResponse::kExtraMsgFieldNumber;
+const int ActivateResponse::kCaredearIdFieldNumber;
 #endif  // !_MSC_VER
 
 ActivateResponse::ActivateResponse()
@@ -505,6 +508,7 @@ void ActivateResponse::SharedCtor() {
   _cached_size_ = 0;
   result_code_ = 0;
   extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  caredear_id_ = GOOGLE_ULONGLONG(0);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -543,14 +547,28 @@ ActivateResponse* ActivateResponse::New() const {
 }
 
 void ActivateResponse::Clear() {
-  if (_has_bits_[0 / 32] & 3) {
-    result_code_ = 0;
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<ActivateResponse*>(16)->f) - \
+   reinterpret_cast<char*>(16))
+
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
+  } while (0)
+
+  if (_has_bits_[0 / 32] & 7) {
+    ZR_(caredear_id_, result_code_);
     if (has_extra_msg()) {
       if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         extra_msg_->clear();
       }
     }
   }
+
+#undef OFFSET_OF_FIELD_
+#undef ZR_
+
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -589,6 +607,21 @@ bool ActivateResponse::MergePartialFromCodedStream(
             this->extra_msg().data(), this->extra_msg().length(),
             ::google::protobuf::internal::WireFormat::PARSE,
             "extra_msg");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(24)) goto parse_caredear_id;
+        break;
+      }
+
+      // optional uint64 caredear_id = 3;
+      case 3: {
+        if (tag == 24) {
+         parse_caredear_id:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &caredear_id_)));
+          set_has_caredear_id();
         } else {
           goto handle_unusual;
         }
@@ -636,6 +669,11 @@ void ActivateResponse::SerializeWithCachedSizes(
       2, this->extra_msg(), output);
   }
 
+  // optional uint64 caredear_id = 3;
+  if (has_caredear_id()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(3, this->caredear_id(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -662,6 +700,11 @@ void ActivateResponse::SerializeWithCachedSizes(
         2, this->extra_msg(), target);
   }
 
+  // optional uint64 caredear_id = 3;
+  if (has_caredear_id()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(3, this->caredear_id(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -686,6 +729,13 @@ int ActivateResponse::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->extra_msg());
+    }
+
+    // optional uint64 caredear_id = 3;
+    if (has_caredear_id()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt64Size(
+          this->caredear_id());
     }
 
   }
@@ -721,6 +771,9 @@ void ActivateResponse::MergeFrom(const ActivateResponse& from) {
     if (from.has_extra_msg()) {
       set_extra_msg(from.extra_msg());
     }
+    if (from.has_caredear_id()) {
+      set_caredear_id(from.caredear_id());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -747,6 +800,7 @@ void ActivateResponse::Swap(ActivateResponse* other) {
   if (other != this) {
     std::swap(result_code_, other->result_code_);
     std::swap(extra_msg_, other->extra_msg_);
+    std::swap(caredear_id_, other->caredear_id_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

@@ -10,7 +10,6 @@ SRC = activation_service.cc \
       UserActivation.pb.cc \
       ActivationConfig.cc \
       ActivateOperation.cc \
-      activation_db.cc \
       $(BASECLS)CommonUserCenter.pb.cc \
       $(BASECLS)Config.cc \
       $(BASECLS)Operation.cc

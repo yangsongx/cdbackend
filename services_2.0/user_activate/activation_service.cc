@@ -19,9 +19,8 @@ using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
-pthread_mutex_t  acts_mutex;
-
 ActivationConfig g_info;
+time_t g_start;
 
 /**
  * Handler entry for a user registration request
@@ -82,11 +81,26 @@ int ping_acts_handler(int size, void *req, int *len_resp, void *resp)
     ActivateOperation opr;
     opr.set_conf(&g_info);
 
-    ret = opr.keep_alive(ACTIVATION_MAIN_TABLE);
+    ret = opr.keep_alive(USERCENTER_MAIN_TBL);
     LOG("PING ALIVE result=%d\n", ret);
 
     *len_resp = 4;
     *(int *)resp = ret;
+    //
+    // Next, compose a response payload...
+    int *ptr = (int *)resp;
+
+    *ptr = ret;
+    *(ptr + 1) = CDS_USR_ACTIVATION; // tell ping source that who am I
+
+    time_t cur;
+    time(&cur);
+    cur -= g_start;
+    LOG("delta time is (%lu)\n", cur);
+    memcpy(ptr + 2, &cur, 8); // 64-bit machine, it is 8-byte for long
+
+    // all length
+    *len_resp = (4+4+8);
 
     return ret;
 }
@@ -104,14 +118,11 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
+    time(&g_start);
+
     if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {
         ERR("*** Warning Failed init the whole service!\n");
-    }
-
-    if(pthread_mutex_init(&acts_mutex, NULL) != 0)
-    {
-       ERR("*** Warning, failed create mutex IPC objs:%d\n", errno);
     }
 
 
