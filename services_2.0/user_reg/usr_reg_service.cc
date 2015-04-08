@@ -19,7 +19,6 @@ using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
-pthread_mutex_t  urs_mutex;
 UserRegConfig    g_info;
 time_t g_start;
 
@@ -124,11 +123,6 @@ int main(int argc, char **argv)
     if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {
         ERR("*** Warning Failed init the whole service!\n");
-    }
-
-    if(pthread_mutex_init(&urs_mutex, NULL) != 0)
-    {
-        ERR("*** Warning, failed create mutex IPC objs:%d\n", errno);
     }
 
     cfg.ac_cfgfile = NULL;

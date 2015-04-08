@@ -38,7 +38,7 @@ int PasswordOperation::validation_user_password(PasswordManagerRequest *reqobj)
     {
         char md5data[64];
         // get the md5 in db, compare it with incoming passwd
-        sprintf(buf, "%lu-%s", reqobj->caredear_id(), reqobj->old_passwd().c_str());
+        sprintf(buf, "%s%lu", reqobj->old_passwd().c_str(), reqobj->caredear_id());
         get_md5(buf, strlen(buf), md5data);
         if(!strcmp(md5data, m_md5))
         {
@@ -60,7 +60,7 @@ int PasswordOperation::write_user_password_to_db(PasswordManagerRequest *reqobj)
     char md5data[64];
     char buf[128];
 
-    sprintf(buf, "%lu-%s", reqobj->caredear_id(), reqobj->new_passwd().c_str());
+    sprintf(buf, "%s%lu", reqobj->new_passwd().c_str(), reqobj->caredear_id());
     get_md5(buf, strlen(buf), md5data);
 
     snprintf(sqlcmd, sizeof(sqlcmd),

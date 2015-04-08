@@ -9,7 +9,6 @@
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
 #include "UserRegister.pb.h"
-#include "data_access.h"
 
 /* NOTE , below MySQL header MUST NOT put ahead of C++ header,
  * which would cause min/max macro definition confliction! */
@@ -30,6 +29,7 @@ using namespace google::protobuf::io;
  */
 class RegOperation : public com::caredear::Operation{
 
+        int record_user_verifiy_code_to_db(RegisterRequest *reqobj, RegisterResponse *respobj, UserRegConfig *config);
         bool user_already_exist(RegisterRequest *reqobj, int *p_active_status, uint64_t *p_index);
         int add_new_user_entry(RegisterRequest *pRegInfo, uint64_t *cid);
         int add_user_password_to_db(RegisterRequest *pRegInfo, unsigned long user_id, const char *passwd);

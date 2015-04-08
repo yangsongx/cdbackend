@@ -27,6 +27,9 @@ struct auth_data_wrapper{
 
 class AuthOperation : public com::caredear::Operation {
 
+    /* 1 means memcached value malformed, need restore from DB */
+    int m_memMalformed;
+
     static struct auth_data_wrapper  m_AuthWrapper;
     static int cb_token_info_query(MYSQL_RES *p_result);
 
@@ -40,17 +43,21 @@ class AuthOperation : public com::caredear::Operation {
     int set_token_info_to_db(AuthRequest *reqobj);
     int get_token_info_from_db(AuthRequest *reqobj, AuthResponse *respobj, struct auth_data_wrapper *w);
 
+    void set_token_info_to_mem(AuthRequest *reqobj, struct auth_data_wrapper *w);
+
 protected:
     int split_val_into_fields(char *value, struct auth_data_wrapper *w);
 
 public:
     AuthOperation() {
+        m_memMalformed = 0;
     }
 
     /**
      * Helper constructor
      */
     AuthOperation(Config *c) : com::caredear::Operation(c) {
+        m_memMalformed = 0;
     }
 
     virtual int handling_request(::google::protobuf::Message *reqobj,

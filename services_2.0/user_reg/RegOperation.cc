@@ -150,7 +150,7 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
             LOG("==>the verification code=%s\n", verifycode);
 
             // need update them into DB for later verification...
-            ret = record_user_verifiy_code(m_pCfg->m_Sql, reqobj, respobj, (UserRegConfig *)m_pCfg);
+            ret = record_user_verifiy_code_to_db(reqobj, respobj, (UserRegConfig *)m_pCfg);
         }
 
         snprintf(buf, sizeof(buf), "%lu", usr_id);
@@ -336,8 +336,8 @@ int RegOperation::add_new_user_entry(RegisterRequest *pRegInfo, uint64_t *cid)
             {
                 char finaly_passwd[64];
                 // re-use the long sqlcmd buff
-                sprintf(sqlcmd, "%ld-%s",
-                        *cid, pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "");
+                sprintf(sqlcmd, "%s%lu",
+                        pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "", *cid);
                 get_md5(sqlcmd, strlen(sqlcmd), finaly_passwd);
                 LOG("%s --MD5--> %s\n", sqlcmd, finaly_passwd);
 
@@ -388,8 +388,8 @@ int RegOperation::overwrite_inactive_user_entry(RegisterRequest *pRegInfo, unsig
     // as we already knew the CID, calculate the password here.
     char finaly_passwd[64];
     char temp_buf[128];
-    snprintf(temp_buf, sizeof(temp_buf), "%ld-%s",
-            user_id, pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "");
+    snprintf(temp_buf, sizeof(temp_buf), "%s%lu",
+            pRegInfo->has_reg_password() ? pRegInfo->reg_password().c_str() : "", user_id);
     get_md5(temp_buf, strlen(temp_buf), finaly_passwd);
     LOG("%s --MD5--> %s\n", temp_buf, finaly_passwd);
 
@@ -452,6 +452,44 @@ int RegOperation::add_opensips_entry(RegisterRequest *pRegInfo)
 
     // OpenSIPs is another DB, so use a different API
     ret = sql_cmd_with_specify_server(&(c->m_SipsSql), sqlcmd, NULL);
+
+    return ret;
+}
+
+int RegOperation::record_user_verifiy_code_to_db(RegisterRequest *reqobj, RegisterResponse *respobj, UserRegConfig *config)
+{
+    int ret;
+    char sqlcmd[1024];
+
+    switch(reqobj->reg_type())
+    {
+        case RegLoginType::MOBILE_PHONE:
+        case RegLoginType::PHONE_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET accode=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
+                    "WHERE usermobile=\'%s\'",
+                    USERCENTER_MAIN_TBL,
+                    respobj->reg_verifycode().c_str(),
+                    config->m_iMobileVerifyExpir,
+                    reqobj->reg_name().c_str());
+            break;
+
+        case RegLoginType::EMAIL_PASSWD:
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET accode=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
+                    "WHERE email=\'%s\'",
+                    USERCENTER_MAIN_TBL,
+                    respobj->reg_verifycode().c_str(),
+                    config->m_iEmailVerifyExpir,
+                    reqobj->reg_name().c_str());
+            break;
+
+        default:
+            ERR("**** SHOULD NEVER meet this verifiy code here(%d line)!!!\n", __LINE__);
+            break;
+    }
+
+    ret = sql_cmd(sqlcmd, NULL);
 
     return ret;
 }

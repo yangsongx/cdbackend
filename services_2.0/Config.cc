@@ -1,3 +1,10 @@
+/**
+ * Base class for all services' config, which main job is prepare
+ * SQL, memcache related info based on a config file.
+ *
+ * \history
+ * [2015-4-8] Let MySQL support UTF-8, as we need Chinese Character
+ */
 #include "Config.h"
 #include <errmsg.h>
 
@@ -15,6 +22,9 @@ MYSQL *Config::conn_to_mysql(const char *ip, const char *usr, const char *passwd
 
         mysql_options(s, MYSQL_OPT_READ_TIMEOUT, &m_iSqlRdTimeout);
         mysql_options(s, MYSQL_OPT_WRITE_TIMEOUT, &m_iSqlWtTimeout);
+        //
+        // 2015-4-8 need support UTF-8
+        mysql_set_character_set(s, "utf8");
 
         if(!mysql_real_connect(s, ip,
                     usr,

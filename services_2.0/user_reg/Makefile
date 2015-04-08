@@ -13,7 +13,6 @@ BASECLS=../
 CC = g++
 
 SRC = usr_reg_service.cc \
-      data_access.cc \
       UserRegister.pb.cc \
       RegOperation.cc \
       UserRegConfig.cc \

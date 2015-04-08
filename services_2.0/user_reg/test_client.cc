@@ -1716,8 +1716,108 @@ int test_xmpp_auth_logic3()
 
 int test_misfield_mem_auth()
 {
-    printf("need set mem and Db with miss field\n");
-    return -1;
+    int ret = -1;
+    char *val;
+    size_t valen;
+    memcached_return_t rc;
+    char buf[128];
+
+    printf("first of all, try get the mem...\n");
+    
+    if(!mMemc)
+    {
+        printf("seems memcached server unavailable, ignore the mem parepare step\n");
+        return -1;
+    }
+
+    val = memcached_get_by_key(mMemc, NULL, 0,
+            "22776f46-cc18-4c44-a7c5-124c7afc45bf", strlen("22776f46-cc18-4c44-a7c5-124c7afc45bf"),
+            &valen, 0, &rc);
+    if(!val)
+    {
+        printf("failed get the 22776f46-cc18-4c44-a7c5-124c7afc45bf value from mem:%d\n",
+                rc);
+        return -1;
+    }
+    else
+    {
+        if(rc == MEMCACHED_SUCCESS) {
+            printf("22776f46-cc18-4c44-a7c5-124c7afc45bf ====> %s\n", val);
+            strcpy(buf, val);
+            printf("give a fake corrupted data...\n");
+            strcpy(buf, "a b"); // only 2 field in the mem
+
+            rc = memcached_set(mMemc, "22776f46-cc18-4c44-a7c5-124c7afc45bf", strlen("22776f46-cc18-4c44-a7c5-124c7afc45bf"),
+                    buf, strlen(buf),
+                    0,0);
+            if(rc == MEMCACHED_SUCCESS){
+                printf("set a corrupted mem [OK], now it is:\n");
+                printf("22776f46-cc18-4c44-a7c5-124c7afc45bf ==> %s\n", buf);
+                ret = 0;
+            }
+        }
+        free(val);
+    }
+
+    return ret;
+}
+// previous test case set a bad mem, next we will check if it can handle it without issue..
+int test_misfield_mem_auth2() {
+    printf("this case, SHOULD check if code seek DB, as mem corrupted...\n");
+    return _auth_testing(
+            "22776f46-cc18-4c44-a7c5-124c7afc45bf",  // DO NOT MODIFY
+            "2", // DO NOT MODIFY
+            1, // sys ID, DO NOT MODIFY
+             CDS_OK);
+}
+
+// check previous case can restore bad mem into good...
+int test_misfield_mem_auth3() {
+    int ret = -1;
+    char *val;
+    size_t valen;
+    memcached_return_t rc;
+    char buf[128];
+    int i;
+    int count;
+    
+    if(!mMemc)
+    {
+        printf("seems memcached server unavailable, ignore the mem parepare step\n");
+        return -1;
+    }
+
+    val = memcached_get_by_key(mMemc, NULL, 0,
+            "22776f46-cc18-4c44-a7c5-124c7afc45bf", strlen("22776f46-cc18-4c44-a7c5-124c7afc45bf"),
+            &valen, 0, &rc);
+    if(!val)
+    {
+        printf("failed get the 22776f46-cc18-4c44-a7c5-124c7afc45bf value from mem:%d\n",
+                rc);
+        return -1;
+    }
+    else
+    {
+        strcpy(buf, val);
+        printf("    the mem value:%s\n", buf);
+        i = 0;
+        count = 0;
+        while(buf[i++] != '\0') {
+            if(buf[i] == ' '){
+                count++;
+            }
+        }
+
+        printf("    I found the space is %d count\n", count);
+        if(count == 2) {
+            printf("    the corrupted mem be restored successfully!\n");
+            ret = 0;
+        }
+
+        free(val);
+    }
+
+    return ret;
 }
 /////////////////////////////////////////////////////////////////////
 // modify profile test
@@ -2051,6 +2151,8 @@ int main(int argc, char **argv)
     execute_ut_case(test_xmpp_auth_logic2);
     execute_ut_case(test_xmpp_auth_logic3);
     execute_ut_case(test_misfield_mem_auth);
+    execute_ut_case(test_misfield_mem_auth2);
+    execute_ut_case(test_misfield_mem_auth3);
 
     execute_ut_case(test_rollback_logic);
 
@@ -2076,6 +2178,7 @@ int main(int argc, char **argv)
 
     //misc testing...
     execute_ut_case(test_sql_auto_reconnect);
+
 end_of_testing:
 
     printf("\n\n release useless resource...");

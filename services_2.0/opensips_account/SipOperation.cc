@@ -75,6 +75,7 @@ int SipOperation::handling_request(::google::protobuf::Message *p_obj, ::google:
     SipAccountRequest *reqobj = (SipAccountRequest *)p_obj;
     SipAccountResponse *respobj = (SipAccountResponse *)p_ndr;
 
+    LOG("==> %s |  %s | %d\n", reqobj->user_name().c_str(), reqobj->session().c_str(), reqobj->sysid());
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT id FROM %s WHERE usermobile=\'%s\'",
             USERCENTER_MAIN_TBL, reqobj->user_name().c_str());

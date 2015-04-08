@@ -1,3 +1,8 @@
+/**
+ *
+ * \history
+ * [2015-4-8] Use the same md5 hash algorithm as ShenZhen's
+ */
 #include "LoginOperation.h"
 
 int LoginOperation::m_shenzhenFlag = 0;
@@ -256,7 +261,7 @@ int LoginOperation::match_user_credential_in_db(LoginRequest *reqobj, unsigned l
             {
                 char md5data[64];
                 // can re-use the sqlcmd here.
-                sprintf(sqlcmd, "%ld-%s", *p_cid, reqobj->login_password().c_str());
+                sprintf(sqlcmd, "%s%lu", reqobj->login_password().c_str(), *p_cid);
                 get_md5(sqlcmd, strlen(sqlcmd), md5data);
                 LOG("phase-I cipher[%s] ==> phase-II cipher[%s]\n", sqlcmd, md5data);
 
@@ -383,6 +388,8 @@ int LoginOperation::handling_request(::google::protobuf::Message *login_req, ::g
         add_device_type(reqobj);
     }
 #endif
+
+printf("type:%duser:%s\n", reqobj->login_type(), reqobj->login_name().c_str());
 
     if(reqobj->login_type() != RegLoginType::LOG_OUT)
     {

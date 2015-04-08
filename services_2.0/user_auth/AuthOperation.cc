@@ -2,6 +2,7 @@
  * User Auth operation class
  *
  * \history
+ * [2015-04-08] For mem value corrupt case, need restore it from DB
  * [2015-04-02] Fix a mem value miss-field bug (normally, value is in 3 column, we need avoid Non-3 column case)
  *
  */
@@ -271,6 +272,7 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
              * mem value is in 3 column, see comments in @split_val_into_fields()
              */
             ERR("Attention, mem val had %d column, it SHOULD be 3, so we had to go to DB\n", i);
+            m_memMalformed = 1;
             ret = get_token_info_from_db(reqobj, respobj, w);
         }
 
@@ -301,21 +303,11 @@ int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *resp
     return ret;
 }
 
-/**
- * Update both Mem and Sql
- *
- */
-int AuthOperation::update_session_lastoperatetime(AuthRequest *reqobj, struct auth_data_wrapper *w)
+void AuthOperation::set_token_info_to_mem(AuthRequest *reqobj, struct auth_data_wrapper *w)
 {
     memcached_return_t rc;
     char value[128];
     time_t cur;
-
-#if 1
-    if(is_xmpp_auth(reqobj)){
-        printf("the session in w:%s\n", w->adw_session);
-    }
-#endif
 
     time(&cur);
     sprintf(value, "%ld %s %ld",
@@ -327,6 +319,22 @@ int AuthOperation::update_session_lastoperatetime(AuthRequest *reqobj, struct au
     {
         ERR("**failed set mem :%d\n", rc);
     }
+}
+
+/**
+ * Update both Mem and Sql
+ *
+ */
+int AuthOperation::update_session_lastoperatetime(AuthRequest *reqobj, struct auth_data_wrapper *w)
+{
+#if 1
+    if(is_xmpp_auth(reqobj)){
+        printf("the session in w:%s\n", w->adw_session);
+    }
+#endif
+
+    // mem
+    set_token_info_to_mem(reqobj, w);
 
     // SQL
     set_token_info_to_db(reqobj);
@@ -352,6 +360,7 @@ int AuthOperation::handling_request(::google::protobuf::Message *auth_req, ::goo
     }
     else
     {
+        INFO("user auth [%s %s %d]\n", reqobj->auth_token().c_str(), reqobj->auth_session().c_str(), reqobj->auth_sysid());
         ret = auth_token_in_session(reqobj, respobj, &fields);
 
         if(ret == CDS_OK)
@@ -366,6 +375,13 @@ int AuthOperation::handling_request(::google::protobuf::Message *auth_req, ::goo
             case 0:
                 // as too short visit time, don't update time
                 ret = CDS_OK;
+                /* 2015-4-8 optimiz for mem field corruption restore */
+                if(m_memMalformed)
+                {
+                    LOG("Though we don't need update DB, mem need restore!\n");
+                    set_token_info_to_mem(reqobj, &fields);
+                    m_memMalformed = 0;
+                }
                 break;
 
             case 1:
