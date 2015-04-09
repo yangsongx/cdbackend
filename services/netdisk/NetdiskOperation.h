@@ -24,10 +24,12 @@ enum FILE_TYPE {
 };
 
 class NetdiskOperation : public com::caredear::Operation {
-    typedef struct _file_md5_size{
-        char f_md5[34]; // store md5sum data
+
+    struct file_info{
+        char f_md5[34];
         int  f_size;
-    }file_md5_size_t;
+        int  f_quota;
+    };
 
     Qiniu_Client m_qn;
 
@@ -37,17 +39,11 @@ class NetdiskOperation : public com::caredear::Operation {
     int do_qiniu_downloadurl(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata);
 
     // /////////////////////////////////////////////////////////////////////////////
-    // static variables....
-    static file_md5_size_t m_md5_size;
-    static int m_cbFlag; // A flag for SQL callback result processing
-    static int m_UserQuota; // the USER_QUOTA in DB(not the default value in config XML
-
-    static int cb_query_user_entry(MYSQL_RES *p_result);
-    static int cb_query_file_md5_and_size(MYSQL_RES *p_result);
-    static int cb_query_file_md5(MYSQL_RES *p_result);
-    static int cb_query_netdisk_key(MYSQL_RES *p_result);
-    static int cb_query_quota(MYSQL_RES *p_result);
-    // END OF static variables....
+    static int cb_query_user_entry(MYSQL_RES *p_result, void *p_extra);
+    static int cb_query_file_md5_and_size(MYSQL_RES *p_result, void *p_extra);
+    static int cb_query_file_md5(MYSQL_RES *p_result, void *p_extra);
+    static int cb_query_netdisk_key(MYSQL_RES *p_result, void *p_extra);
+    static int cb_query_quota(MYSQL_RES *p_result, void *p_extra);
     // /////////////////////////////////////////////////////////////////////////////
 
 protected:

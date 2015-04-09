@@ -14,12 +14,11 @@ using namespace google::protobuf::io;
 
 class ActivateOperation : public com::caredear::Operation{
 
-    static int m_verify_result;
     static uint64_t m_cid;
 
-    static int cb_verify_code(MYSQL_RES *mrestul);
-    static int cb_check_code_failure(MYSQL_RES *mrestul);
-    static int cb_get_cid(MYSQL_RES *mresult);
+    static int cb_verify_code(MYSQL_RES *mrestul, void *p_extra);
+    static int cb_check_code_failure(MYSQL_RES *mrestul, void *p_extra);
+    static int cb_get_cid(MYSQL_RES *mresult, void *p_extra);
 
     int verify_activation_code(ActivateRequest *reqobj, ActivateResponse *respobj);
 

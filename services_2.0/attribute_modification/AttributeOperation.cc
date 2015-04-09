@@ -1,13 +1,19 @@
+/**
+ *
+ *
+ * \hisotry
+ * [2015-04-10] Using new API protype for SQL cmd
+ */
 #include "AttributeOperation.h"
 
-int AttributeOperation::m_attrRecord = 0;
-AttributeModifyResponse AttributeOperation::m_QueryInfo;
-
-
-int AttributeOperation::cb_query_attribute(MYSQL_RES *p_result)
+int AttributeOperation::cb_query_attribute(MYSQL_RES *p_result, void *p_extra)
 {
     MYSQL_ROW  row;
     int col_count;
+    // [2015-04-10]
+    // obsolete the static m_QueryInfo and let it be local here.
+    // though the naming convention is bad, but it avoid less code change
+    AttributeModifyResponse *m_QueryInfo = (AttributeModifyResponse *)p_extra;
 
     if(!p_result)
     {
@@ -32,66 +38,66 @@ int AttributeOperation::cb_query_attribute(MYSQL_RES *p_result)
 
     if(row[0] != NULL && strlen(row[0]) > 0)
     {
-        m_QueryInfo.set_user_name(row[0]);
+        m_QueryInfo->set_user_name(row[0]);
     }
 
     if(row[1] != NULL && strlen(row[1]) > 0)
     {
-        m_QueryInfo.set_user_mobile(row[1]);
+        m_QueryInfo->set_user_mobile(row[1]);
     }
 
 #if 1
     if(row[2] == NULL || (row[2] != NULL && strlen(row[2]) == 0))
     {
         INFO("a blank password\n");
-        m_QueryInfo.set_contain_passwd(0);
+        m_QueryInfo->set_contain_passwd(0);
     }
     else
     {
-        m_QueryInfo.set_contain_passwd(1);
+        m_QueryInfo->set_contain_passwd(1);
     }
 #endif
 
     if(row[3] != NULL && strlen(row[3]) > 0)
     {
-        m_QueryInfo.set_user_email(row[3]);
+        m_QueryInfo->set_user_email(row[3]);
     }
 
     if(row[4] != NULL && strlen(row[4]) > 0)
     {
-        m_QueryInfo.set_real_name(row[4]);
+        m_QueryInfo->set_real_name(row[4]);
     }
 
     if(row[5] != NULL && strlen(row[5]) > 0)
     {
-        m_QueryInfo.set_nick_name(row[5]);
+        m_QueryInfo->set_nick_name(row[5]);
     }
 
     if(row[6] != NULL && strlen(row[6]) > 0)
     {
         if(atoi(row[6]) == 1)
         {
-            m_QueryInfo.set_gender(GenderType::MALE);
+            m_QueryInfo->set_gender(GenderType::MALE);
         }
         else
         {
-            m_QueryInfo.set_gender(GenderType::FEMAL);
+            m_QueryInfo->set_gender(GenderType::FEMAL);
         }
     }
 
     if(row[7] != NULL && strlen(row[7]) > 0)
     {
-        m_QueryInfo.set_birthday(row[7]);
+        m_QueryInfo->set_birthday(row[7]);
     }
 
     if(row[8] != NULL && strlen(row[8]) > 0)
     {
-        m_QueryInfo.set_head_image(row[8]);
+        m_QueryInfo->set_head_image(row[8]);
     }
 
     if(row[9] != NULL && strlen(row[9]) > 0)
     {
-        m_QueryInfo.set_head_image2(row[9]);
+        m_QueryInfo->set_head_image2(row[9]);
     }
 
     return 0;
@@ -102,13 +108,12 @@ int AttributeOperation::cb_query_attribute(MYSQL_RES *p_result)
  *
  *
  */
-int AttributeOperation::cb_check_attr_existence(MYSQL_RES *p_result)
+int AttributeOperation::cb_check_attr_existence(MYSQL_RES *p_result, void *p_extra)
 {
     MYSQL_ROW  row;
+    int *data = (int *)p_extra;
 
     LOG("==CALLBACK==\n");
-    m_attrRecord = 0;
-
     if(!p_result)
     {
         return -1;
@@ -121,7 +126,7 @@ int AttributeOperation::cb_check_attr_existence(MYSQL_RES *p_result)
         {
             INFO("Warning, there're multi-lines for the SELECT!\n");
         }
-        m_attrRecord = 1;
+        *data = 1;
     }
 
     return 0;
@@ -135,14 +140,15 @@ int AttributeOperation::user_attribute_existed(uint64_t cid)
 {
     int ret;
     char sqlcmd[512];
+    int flag = 0;
 
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT id FROM %s WHERE caredearid=%lu",
             USERCENTER_ATTR_TBL, cid);
 
-    ret = sql_cmd(sqlcmd, cb_check_attr_existence);
+    ret = sql_cmd(sqlcmd, cb_check_attr_existence, &flag);
 
-    if(ret == CDS_OK && m_attrRecord == 1)
+    if(ret == CDS_OK && flag == 1)
     {
         return 1;
     }
@@ -256,7 +262,7 @@ int AttributeOperation::insert_usr_attr_to_db(AttributeModifyRequest *reqobj)
             USERCENTER_ATTR_TBL, insert_str);
 
     LOG("the whole insert SQL:%s\n", sqlcmd);
-    ret = sql_cmd(sqlcmd, NULL);
+    ret = sql_cmd(sqlcmd, NULL, NULL);
 
     return ret;
 }
@@ -336,7 +342,7 @@ int AttributeOperation::update_usr_attr_to_db(AttributeModifyRequest *reqobj)
             USERCENTER_ATTR_TBL, set_str, reqobj->caredear_id());
 
         LOG("the whole SQL:%s\n", sqlcmd);
-        ret = sql_cmd(sqlcmd, NULL);
+        ret = sql_cmd(sqlcmd, NULL, NULL);
     }
 
     return ret;
@@ -382,12 +388,13 @@ int AttributeOperation::query_user_attribute_from_db(AttributeModifyRequest *req
             USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL,
             USERCENTER_MAIN_TBL, USERCENTER_ATTR_TBL, USERCENTER_MAIN_TBL, USERCENTER_ATTR_TBL, USERCENTER_MAIN_TBL, reqobj->caredear_id());
 #endif
+    AttributeModifyResponse data;
 
-    ret = sql_cmd(sqlcmd, cb_query_attribute);
+    ret = sql_cmd(sqlcmd, cb_query_attribute, &data);
     if(ret == CDS_OK)
     {
         // assign operator
-        *respobj = m_QueryInfo;
+        *respobj = data;
     }
 
     return ret;
@@ -409,6 +416,7 @@ int AttributeOperation::handling_request(::google::protobuf::Message *attr_req, 
         case AttributeType::QUERY:
             // As query won't be so frequently, we don't add any
             // memcach, so directly choose from DB.
+            LOG("try query CID-%lu from DB\n", reqobj->caredear_id());
             ret = query_user_attribute_from_db(reqobj, respobj);
             break;
 

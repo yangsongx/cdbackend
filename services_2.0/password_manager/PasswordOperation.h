@@ -14,7 +14,7 @@ using namespace google::protobuf::io;
 class PasswordOperation : public com::caredear::Operation{
 
         static char m_md5[36];
-        static int cb_get_md5_in_db(MYSQL_RES *mresult);
+        static int cb_get_md5_in_db(MYSQL_RES *mresult, void *p_extra);
 
         int modify_existed_password(PasswordManagerRequest *reqobj);
 

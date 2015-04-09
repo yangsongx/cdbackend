@@ -1,3 +1,11 @@
+/**
+ * A Base Class for all daemon operation, which usually manipulate the
+ * DB or memcached.
+ *
+ * \history
+ * [2015-04-10] Let SQL command support extra parameter, which would avoid using static variable in caller
+ * [2015-04-01] Try fix the SQL time-out reconnecting BUG
+ */
 #include "Operation.h"
 #include <libmemcached/memcached.h>
 
@@ -41,7 +49,7 @@ int Operation::keep_alive(const char *db_tbl, const char *col_name/* = "id" */)
     snprintf(sqlcmd, sizeof(sqlcmd), "SELECT %s FROM %s",
             col_name, db_tbl);
 
-    ret = sql_cmd(sqlcmd, NULL);
+    ret = sql_cmd(sqlcmd, NULL, NULL);
 
     return ret;
 }
@@ -229,12 +237,12 @@ need_rollback:
  * Wrapper util for visiting SQL, can auto-reconnect to SQL
  * after idle timeout.
  */
-int Operation::sql_cmd(const char *cmd, cb_sqlfunc sql_cb)
+int Operation::sql_cmd(const char *cmd, cb_sqlfunc sql_cb, void *p_extra)
 {
     int ret;
 
     // BY default, use the default m_Sql data member
-    ret = sql_cmd_with_specify_server(&(m_pCfg->m_Sql), cmd, sql_cb);
+    ret = sql_cmd_with_specify_server(&(m_pCfg->m_Sql), cmd, sql_cb, p_extra);
 
     return ret;
 }
@@ -245,7 +253,7 @@ int Operation::sql_cmd(const char *cmd, cb_sqlfunc sql_cb)
  * for 8 hours re-connection.
  *
  */
-int Operation::sql_cmd_with_specify_server(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb)
+int Operation::sql_cmd_with_specify_server(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb, void *p_extra)
 {
     int ret;
 
@@ -256,7 +264,7 @@ int Operation::sql_cmd_with_specify_server(MYSQL **pms, const char *cmd, cb_sqlf
         return CDS_ERR_SQL_DISCONNECTED;
     }
 
-    ret = execute_sql(pms, cmd, sql_cb);
+    ret = execute_sql(pms, cmd, sql_cb, p_extra);
     if(ret == CDS_ERR_SQL_DISCONNECTED)
     {
         // try reconnect the SQL, as it probably
@@ -270,7 +278,7 @@ int Operation::sql_cmd_with_specify_server(MYSQL **pms, const char *cmd, cb_sqlf
         if(*pms != NULL)
         {
             // do it again
-            ret = execute_sql(pms, cmd, sql_cb);
+            ret = execute_sql(pms, cmd, sql_cb, p_extra);
         }
         else
         {
@@ -286,7 +294,7 @@ int Operation::sql_cmd_with_specify_server(MYSQL **pms, const char *cmd, cb_sqlf
  *
  * If SQL server gone when max-idle exceed, will return CDS_ERR_SQL_DISCONNECTED, caller need try re-connect and call this util again!
  */
-int Operation::execute_sql(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb)
+int Operation::execute_sql(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb, void *p_extra)
 {
     MYSQL_RES *mresult;
 
@@ -310,7 +318,7 @@ int Operation::execute_sql(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb)
     if(sql_cb != NULL)
     {
         //drop into caller's callback function
-        sql_cb(mresult);
+        sql_cb(mresult, p_extra);
     }
 
     // release un-used resource here.

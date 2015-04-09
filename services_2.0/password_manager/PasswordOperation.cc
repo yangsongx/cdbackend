@@ -2,15 +2,15 @@
 
 char PasswordOperation::m_md5[36];
 
-int PasswordOperation::cb_get_md5_in_db(MYSQL_RES *mresult)
+int PasswordOperation::cb_get_md5_in_db(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row = mysql_fetch_row(mresult);
+    char *data = (char *)p_extra;
 
-    m_md5[0] = '\0';
     if(row != NULL)
     {
         if(row[0] != NULL)
-            strcpy(m_md5, row[0]);
+            strcpy(data, row[0]);
     }
     else
     {
@@ -29,18 +29,19 @@ int PasswordOperation::validation_user_password(PasswordManagerRequest *reqobj)
     int ret = -1;
     char sqlcmd[1024];
     char buf[256];
+    char md5[36]; // sotore the final DB passwd data
 
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT loginpassword FROM %s WHERE id=%lu",
             USERCENTER_MAIN_TBL, reqobj->caredear_id());
 
-    if(sql_cmd(sqlcmd, cb_get_md5_in_db) == CDS_OK)
+    if(sql_cmd(sqlcmd, cb_get_md5_in_db, md5) == CDS_OK)
     {
         char md5data[64];
         // get the md5 in db, compare it with incoming passwd
         sprintf(buf, "%s%lu", reqobj->old_passwd().c_str(), reqobj->caredear_id());
         get_md5(buf, strlen(buf), md5data);
-        if(!strcmp(md5data, m_md5))
+        if(!strcmp(md5data, md5))
         {
             INFO("Good, password correct\n");
             ret = 0;
@@ -67,7 +68,7 @@ int PasswordOperation::write_user_password_to_db(PasswordManagerRequest *reqobj)
             "UPDATE %s SET loginpassword=\'%s\' WHERE id=%ld",
             USERCENTER_MAIN_TBL, md5data, reqobj->caredear_id());
 
-    return sql_cmd(sqlcmd, NULL/* UPDATE don't need callback */);
+    return sql_cmd(sqlcmd, NULL/* UPDATE don't need callback */, NULL);
 }
 
 
@@ -75,6 +76,7 @@ int PasswordOperation::modify_existed_password(PasswordManagerRequest *reqobj)
 {
     int ret = CDS_OK;
     char sqlcmd[1024];
+    char md5[36];
 
     if(reqobj->has_old_passwd())
     {
@@ -109,8 +111,9 @@ int PasswordOperation::modify_existed_password(PasswordManagerRequest *reqobj)
             "SELECT loginpassword FROM %s WHERE id=%lu",
             USERCENTER_MAIN_TBL, reqobj->caredear_id());
 
-        ret = sql_cmd(sqlcmd, cb_get_md5_in_db);
-        if(ret == CDS_OK && strlen(m_md5) == 0)
+        md5[0] = '\0';
+        ret = sql_cmd(sqlcmd, cb_get_md5_in_db, md5);
+        if(ret == CDS_OK && strlen(md5) == 0)
         {
             INFO("User original password is blank, so directly set new passwd\n");
             ret = write_user_password_to_db(reqobj);

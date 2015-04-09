@@ -1,3 +1,8 @@
+/**
+ *
+ * \history
+ * [2015-04-10] use new API prototype to avoid use static variable
+ */
 #include "RegOperation.h"
 
 using namespace std;
@@ -5,26 +10,26 @@ using namespace com::caredear;
 using namespace google::protobuf::io;
 
 
-uint64_t RegOperation::m_cid = -1;
-int RegOperation::m_active_status = 0;
-
-int RegOperation::cb_check_user_existence(MYSQL_RES *p_result)
+int RegOperation::cb_check_user_existence(MYSQL_RES *p_result, void *p_extra)
 {
     MYSQL_ROW row;
+    struct user_existence *data = (struct user_existence *)p_extra;
+
+    /* set a default value for new user case */
+    data->ue_cid = (uint64_t ) -1;
+    data->ue_active_status = 100; // MAGIC number
 
     row = mysql_fetch_row(p_result);
     if(row == NULL)
     {
         INFO("blank DB check result, a new user\n");
-        m_cid = -1;
-        m_active_status = 100; // magic number
     }
     else
     {
-        m_cid = atol(row[0]);
-        m_active_status = atoi(row[1]);
+        data->ue_cid = atol(row[0]);
+        data->ue_active_status = atoi(row[1]);
         INFO("an existed entry(id-%lu,status-%d)\n",
-                m_cid, m_active_status);
+                data->ue_cid, data->ue_active_status);
     }
 
     return 0;
@@ -176,6 +181,7 @@ bool RegOperation::user_already_exist(RegisterRequest *reqobj, int *p_active_sta
 {
     int ret;
     char sqlcmd[1024];
+    struct user_existence usrdata;
 
     switch(reqobj->reg_type())
     {
@@ -210,18 +216,18 @@ bool RegOperation::user_already_exist(RegisterRequest *reqobj, int *p_active_sta
             break;
     }
 
-    ret = sql_cmd(sqlcmd, cb_check_user_existence);
+    ret = sql_cmd(sqlcmd, cb_check_user_existence, &usrdata);
     if(ret == CDS_OK)
     {
-        if(m_cid == (uint64_t)-1 && m_active_status == 100)
+        if(usrdata.ue_cid == (uint64_t)-1 && usrdata.ue_active_status == 100)
         {
             // a new user
             return false;
         }
         else
         {
-            *p_active_status = m_active_status;
-            *p_index = m_cid;
+            *p_active_status = usrdata.ue_active_status;
+            *p_index = usrdata.ue_cid;
             return true;
         }
     }
@@ -312,7 +318,7 @@ int RegOperation::add_new_user_entry(RegisterRequest *pRegInfo, uint64_t *cid)
             break;
     }
 
-    ret = sql_cmd(sqlcmd, NULL);
+    ret = sql_cmd(sqlcmd, NULL, NULL);
 
     if(ret == CDS_OK)
     {
@@ -367,7 +373,7 @@ int RegOperation::add_user_password_to_db(RegisterRequest *pRegInfo, unsigned lo
             "UPDATE %s SET loginpassword=\'%s\' WHERE id=%ld",
             USERCENTER_MAIN_TBL, passwd, user_id);
 
-    return sql_cmd(sqlcmd, NULL);
+    return sql_cmd(sqlcmd, NULL, NULL);
 }
 
 int RegOperation::overwrite_inactive_user_entry(RegisterRequest *pRegInfo, unsigned long user_id)
@@ -425,7 +431,7 @@ int RegOperation::overwrite_inactive_user_entry(RegisterRequest *pRegInfo, unsig
             break;
     }
 
-    return sql_cmd(sqlcmd, NULL);
+    return sql_cmd(sqlcmd, NULL, NULL);
 }
 
 int RegOperation::add_opensips_entry(RegisterRequest *pRegInfo)
@@ -452,7 +458,7 @@ int RegOperation::add_opensips_entry(RegisterRequest *pRegInfo)
             OPENSIPS_SUB_TBL, pRegInfo->reg_name().c_str());
 
     // OpenSIPs is another DB, so use a different API
-    ret = sql_cmd_with_specify_server(&(c->m_SipsSql), sqlcmd, NULL);
+    ret = sql_cmd_with_specify_server(&(c->m_SipsSql), sqlcmd, NULL, NULL);
 
     return ret;
 }
@@ -490,7 +496,7 @@ int RegOperation::record_user_verifiy_code_to_db(RegisterRequest *reqobj, Regist
             break;
     }
 
-    ret = sql_cmd(sqlcmd, NULL);
+    ret = sql_cmd(sqlcmd, NULL, NULL);
 
     return ret;
 }

@@ -20,16 +20,12 @@ class LoginOperation : public com::caredear::Operation {
         const char    *us_token;     /**< This session's token string */
     };
 
-    static int m_shenzhenFlag;
-    static int cb_get_shenzhen_flag(MYSQL_RES *mresult);
+    static int cb_get_shenzhen_flag(MYSQL_RES *mresult, void *p_extra);
 
-    static uint64_t m_cid;
-    static int cb_check_name(MYSQL_RES *mresult);
+    static int cb_check_name(MYSQL_RES *mresult, void *p_extra);
 
-    static int m_result;
-    static char m_buffer[512];
-    static int cb_check_accode(MYSQL_RES *mresult);
-    static int cb_wr_db_session(MYSQL_RES *mrsult);
+    static int cb_check_accode(MYSQL_RES *mresult, void *p_extra);
+    static int cb_wr_db_session(MYSQL_RES *mrsult, void *p_extra);
 
     int update_usercenter_session(LoginRequest *reqobj, struct user_session *u);
     int set_session_info_to_db(struct user_session *u, char *old);

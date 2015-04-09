@@ -1,18 +1,14 @@
 #include "SipOperation.h"
 
-uint64_t SipOperation::m_cid;
-char SipOperation::m_token[512];
 
-int SipOperation::cb_get_cid(MYSQL_RES *mresult)
+int SipOperation::cb_get_cid(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
-
-    m_cid = (uint64_t) -1;
+    uint64_t *data = (uint64_t *)p_extra;
 
     if(!mresult)
     {
         ERR("in %s:null SQL result, so cid is invalide\n", __FUNCTION__);
-
         return -1;
     }
 
@@ -26,24 +22,24 @@ int SipOperation::cb_get_cid(MYSQL_RES *mresult)
 
         if(row[0] != NULL)
         {
-            m_cid = atol(row[0]);
+            *data = atol(row[0]);
         }
     }
 
     return 0;
 }
 
-int SipOperation::cb_get_token(MYSQL_RES *mresult)
+int SipOperation::cb_get_token(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
+    struct sips_info *data = (struct sips_info *)p_extra;
 
-    m_cid = (uint64_t) -1;
-    m_token[0] = '\0';
+    data->s_cid = (uint64_t) -1;
+    data->s_token[0] = '\0';
 
     if(!mresult)
     {
         ERR("in %s:null SQL result, so cid is invalide\n", __FUNCTION__);
-
         return -1;
     }
 
@@ -57,11 +53,12 @@ int SipOperation::cb_get_token(MYSQL_RES *mresult)
 
         if(row[0] != NULL)
         {
-            m_cid = atol(row[0]);
+            data->s_cid = atol(row[0]);
         }
         if(row[1] != NULL)
         {
-            strncpy(m_token, row[1], sizeof(m_token));
+            /* FIXME - hope 512 is enough */
+            strncpy(data->s_token, row[1], 512);
         }
     }
 
@@ -79,28 +76,28 @@ int SipOperation::handling_request(::google::protobuf::Message *p_obj, ::google:
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT id FROM %s WHERE usermobile=\'%s\'",
             USERCENTER_MAIN_TBL, reqobj->user_name().c_str());
-    ret = sql_cmd(sqlcmd, cb_get_cid);
+    ret = sql_cmd(sqlcmd, cb_get_cid, &cid);
     if(ret == CDS_OK)
     {
-        cid = m_cid;
         LOG("User %s --> CID %lu\n", reqobj->user_name().c_str(), cid);
     }
 
+    struct sips_info info;
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT caredearid,ticket FROM %s WHERE session=\'%s\'",
             USERCENTER_SESSION_TBL, reqobj->session().c_str());
-    ret = sql_cmd(sqlcmd, cb_get_token);
-    if(ret == CDS_OK && m_cid != (uint64_t) -1)
+    ret = sql_cmd(sqlcmd, cb_get_token, &info);
+    if(ret == CDS_OK && info.s_cid != (uint64_t) -1)
     {
-        if(cid != m_cid)
+        if(cid != info.s_cid)
         {
             ERR("Warning, Pontential ERROR, mismatch cid: Main Table CID %lu <===> Session Table CID %lu\n",
-                    cid, m_cid);
+                    cid, info.s_cid);
         }
 
-        INFO("%s  =====> %s\n", reqobj->user_name().c_str(), m_token);
+        INFO("%s  =====> %s\n", reqobj->user_name().c_str(), info.s_token);
         // set the token, even above cid mis-match happen
-        respobj->set_user_credential(m_token);
+        respobj->set_user_credential(info.s_token);
     }
     else
     {

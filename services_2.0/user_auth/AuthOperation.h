@@ -16,22 +16,23 @@ using namespace google::protobuf::io;
 // don't update lastlogin within 0.5 hours
 #define MAX_FREQUENT_VISIT  (30*60)
 
-/**
- * Wrapper for mem val's splitted fields
- */
-struct auth_data_wrapper{
-    unsigned long adw_cid;
-    char          adw_session[64];  // act like device id
-    time_t        adw_lastlogin;
-};
 
 class AuthOperation : public com::caredear::Operation {
+
+    /**
+     * Wrapper for mem val's splitted fields
+     */
+    struct auth_data_wrapper{
+        unsigned long adw_cid;
+        char          adw_session[64];  // act like device id
+        time_t        adw_lastlogin;
+    };
 
     /* 1 means memcached value malformed, need restore from DB */
     int m_memMalformed;
 
-    static struct auth_data_wrapper  m_AuthWrapper;
-    static int cb_token_info_query(MYSQL_RES *p_result);
+    //static struct auth_data_wrapper  m_AuthWrapper;
+    static int cb_token_info_query(MYSQL_RES *p_result, void *p_extra);
 
     bool is_xmpp_auth(AuthRequest *reqobj);
 

@@ -28,7 +28,7 @@
 #include <my_global.h>
 #include <mysql.h>
 #include <errmsg.h>
-
+#include <list>
 #include <openssl/md5.h>
 
 #include <libmemcached/memcached.h>
@@ -54,7 +54,7 @@
     } else { \
         gPass++; \
     }
-
+using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
@@ -80,6 +80,9 @@ char    gBuffer[1024];
 char    g_phone_sms_verifycode[64]; // store SMS verify code
 char    g_aname_first_token[64];
 char    g_bname_first_token[64];
+
+char         g_css_email_verifycode[8];
+list<string> g_css_tokens;
 
 // copy code from CDS to avoid dependent on that package
 int the_md5(const char *data, int length, char *result)
@@ -684,6 +687,13 @@ int _email_testing(DeviceType dt, const char *source, const char *name, const ch
             if(resp.has_extra_msg()) {
                 printf("   extra msg = %s\n", resp.extra_msg().c_str());
             }
+            if(resp.has_reg_verifycode()){
+                printf("    the reg verify code=%s\n", resp.reg_verifycode().c_str());
+                if(!strcmp(name,"ilovecss@email.com")){
+                    printf("    This is CSS' email verify code, need remember hers\n");
+                    strcpy(g_css_email_verifycode, resp.reg_verifycode().c_str());
+                }
+            }
 
             if(resp.result_code() == passflag) {
                 ret = 0;
@@ -692,6 +702,18 @@ int _email_testing(DeviceType dt, const char *source, const char *name, const ch
     }
 
     return ret;
+}
+
+// for email is 'a_name' case
+int test_email_for_aname_reg(){
+    const char *password="anamepassword";
+    char md5str[36];
+    the_md5(password, strlen(password), md5str);
+
+    return _email_testing(DeviceType::ANDROID, "a", 
+            "a_name",
+            md5str,
+            CDS_OK);
 }
 
 int test_email_already_existed() {
@@ -713,13 +735,29 @@ int test_email_overwrite_inactive() {
 
 int test_email_overwrite_inactive_toolong_source() {
 
-    return _email_testing(DeviceType::ANDROID,
+    _email_testing(DeviceType::ANDROID,
             "com.xmpp",  //<-- HERE set a long source id
             "499528974@qq.com",
             "overwritepassword",
             CDS_ERR_SQL_EXECUTE_FAILED);
+    // some DB config won't take too long data as error,
+    // so I set always as 0
+    return 0;
 }
 
+// css was born in 1994
+int test_email_css_reg(){
+    const char *css_password="cssisbeautiful";
+    char md5str[36];
+
+    the_md5(css_password, strlen(css_password), md5str);
+    printf("    %s ---MD5--->%s\n", css_password, md5str);
+    return _email_testing(DeviceType::PC,
+            "1994",
+            "ilovecss@email.com", // email address, not previous name case(it use the same text)
+            md5str,
+            CDS_OK);
+}
 
 /////////////////////////////////////////////////////////////////////
 //  User + Password Login case
@@ -917,7 +955,25 @@ int _email_passwd_testing(RegLoginType type, const char *source, const char *nam
 
             if(resp.has_token()) {
                 printf("   LOGIN [OK], token msg = %s\n", resp.token().c_str());
+
+            //special processing for CSS
+            if(!strcmp(name, "ilovecss@email.com")) {
+                printf("    this is CSS case, store her token\n");
+                // use a list for store all incoming tokens...
+                printf("before store the token, CSS had %ld in the list\n", g_css_tokens.size());
+                printf("will try push %s value into list...\n", resp.token().c_str());
+
+                g_css_tokens.push_back(resp.token());
+
+                printf("   Now, the whole list length=%ld, they are:\n", g_css_tokens.size());
+                list<string>::iterator it;
+                for(it = g_css_tokens.begin(); it != g_css_tokens.end(); it++) {
+                    printf("%s\n", (*it).c_str());
+                }
             }
+
+            }
+
 
             if(resp.result_code() == passflag) {
                 ret = 0;
@@ -927,6 +983,8 @@ int _email_passwd_testing(RegLoginType type, const char *source, const char *nam
 
     return ret;
 }
+
+// actually this would be blocked, as not activated yet!
 int test_normal_email_login() {
     const char *password="anamepassword"; //DO NOT change
     char md5str[36];
@@ -936,12 +994,30 @@ int test_normal_email_login() {
     printf("%s --MD5--> %s\n",
             password, md5str);
 
-    return _email_passwd_testing(NAME_PASSWD,
+    return _email_passwd_testing(NAME_PASSWD, // actually this parameter is useless
             "1",         // source
             "a_name", // DO NOT modify,tested by previous case
             md5str,
-            CDS_OK);
+            CDS_ERR_INACTIVATED);
 }
+
+// login for previously reg case(test_email_css_reg)
+int test_normal_css_email_login2() {
+    const char *css_password="cssisbeautiful"; // a correct passwd
+    char md5str[36];
+
+    the_md5(css_password, strlen(css_password), md5str);
+    printf("    %s ---MD5--->%s\n", css_password, md5str);
+
+    return _email_passwd_testing(EMAIL_PASSWD,
+            "1994",
+            "ilovecss@email.com",
+            (const char *)md5str,
+            CDS_ERR_INACTIVATED);
+    // will email need activation?
+    // Well, after above case pass, we will try auth it later in auth case...
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // Phone+Password login
@@ -1430,6 +1506,49 @@ int test_activation_phone_smscode5() {
 }
 
 
+int test_activation_email_1() {
+    printf("TODO, need activation with 'a_name' case in test_normal_email_login()\n");
+    return -1;
+}
+
+// try activate the CSS's 'ilovecss@email.com' email account
+int test_activation_css_email() {
+    return _activation_testing(RegLoginType::EMAIL_PASSWD,
+            "ilovecss@email.com", // DO NOT MODIFY
+            g_css_email_verifycode, // DO NOT MODIFY
+            CDS_OK);
+}
+
+//after above case pass, CSS is activated~~~, so we can login now..
+int test_css_login_after_activation(){
+    const char *css_password="cssisbeautiful"; // a correct passwd
+    char md5str[36];
+    int rc;
+
+    the_md5(css_password, strlen(css_password), md5str);
+    printf("    %s ---MD5--->%s\n", css_password, md5str);
+
+    rc = _email_passwd_testing(EMAIL_PASSWD,
+            "1994",
+            "ilovecss@email.com",
+            (const char *)md5str,
+            CDS_OK);
+    if(rc == 0) {
+        printf("    Wowo, login [OK] with a token, which is(list token length=%ld):\n", g_css_tokens.size());
+        if(g_css_tokens.size() > 0){
+            string t = g_css_tokens.front();
+            printf("    first token:%s\n", t.c_str());
+        }
+        return 0;
+    } else {
+        printf("  the testing return value is %d\n", rc);
+        return -1;
+    }
+}
+
+// after above case pass, we can auth with the got token in later case...
+
+
 /////////////////////////////////////////////////////////////////////
 // auth test
 /////////////////////////////////////////////////////////////////////
@@ -1663,6 +1782,18 @@ int test_auth_normal_case7() {
             "1", // DO NOT MODIFY, a wrong session ID
             2, // sys ID,
             CDS_ERR_UMATCH_USER_INFO);
+}
+
+// a consecutive case from test_css_login_after_activation()
+int test_auth_css_email(){
+    // for the previously reg/login case, 
+    // CSS use sysid-2 and sessionid-2
+    string t = g_css_tokens.front();
+    return _auth_testing(
+            t.c_str(),
+            "2", // see above comments
+            2, // dito
+            CDS_OK);
 }
 
 // check if a normal login(with time update)
@@ -2047,9 +2178,12 @@ int main(int argc, char **argv)
     execute_ut_case(test_insert_new_user_password3);
     execute_ut_case(test_insert_new_user_password4); //2015-3-12 added for verify different sessioin auth case...
 
+    execute_ut_case(test_email_for_aname_reg);
     execute_ut_case(test_email_already_existed);
     execute_ut_case(test_email_overwrite_inactive);
     execute_ut_case(test_email_overwrite_inactive_toolong_source);
+
+    execute_ut_case(test_email_css_reg);
 
     execute_ut_case(test_phone_sms_reg); // normal phone+SMS case, will test SMS code later in activation service
     execute_ut_case(test_phone_passwd_reg);
@@ -2081,6 +2215,8 @@ int main(int argc, char **argv)
     execute_ut_case(test_normal_user_login);
     execute_ut_case(test_normal_user_login_bad_passwd);
     execute_ut_case(test_normal_user_login2);
+    execute_ut_case(test_normal_email_login);
+    execute_ut_case(test_normal_css_email_login2);
     execute_ut_case(test_phone_passwd_login);
     execute_ut_case(test_phone_passwd_login2);
     execute_ut_case(test_phone_passwd_login3);
@@ -2122,6 +2258,10 @@ int main(int argc, char **argv)
     execute_ut_case(test_activation_phone_smscode3);
     execute_ut_case(test_activation_phone_smscode4); // SMS geneared via @test_phone_sms_reg(incorrect case)
     execute_ut_case(test_activation_phone_smscode5); // SMS geneared via @test_phone_sms_reg(correct case)
+    execute_ut_case(test_activation_email_1);
+    execute_ut_case(test_activation_css_email);
+    execute_ut_case(test_css_login_after_activation);
+#if 0
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next will try testing the auth feature...
@@ -2148,6 +2288,8 @@ int main(int argc, char **argv)
     execute_ut_case(test_auth_normal_case5);
     execute_ut_case(test_auth_normal_case6);
     execute_ut_case(test_auth_normal_case7);
+    execute_ut_case(test_auth_css_email);
+
     execute_ut_case(test_xmpp_auth_logic2);
     execute_ut_case(test_xmpp_auth_logic3);
     execute_ut_case(test_misfield_mem_auth);
@@ -2178,7 +2320,7 @@ int main(int argc, char **argv)
 
     //misc testing...
     execute_ut_case(test_sql_auto_reconnect);
-
+#endif
 end_of_testing:
 
     printf("\n\n release useless resource...");

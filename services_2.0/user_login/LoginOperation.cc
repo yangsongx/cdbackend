@@ -6,18 +6,20 @@
  */
 #include "LoginOperation.h"
 
-int LoginOperation::m_shenzhenFlag = 0;
-int LoginOperation::m_result= 0;
-char LoginOperation::m_buffer[512];
+//int LoginOperation::m_shenzhenFlag = 0;
+//int LoginOperation::m_result= 0;
+//char LoginOperation::m_buffer[512];
 
-uint64_t LoginOperation::m_cid = (uint64_t) -1;
+//uint64_t LoginOperation::m_cid = (uint64_t) -1;
 
-int LoginOperation::cb_get_shenzhen_flag(MYSQL_RES *mresult)
+int LoginOperation::cb_get_shenzhen_flag(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
+    int *data = (int *)p_extra;
+
     row = mysql_fetch_row(mresult);
 
-    m_shenzhenFlag = 0;
+    *data = 0;
     if(row != NULL)
     {
         if(mysql_num_rows(mresult) > 1)
@@ -26,17 +28,20 @@ int LoginOperation::cb_get_shenzhen_flag(MYSQL_RES *mresult)
         }
 
         if(row[0] != NULL)
-            m_shenzhenFlag = atoi(row[0]);
+        {
+            *data = atoi(row[0]);
+        }
     }
 
     return 0;
 }
 
-int LoginOperation::cb_check_name(MYSQL_RES *mresult)
+int LoginOperation::cb_check_name(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
+    uint64_t *data = (uint64_t *)p_extra;
 
-    m_cid = (uint64_t) -1;
+    *data = (uint64_t) -1;
 
     if(!mresult)
     {
@@ -54,18 +59,19 @@ int LoginOperation::cb_check_name(MYSQL_RES *mresult)
 
         if(row[0] != NULL)
         {
-            m_cid = atol(row[0]);
+            *data = atol(row[0]);
         }
     }
 
     return 0;
 }
 
-int LoginOperation::cb_check_accode(MYSQL_RES *mresult)
+int LoginOperation::cb_check_accode(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
+    int *data = (int *)p_extra;
 
-    m_result = -1;
+    *data = -1;
 
     if(!mresult)
     {
@@ -84,27 +90,28 @@ int LoginOperation::cb_check_accode(MYSQL_RES *mresult)
         // this is status field
         if(row[1] != NULL && atoi(row[1]) == 0)
         {
-            m_result = CDS_ERR_INACTIVATED;
+            *data = CDS_ERR_INACTIVATED;
         }
         else
         {
             // this is OK
-            m_result = CDS_OK;
+            *data = CDS_OK;
         }
     }
     else
     {
-        m_result = CDS_ERR_UMATCH_USER_INFO;
+        *data = CDS_ERR_UMATCH_USER_INFO;
     }
 
     return 0;
 }
 
-int LoginOperation::cb_wr_db_session(MYSQL_RES *mresult)
+int LoginOperation::cb_wr_db_session(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
+    char *data = (char *)p_extra;
 
-    m_buffer[0] = '\0';
+    data[0] = '\0';
 
     if(!mresult)
     {
@@ -116,7 +123,8 @@ int LoginOperation::cb_wr_db_session(MYSQL_RES *mresult)
     {
         if(row[0] != NULL)
         {
-            strncpy(m_buffer, row[0], sizeof(m_buffer));
+            // home 128 is enough
+            strncpy(data, row[0], 128);
         }
     }
 
@@ -168,7 +176,7 @@ int LoginOperation::delete_usercenter_session(LoginRequest *reqobj)
             "DELETE FROM %s WHERE ticket=\'%s\' AND session=\'%s\'",
             USERCENTER_SESSION_TBL, reqobj->logout_ticket().c_str(), reqobj->login_session().c_str());
 
-    ret = sql_cmd(sqlcmd, NULL);
+    ret = sql_cmd(sqlcmd, NULL, NULL);
 
     return ret;
 }
@@ -204,6 +212,7 @@ int LoginOperation::match_user_credential_in_db(LoginRequest *reqobj, unsigned l
 {
     int ret;
     char sqlcmd[1024];
+    uint64_t cid = 0;
 
     switch(reqobj->login_type())
     {
@@ -244,17 +253,17 @@ int LoginOperation::match_user_credential_in_db(LoginRequest *reqobj, unsigned l
             break;
     }
 
-    ret = sql_cmd(sqlcmd, cb_check_name);
+    ret = sql_cmd(sqlcmd, cb_check_name, &cid);
     if(ret == CDS_OK)
     {
-        if(m_cid == (uint64_t) -1)
+        if(cid == (uint64_t) -1)
         {
             // this means DB didn't contain such record
             ret = CDS_ERR_UMATCH_USER_INFO;
         }
         else
         {
-            *p_cid = m_cid;
+            *p_cid = cid;
             INFO("name[%s] ==> cid[%ld]\n",reqobj->login_name().c_str(), *p_cid);
             
             // next, we will try compose the passwd based on the got cid
@@ -359,7 +368,7 @@ int LoginOperation::add_device_type(LoginRequest *reqobj)
             break;
     }
 
-    sql_cmd(sqlcmd, NULL);
+    sql_cmd(sqlcmd, NULL, NULL);
 
     return 0;
 }
@@ -390,7 +399,7 @@ int LoginOperation::handling_request(::google::protobuf::Message *login_req, ::g
     }
 #endif
 
-printf("type:%duser:%s\n", reqobj->login_type(), reqobj->login_name().c_str());
+    INFO("type:%duser:%s\n", reqobj->login_type(), reqobj->login_name().c_str());
 
     if(reqobj->login_type() != RegLoginType::LOG_OUT)
     {
@@ -415,18 +424,23 @@ int LoginOperation::get_shenzhen_flag_from_db(uint64_t cid)
 {
     char sqlcmd[1024];
     int ret = 0;
+    int flag = 0;
 
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT issync FROM %s WHERE caredearid=%lu",
             USERCENTER_ATTR_TBL, cid);
 
-    ret = sql_cmd(sqlcmd, cb_get_shenzhen_flag);
+    ret = sql_cmd(sqlcmd, cb_get_shenzhen_flag, &flag);
     if(ret == CDS_OK)
     {
-        ret = m_shenzhenFlag;
+        LOG("the shenzhen flag get OK\n");
+    }
+    else
+    {
+        LOG("the shenzhen flag get failed\n");
     }
 
-    return ret;
+    return flag;
 }
 
 int LoginOperation::compare_user_password_wth_cid(LoginRequest *reqobj, const char *targetdata, uint64_t cid)
@@ -438,10 +452,9 @@ int LoginOperation::compare_user_password_wth_cid(LoginRequest *reqobj, const ch
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT id,status FROM %s WHERE id=%ld AND loginpassword=\'%s\'",
             USERCENTER_MAIN_TBL, cid, targetdata);
-    ret = sql_cmd(sqlcmd, cb_check_accode); // use the same cb as accode case
+    ret = sql_cmd(sqlcmd, cb_check_accode, &compare_result); // use the same cb as accode case
     if(ret == CDS_OK)
     {
-        compare_result = m_result;
         INFO("the compare result:%d\n", compare_result);
     }
 
@@ -459,10 +472,9 @@ int LoginOperation::compare_user_smscode_wth_cid(LoginRequest *reqobj, const cha
             USERCENTER_MAIN_TBL, cid, code);
 
 
-    ret = sql_cmd(sqlcmd, cb_check_accode);
+    ret = sql_cmd(sqlcmd, cb_check_accode, &compare_result);
     if(ret == CDS_OK)
     {
-        compare_result = m_result;
         INFO("the compare result:%d\n", compare_result);
     }
 
@@ -484,10 +496,10 @@ int LoginOperation::set_session_info_to_db(struct user_session *u, char *old)
 
 
     old[0] = '\0';
-    ret = sql_cmd(sqlcmd, cb_wr_db_session);
+    ret = sql_cmd(sqlcmd, cb_wr_db_session, old);
     if(ret == CDS_OK)
     {
-        if(strlen(m_buffer) == 0)
+        if(strlen(old) == 0)
         {
             // new session
             insert_new_session_in_db(u);
@@ -496,7 +508,6 @@ int LoginOperation::set_session_info_to_db(struct user_session *u, char *old)
         else
         {
             // old existed session
-            strcpy(old, m_buffer);
             INFO("Will obsolete token(%s)...\n", old);
             overwrite_existed_session_in_db(u);
         }
@@ -515,7 +526,7 @@ int LoginOperation::insert_new_session_in_db(struct user_session *u)
             USERCENTER_SESSION_TBL,
             u->us_cid, u->us_token, u->us_sessionid);
 
-    sql_cmd(sqlcmd, NULL);
+    sql_cmd(sqlcmd, NULL, NULL);
 
     return 0;
 }
@@ -529,7 +540,7 @@ int LoginOperation::overwrite_existed_session_in_db(struct user_session *u)
             USERCENTER_SESSION_TBL, u->us_token,
             u->us_cid, u->us_sessionid);
 
-    sql_cmd(sqlcmd, NULL);
+    sql_cmd(sqlcmd, NULL, NULL);
 
     return 0;
 }

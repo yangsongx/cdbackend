@@ -8,11 +8,12 @@
  */
 #include "AuthOperation.h"
 
-struct auth_data_wrapper AuthOperation::m_AuthWrapper;
+//struct auth_data_wrapper AuthOperation::m_AuthWrapper;
 
-int AuthOperation::cb_token_info_query(MYSQL_RES *mresult)
+int AuthOperation::cb_token_info_query(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
+    struct auth_data_wrapper *data = (struct auth_data_wrapper *)p_extra;
 
     if(mysql_num_rows(mresult) > 1)
     {
@@ -20,8 +21,8 @@ int AuthOperation::cb_token_info_query(MYSQL_RES *mresult)
     }
 
     // set below magic number to indciate error case
-    m_AuthWrapper.adw_cid = -1;
-    m_AuthWrapper.adw_lastlogin = -1;
+    data->adw_cid = -1;
+    data->adw_lastlogin = -1;
 
     row = mysql_fetch_row(mresult);
     if(row != NULL)
@@ -30,12 +31,12 @@ int AuthOperation::cb_token_info_query(MYSQL_RES *mresult)
          * so the column would be 3 */
         if(row[0] != NULL)
         {
-            m_AuthWrapper.adw_cid = atol(row[0]);
+            data->adw_cid = atol(row[0]);
         }
 
         if(row[1] != NULL)
         {
-            m_AuthWrapper.adw_lastlogin = atol(row[1]);
+            data->adw_lastlogin = atol(row[1]);
         }
 
         if(mysql_num_fields(mresult) == 3)
@@ -44,7 +45,7 @@ int AuthOperation::cb_token_info_query(MYSQL_RES *mresult)
             if(row[2] != NULL)
             {
                 // TODO - make sure the 64-byte is enough for session store
-                strncpy(m_AuthWrapper.adw_session, row[2], 64);
+                strncpy(data->adw_session, row[2], 64);
             }
         }
     }
@@ -109,7 +110,7 @@ int AuthOperation::set_token_info_to_db(AuthRequest *reqobj)
             USERCENTER_SESSION_TBL, reqobj->auth_token().c_str());
 
     KPI("Will try update last login DB data(token:%s)...\n", reqobj->auth_token().c_str());
-    ret = sql_cmd(sqlcmd, NULL);
+    ret = sql_cmd(sqlcmd, NULL, NULL);
     if(ret == CDS_OK)
     {
         KPI("Update the DB ... [OK]\n");
@@ -131,6 +132,7 @@ int AuthOperation::get_token_info_from_db(AuthRequest *reqobj, AuthResponse *res
 {
     int ret = -1;
     char sqlcmd[1024];
+    struct auth_data_wrapper wrap; // FIXME actually, we can directly use @w
 
     /* FIXME how can we handle with XMPP AUTH case ? */
     if(is_xmpp_auth(reqobj))
@@ -149,17 +151,18 @@ int AuthOperation::get_token_info_from_db(AuthRequest *reqobj, AuthResponse *res
             USERCENTER_SESSION_TBL, reqobj->auth_token().c_str(), reqobj->auth_session().c_str());
     }
 
-    ret = sql_cmd(sqlcmd, cb_token_info_query);
+    ret = sql_cmd(sqlcmd, cb_token_info_query, &wrap);
     if(ret == CDS_OK)
     {
-        if(m_AuthWrapper.adw_cid == (uint64_t)-1 && m_AuthWrapper.adw_lastlogin == -1)
+        if(wrap.adw_cid == (uint64_t)-1 && wrap.adw_lastlogin == -1)
         {
             ERR("SQL query the %s failed\n", reqobj->auth_token().c_str());
             return CDS_ERR_UMATCH_USER_INFO;
         }
 
         // well, copy the callback's value into the @w parameter
-        memcpy(w, &m_AuthWrapper, sizeof(m_AuthWrapper));
+        // FIXME (2015-04-10) actually, we can directly use @w, no copy needed
+        memcpy(w, &wrap, sizeof(wrap));
     }
 
     return ret;

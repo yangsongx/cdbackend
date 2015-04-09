@@ -29,11 +29,9 @@ int uup_handler(int size, void *req, int *len_resp, void *resp)
 {
     bool ok = false;
     int ret = CDS_OK;
-    UpdateProfileOperation opr;
+    UpdateProfileOperation opr(&g_info);
     UpdateRequest  reqobj;
     UpdateResponse respobj;
-
-    opr.set_conf(&g_info);
 
     if(size >= DATA_BUFFER_SIZE)
     {
@@ -54,6 +52,9 @@ int uup_handler(int size, void *req, int *len_resp, void *resp)
     ok = reqobj.ParseFromCodedStream(&is);
     if(ok)
     {
+#if 1
+        ret = opr.handling_request(&reqobj, &respobj, len_resp, resp);
+#else
     	if (0==check_user_vcode(g_info.m_Sql,&reqobj,&respobj, &g_info))
     	{
             if(is_dup_record(g_info.m_Sql,&reqobj,&respobj, &g_info)!=0)
@@ -90,11 +91,13 @@ int uup_handler(int size, void *req, int *len_resp, void *resp)
             }
     	}
 
+#endif
     }
     else
     {
         ERR("***Failed pare reqobj in protobuf!\n");
-        if(opr.compose_result(CDS_GENERIC_ERROR, "failed parse in protobuf",
+        ret = CDS_GENERIC_ERROR;
+        if(opr.compose_result(ret, "failed parse in protobuf",
                 &respobj, len_resp, resp) != 0)
         {
             ERR("** failed seriliaze for the error case\n");

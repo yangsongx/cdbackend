@@ -1,31 +1,39 @@
+/**
+ *
+ * [2015-04-12] insert a new entry in USERS table need speicify a 'version' field in DB
+ * [2015-04-10] use a new API prototype to avoid use static variable
+ */
 #include "NetdiskOperation.h"
 #include "NetdiskConfig.h"
 
-NetdiskOperation::file_md5_size_t NetdiskOperation::m_md5_size;
+//NetdiskOperation::file_md5_size_t NetdiskOperation::m_md5_size;
 
-int NetdiskOperation::m_cbFlag = 0;
-int NetdiskOperation::m_UserQuota = 0;
-
-int NetdiskOperation::cb_query_quota(MYSQL_RES *p_result)
+int NetdiskOperation::cb_query_quota(MYSQL_RES *p_result, void *p_extra)
 {
     MYSQL_ROW row;
+    struct file_info *data = (struct file_info *) p_extra;
 
-    m_cbFlag = 0;
     row = mysql_fetch_row(p_result);
     if(row != NULL)
     {
-        m_cbFlag = atoi(row[0]);
-        m_UserQuota = atoi(row[1]);
+        if(row[0] != NULL)
+        {
+            data->f_size = atoi(row[0]);
+        }
+
+        if(row[1] != NULL)
+        {
+            data->f_quota = atoi(row[1]);
+        }
     }
 
     return 0;
 }
 
-int NetdiskOperation::cb_query_user_entry(MYSQL_RES *p_result)
+int NetdiskOperation::cb_query_user_entry(MYSQL_RES *p_result, void *p_extra)
 {
     MYSQL_ROW row;
-
-    m_cbFlag = 0;
+    int *data = (int *)p_extra;
 
     row = mysql_fetch_row(p_result);
     if(row != NULL)
@@ -38,16 +46,18 @@ int NetdiskOperation::cb_query_user_entry(MYSQL_RES *p_result)
         if(row[0] != NULL)
         {
             // return the user ID
-            m_cbFlag = atoi(row[0]);
+            *data = atoi(row[0]);
         }
     }
 
     return 0;
 }
 
-int NetdiskOperation::cb_query_file_md5_and_size(MYSQL_RES *p_result)
+int NetdiskOperation::cb_query_file_md5_and_size(MYSQL_RES *p_result, void *p_extra)
 {
     MYSQL_ROW row;
+    struct file_info *data = (struct file_info *) p_extra;
+
     row = mysql_fetch_row(p_result);
     if(row != NULL)
     {
@@ -57,11 +67,11 @@ int NetdiskOperation::cb_query_file_md5_and_size(MYSQL_RES *p_result)
         }
         if(row[0] != NULL)
         {
-            strncpy(m_md5_size.f_md5, row[0], 34);
+            strncpy(data->f_md5, row[0], 34);
         }
         if(row[1] != NULL)
         {
-            m_md5_size.f_size = atoi(row[1]);
+            data->f_size = atoi(row[1]);
         }
     }
     else
@@ -72,9 +82,11 @@ int NetdiskOperation::cb_query_file_md5_and_size(MYSQL_RES *p_result)
     return 0;
 }
 
-int NetdiskOperation::cb_query_netdisk_key(MYSQL_RES *p_result)
+int NetdiskOperation::cb_query_netdisk_key(MYSQL_RES *p_result, void *p_extra)
 {
     MYSQL_ROW row;
+    struct file_info *data = (struct file_info *)p_extra;
+
     row = mysql_fetch_row(p_result);
     if(row != NULL)
     {
@@ -84,7 +96,7 @@ int NetdiskOperation::cb_query_netdisk_key(MYSQL_RES *p_result)
         }
         if(row[0] != NULL)
         {
-            strncpy(m_md5_size.f_md5, row[0], 34);
+            strncpy(data->f_md5, row[0], 34);
         }
     }
     else
@@ -94,18 +106,20 @@ int NetdiskOperation::cb_query_netdisk_key(MYSQL_RES *p_result)
     return 0;
 }
 
-int NetdiskOperation::cb_query_file_md5(MYSQL_RES *p_result)
+int NetdiskOperation::cb_query_file_md5(MYSQL_RES *p_result, void *p_extra)
 {
     MYSQL_ROW row;
+    int *p = (int *)p_extra;
+
     row = mysql_fetch_row(p_result);
 
     if(row != NULL)
     {
-        m_cbFlag = 1;
+        *p = 1;
     }
     else
     {
-        m_cbFlag = 0;
+        *p = 0;
     }
 
     return 0;
@@ -117,12 +131,17 @@ int NetdiskOperation::add_new_user_entry_in_db(NetdiskRequest *p_obj)
     char  sqlcmd[1024];
     NetdiskConfig *cfg = (NetdiskConfig *)m_pCfg;
 
+    // 2015-04-12 add 'version'(default 0), otherwise insertion failed
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "INSERT INTO %s (USER_NAME,USED_SIZE,USER_QUOTA,CREATE_TIME,MODIFY_TIME) "
-            "VALUES (\'%s\',0,%d,NOW(),NOW());",
+            "INSERT INTO %s (USER_NAME,USED_SIZE,USER_QUOTA,CREATE_TIME,MODIFY_TIME,version) "
+            "VALUES (\'%s\',0,%d,NOW(),NOW(),0)",
             NETDISK_USER_TBL, p_obj->user().c_str(), cfg->m_qiniuQuota);
 
-    ret = sql_cmd(sqlcmd, NULL/* INSERT SQL won't get SQL result */);
+    ret = sql_cmd(sqlcmd, NULL/* INSERT SQL won't get SQL result */, NULL);
+    if(ret != CDS_OK)
+    {
+        LOG("SQL cmd:%s\n", sqlcmd);
+    }
 
     return ret;
 }
@@ -137,7 +156,7 @@ int NetdiskOperation::delete_file_info_from_db(NetdiskRequest *p_obj, const char
             "DELETE FROM %s WHERE MD5=\'%s\' AND OWNER=\'%s\'",
             NETDISK_FILE_TBL, md5, p_obj->user().c_str());
 
-    ret = sql_cmd(sqlcmd, NULL);
+    ret = sql_cmd(sqlcmd, NULL, NULL);
 
     return ret;
 }
@@ -151,7 +170,7 @@ int NetdiskOperation::reduce_used_size(NetdiskRequest *p_obj, int size)
             "UPDATE %s SET USED_SIZE=USED_SIZE-%d WHERE OWNER=%s",
             NETDISK_USER_TBL, size, p_obj->user().c_str());
 
-    ret = sql_cmd(sqlcmd, NULL);
+    ret = sql_cmd(sqlcmd, NULL, NULL);
 
     return ret;
 }
@@ -164,7 +183,7 @@ int NetdiskOperation::record_file_info_to_db(NetdiskRequest *p_obj)
     int ret = CDS_OK;
     char sqlcmd[1024];
     char sqlcmd2[1024];
-    int uid; // ID in USERS DB
+    int uid = -1; // ID in USERS DB
     const char *filename = p_obj->filename().c_str();
     const int filesize = p_obj->filesize();
 
@@ -174,23 +193,23 @@ int NetdiskOperation::record_file_info_to_db(NetdiskRequest *p_obj)
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT ID FROM %s WHERE USER_NAME=\'%s\'",
             NETDISK_USER_TBL, p_obj->user().c_str());
-    ret = sql_cmd(sqlcmd, cb_query_user_entry);
-    if(ret == CDS_OK && m_cbFlag > 0)
+    ret = sql_cmd(sqlcmd, cb_query_user_entry, &uid);
+    if(ret == CDS_OK && uid > 0)
     {
         // got the user id
-        uid = m_cbFlag;
 
         snprintf(sqlcmd, sizeof(sqlcmd),
                 "SELECT ISDELETE FROM %s WHERE OWNER=%d AND MD5=\'%s\'",
                 NETDISK_FILE_TBL, uid, p_obj->md5().c_str());
-        ret = sql_cmd(sqlcmd, cb_query_user_entry);
-        if(ret == CDS_OK && m_cbFlag > 0)
+        uid = -1;
+        ret = sql_cmd(sqlcmd, cb_query_user_entry, &uid);
+        if(ret == CDS_OK && uid > 0)
         {
             INFO("an existed file under cur usr, with delete set\n");
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "UPDATE %s SET ISDELETE=0 WHERE OWNER=%d AND MD5=\'%s\'",
                     NETDISK_FILE_TBL, uid, p_obj->md5().c_str());
-            ret = sql_cmd(sqlcmd, NULL);
+            ret = sql_cmd(sqlcmd, NULL, NULL);
             if(ret == CDS_OK)
             {
                 INFO("UPDATE the exsited file flag OK\n");
@@ -232,16 +251,18 @@ int NetdiskOperation::preprocess_upload_req(NetdiskRequest *p_obj)
 {
     int ret = CDS_OK;
     char sqlcmd[1024];
+    int i;
 
     // 1 - First, check if user is a new netdisk users...
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT ID FROM %s WHERE USER_NAME=\'%s\'",
             NETDISK_USER_TBL, p_obj->user().c_str());
 
-    ret = sql_cmd(sqlcmd, cb_query_user_entry); // cb's flag set 0 means new user
+    i = 0;
+    ret = sql_cmd(sqlcmd, cb_query_user_entry, &i); // cb's flag set 0 means new user
     if(ret == CDS_OK)
     {
-        if(m_cbFlag == 0)
+        if(i == 0)
         {
         // this is the first-time of User's netdisk request,
         // add the new entry point in DB
@@ -269,8 +290,9 @@ int NetdiskOperation::preprocess_upload_req(NetdiskRequest *p_obj)
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT ID FROM %s WHERE MD5=\'%s\'",
             NETDISK_FILE_TBL, p_obj->md5().c_str());
-    ret = sql_cmd(sqlcmd, cb_query_file_md5); //cb's flage set 1 means existed
-    if(m_cbFlag == 1)
+    i = 0;
+    ret = sql_cmd(sqlcmd, cb_query_file_md5, &i); //i flag set 1 means existed
+    if(i == 1)
     {
         INFO("An already existed file, just add entry in DB, no need to upload to Qiniu at all\n");
         ret = record_file_info_to_db(p_obj);
@@ -282,16 +304,17 @@ int NetdiskOperation::preprocess_upload_req(NetdiskRequest *p_obj)
             "SELECT USED_SIZE,USER_QUOTA FROM %s WHERE USER_NAME=\'%s\'",
             NETDISK_USER_TBL, p_obj->user().c_str());
 
-    ret = sql_cmd(sqlcmd, cb_query_quota);
+    struct file_info qinfo;
+    ret = sql_cmd(sqlcmd, cb_query_quota, &qinfo);
     if(ret == CDS_OK)
     {
         // here m_cbFlag store used size by the user
         NetdiskConfig *cfg = (NetdiskConfig *)m_pCfg;
         LOG("used size=%d, file size=%d, user quota=%d, max quota=%d\n",
-               m_cbFlag, p_obj->filesize(), m_UserQuota, cfg->m_qiniuQuota);
+               qinfo.f_size, p_obj->filesize(), qinfo.f_quota, cfg->m_qiniuQuota);
         /* FIXME We compare with User QUOTA, not the value in Cfg xml,
          * in case we can specify different user with different quota */
-        if((m_cbFlag + p_obj->filesize()) >= m_UserQuota)
+        if((qinfo.f_size + p_obj->filesize()) >= qinfo.f_quota)
         {
             ret = CDS_ERR_EXCEED_QUOTA;
         }
@@ -606,17 +629,18 @@ int NetdiskOperation::map_file_to_md5_and_size(NetdiskRequest *p_obj, char *p_md
 {
     int ret = -1;
     char sqlcmd[256];
+    struct file_info info;
 
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT MD5,SIZE FROM %s WHERE FILENAME=\'%s\' AND OWNER=%lu;",
+            "SELECT MD5,SIZE FROM %s WHERE FILENAME=\'%s\' AND OWNER=\'%s\'",
             NETDISK_FILE_TBL, p_obj->filename().c_str(), p_obj->user().c_str());
 
-    ret = sql_cmd(sqlcmd, cb_query_file_md5_and_size);
+    ret = sql_cmd(sqlcmd, cb_query_file_md5_and_size, &info);
     if(ret == CDS_OK)
     {
         /* After exe SQL OK, target stored in m_md5_size variable */
-        strncpy(p_md5, m_md5_size.f_md5, len_md5);
-        *p_size = m_md5_size.f_size;
+        strncpy(p_md5, info.f_md5, len_md5);
+        *p_size = info.f_size;
     }
     else
     {
@@ -634,15 +658,16 @@ int NetdiskOperation::get_netdisk_key(NetdiskRequest *p_obj, char *p_result)
 {
     int ret = CDS_OK;
     char sqlcmd[1024];
+    struct file_info info;
 
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT MD5 FROM %s WHERE OWNER=\'%s\' AND FILENAME=\'%s\';",
             NETDISK_FILE_TBL, p_obj->user().c_str(), p_obj->filename().c_str());
 
-    ret = sql_cmd(sqlcmd, cb_query_netdisk_key);
+    ret = sql_cmd(sqlcmd, cb_query_netdisk_key, &info);
     if(ret == CDS_OK)
     {
-        strcpy(p_result, m_md5_size.f_md5);
+        strcpy(p_result, info.f_md5);
     }
 
     return ret;

@@ -1,19 +1,20 @@
 #include "ActivateOperation.h"
 
 // 0 means failed pass the verify, 1 means pass
-int ActivateOperation::m_verify_result = 0;
-uint64_t ActivateOperation::m_cid = -1;
+//int ActivateOperation::m_verify_result = 0;
+//uint64_t ActivateOperation::m_cid = -1;
 
-int ActivateOperation::cb_verify_code(MYSQL_RES *mresult)
+int ActivateOperation::cb_verify_code(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
+    int *data = (int *)p_extra;
 
     if(!mresult)
     {
         return -1;
     }
 
-    m_verify_result = 0;
+    *data = 0;
 
     row = mysql_fetch_row(mresult);
     if(row != NULL)
@@ -24,7 +25,7 @@ int ActivateOperation::cb_verify_code(MYSQL_RES *mresult)
         }
 
         LOG("pass, need update the status falg in DB\n");
-        m_verify_result = 1;
+        *data = 1;
     }
 
     return 0;
@@ -33,12 +34,13 @@ int ActivateOperation::cb_verify_code(MYSQL_RES *mresult)
 
 /**
  *
- * In this callback, the m_verify_result act as CDS_XXX constant,
+ * In this callback, the @p_extra act as CDS_XXX constant,
  * which store the further of why code failure.
  */
-int ActivateOperation::cb_check_code_failure(MYSQL_RES *mresult)
+int ActivateOperation::cb_check_code_failure(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
+    int *data = (int *)p_extra;
 
     if(!mresult)
     {
@@ -49,26 +51,27 @@ int ActivateOperation::cb_check_code_failure(MYSQL_RES *mresult)
     if(row != NULL)
     {
         LOG("the code is expired\n");
-        m_verify_result = CDS_ERR_CODE_EXPIRED;
+        *data = CDS_ERR_CODE_EXPIRED;
     }
     else
     {
-        m_verify_result = CDS_ERR_INCORRECT_CODE;
+        *data = CDS_ERR_INCORRECT_CODE;
     }
 
     return 0;
 }
 
-int ActivateOperation::cb_get_cid(MYSQL_RES *mresult)
+int ActivateOperation::cb_get_cid(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
+    uint64_t *data = (uint64_t *)p_extra;
+
+    *data = (uint64_t)-1;
 
     if(!mresult)
     {
         return -1;
     }
-
-    m_cid = (uint64_t)-1;
 
     row = mysql_fetch_row(mresult);
     if(row != NULL)
@@ -80,7 +83,7 @@ int ActivateOperation::cb_get_cid(MYSQL_RES *mresult)
 
         if(row[0] != NULL)
         {
-            m_cid = atol(row[0]);
+            *data = atol(row[0]);
         }
     }
 
@@ -90,6 +93,7 @@ int ActivateOperation::cb_get_cid(MYSQL_RES *mresult)
 int ActivateOperation::verify_activation_code(ActivateRequest *reqobj, ActivateResponse *respobj)
 {
     int ret = CDS_OK;
+    int flag = 0; // 1 means pass
     char sqlcmd[1024];
 
     switch(reqobj->activate_type())
@@ -116,10 +120,10 @@ int ActivateOperation::verify_activation_code(ActivateRequest *reqobj, ActivateR
             break;
     }
 
-    ret = sql_cmd(sqlcmd, cb_verify_code);
+    ret = sql_cmd(sqlcmd, cb_verify_code, &flag);
     if(ret == CDS_OK)
     {
-        if(m_verify_result == 1)
+        if(flag == 1)
         {
             // as pass, set status be "activated"(1)
             ret = set_user_status_flag_to_db(reqobj, respobj);
@@ -173,10 +177,11 @@ int ActivateOperation::check_further_code_correctness(ActivateRequest *reqobj)
             break;
     }
 
-    ret = sql_cmd(sqlcmd, cb_check_code_failure);
+    int flag = 0;
+    ret = sql_cmd(sqlcmd, cb_check_code_failure, &flag);
     if(ret == CDS_OK)
     {
-        further_failure = m_verify_result;
+        further_failure = flag;
     }
 
     return further_failure;
@@ -186,6 +191,7 @@ int ActivateOperation::get_user_cid_from_db(ActivateRequest *reqobj, ActivateRes
 {
     int ret;
     char sqlcmd[1024];
+    uint64_t cid;
 
     switch(reqobj->activate_type())
     {
@@ -209,11 +215,11 @@ int ActivateOperation::get_user_cid_from_db(ActivateRequest *reqobj, ActivateRes
             break;
     }
 
-    ret = sql_cmd(sqlcmd, cb_get_cid);
+    ret = sql_cmd(sqlcmd, cb_get_cid, &cid);
     if(ret == CDS_OK)
     {
-        INFO("get the \'%s\' CID as %lu\n", reqobj->activate_name().c_str(), m_cid);
-        respobj->set_caredear_id(m_cid);
+        INFO("get the \'%s\' CID as %lu\n", reqobj->activate_name().c_str(), cid);
+        respobj->set_caredear_id(cid);
     }
 
     return ret;
@@ -246,7 +252,7 @@ int ActivateOperation::set_user_status_flag_to_db(ActivateRequest *reqobj, Activ
             break;
     }
 
-    ret = sql_cmd(sqlcmd, NULL);
+    ret = sql_cmd(sqlcmd, NULL, NULL);
     if(ret == CDS_OK)
     {
         INFO("Set the \'%s\' with active flag [OK]\n",

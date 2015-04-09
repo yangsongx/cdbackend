@@ -1,36 +1,37 @@
 /**
  *
  * \history
+ * [2015-04-10] correct verify code update logic
  * [2015-04-08] Refractor the code be consistent with all service modules
  */
 #include "VerifyCodeOperation.h"
 
-uint64_t VerifyCodeOperation::m_Cid;
-int VerifyCodeOperation::m_result;
 
-int VerifyCodeOperation::cb_get_cid(MYSQL_RES *mresult)
+int VerifyCodeOperation::cb_get_cid(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
+    uint64_t *data = (uint64_t *)p_extra;
 
-    m_Cid = (uint64_t) -1;
+    *data = (uint64_t) -1;
 
     row = mysql_fetch_row(mresult);
     if(row != NULL)
     {
         if(row[0] != NULL)
         {
-            m_Cid = atol(row[0]);
+            *data = atol(row[0]);
         }
     }
 
     return 0;
 }
 
-int VerifyCodeOperation::cb_check_passwd(MYSQL_RES *mresult)
+int VerifyCodeOperation::cb_check_passwd(MYSQL_RES *mresult, void *p_extra)
 {
     MYSQL_ROW row;
+    int *data = (int *)p_extra;
 
-    m_result = 0;
+    *data = 0;
     if(!mresult)
     {
         return -1;
@@ -44,7 +45,7 @@ int VerifyCodeOperation::cb_check_passwd(MYSQL_RES *mresult)
         {
             INFO("Warning, CID matching returned multiple result, please check the DB!\n");
         }
-        m_result = 1;
+        *data = 1;
     }
 
     return 0;
@@ -61,12 +62,12 @@ int VerifyCodeOperation::record_code_to_db(VerifyRequest *reqobj, const char *co
 
     snprintf(sqlcmd, sizeof(sqlcmd),
             "UPDATE %s SET accode=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
-            "WHERE id=(SELECT caredearid FROM %s WHERE ticket=\'%s\')",
+            "WHERE id=\'%s\'",
             USERCENTER_MAIN_TBL, code, ((VerifyCodeConfig *)m_pCfg)->m_iMobileVerifyExpir,
-            USERCENTER_SESSION_TBL, reqobj->ticket().c_str());
+            reqobj->ticket().c_str()); // TODO, heqi use ticket name, but actually is CID
 
-    ret = sql_cmd(sqlcmd, NULL);
-
+    ret = sql_cmd(sqlcmd, NULL, NULL);
+printf("the sql cmd:%s\n", sqlcmd);
     return ret;
 }
 
@@ -75,29 +76,30 @@ int VerifyCodeOperation::check_password(VerifyRequest *reqobj, VerifyResponse *r
     uint64_t cid;
     int ret;
     char sqlcmd[1024];
+    int flag = 0;
 
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT caredearid FROM %s WHERE ticket=\'%s\'",
             USERCENTER_SESSION_TBL, reqobj->ticket().c_str());
 
-    ret = sql_cmd(sqlcmd, cb_get_cid);
+    ret = sql_cmd(sqlcmd, cb_get_cid, &cid);
     if(ret == CDS_OK)
     {
-        if(m_Cid != (uint64_t) -1)
+        if(cid != (uint64_t) -1)
         {
             //here the m_Cid store target user's ID
             char tmpdata[64];
             char md5data[64];
             snprintf(tmpdata, sizeof(tmpdata),
-                    "%s%lu", reqobj->has_passwd() ? reqobj->passwd().c_str() : "", m_Cid);
+                    "%s%lu", reqobj->has_passwd() ? reqobj->passwd().c_str() : "", cid);
             get_md5(tmpdata, strlen(tmpdata), md5data);
             // compare with DB
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "SELECT id FROM %s WHERE id=%lu AND loginpassword=\'%s\'",
-                    USERCENTER_MAIN_TBL, m_Cid, md5data);
+                    USERCENTER_MAIN_TBL, cid, md5data);
 
-            ret = sql_cmd(sqlcmd, cb_check_passwd);
-            if(ret == CDS_OK && m_result == 1)
+            ret = sql_cmd(sqlcmd, cb_check_passwd, &flag);
+            if(ret == CDS_OK && flag == 1)
             {
                 INFO("User's password is correct\n");
                 ret = CDS_OK;

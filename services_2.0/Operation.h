@@ -3,6 +3,7 @@
  * DB or memcached.
  *
  * \history
+ * [2015-04-10] Let SQL command support extra parameter, which would avoid using static variable in caller
  * [2015-04-01] Try fix the SQL time-out reconnecting BUG
  */
 #ifndef _COM_CDS_OPERATION_H
@@ -25,14 +26,14 @@
 
 using namespace com::caredear;
 
-typedef int (*cb_sqlfunc)(MYSQL_RES *p_result);
+typedef int (*cb_sqlfunc)(MYSQL_RES *p_result, void *p_extra);
 
 namespace com{
 namespace caredear{
 
 
     class Operation {
-            int execute_sql(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb);
+            int execute_sql(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb, void *p_extra);
 
         public:
             Config  *m_pCfg;
@@ -50,10 +51,10 @@ namespace caredear{
             char *get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas);
             int  rm_mem_value(const char *key);
 
-            int sql_cmd(const char *cmd, cb_sqlfunc sql_cb);
+            int sql_cmd(const char *cmd, cb_sqlfunc sql_cb, void *p_extra);
             int sql_cmd_via_transaction(int argc, char **argv, cb_sqlfunc sql_cb);
 
-            int sql_cmd_with_specify_server(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb);
+            int sql_cmd_with_specify_server(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb, void *p_extra);
 
             /* each component's xxxOpr need override this API */
             virtual int handling_request(::google::protobuf::Message *reqobj,

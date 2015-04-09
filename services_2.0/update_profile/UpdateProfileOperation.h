@@ -6,22 +6,41 @@
 
 #include "UpdateProfile.pb.h"
 #include "UpdateProfileConfig.h"
-
+#include "Operation.h"
 
 using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
-class UpdateProfileOperation {
+class UpdateProfileOperation : public com::caredear::Operation {
 
-    UpdateProfileConfig *m_cfgInfo;
+    static int cb_check_code(MYSQL_RES *mresult, void *p_extra);
 
-    //int update_usercenter_session(LoginRequest *reqobj, struct user_session *u);
+    int add_user_mobile_phone(UpdateRequest *reqobj);
+
+    int add_user_password(UpdateRequest *reqobj);
+    int add_user_name(UpdateRequest *reqobj);
+    int pass_code_verify(UpdateRequest *reqobj);
+    int unique_record(UpdateRequest *reqobj);
+    int add_user_email(UpdateRequest *reqobj);
 
 public:
-    int set_conf(UpdateProfileConfig *c);
-    int compose_result(int code, const char *errmsg, UpdateResponse *p_obj, int *p_resplen, void *p_respdata);
-   // int check_user_vcode(MYSQL *ms, UpdateRequest *reqobj, UpdateResponse *respobj, UpdateProfileConfig *config);
+    UpdateProfileOperation(){
+    }
+
+    UpdateProfileOperation(Config *c) : Operation(c) {
+    }
+
+    virtual int handling_request(::google::protobuf::Message *reg_req,
+            ::google::protobuf::Message *reg_resp,
+            int *len_resp,
+            void *resp);
+
+    virtual int compose_result(int code, const char *errmsg,
+            ::google::protobuf::Message *obj,
+            int *p_resplen,
+            void *p_respdata);
+
 };
 
 #endif

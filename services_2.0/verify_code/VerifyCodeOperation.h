@@ -18,10 +18,10 @@ using namespace google::protobuf::io;
 
 class VerifyCodeOperation : public com::caredear::Operation {
 
-    static uint64_t m_Cid;
-    static int m_result;
-    static int cb_get_cid(MYSQL_RES *mresult);
-    static int cb_check_passwd(MYSQL_RES *mresult);
+    //static uint64_t m_Cid;
+    //static int m_result;
+    static int cb_get_cid(MYSQL_RES *mresult, void *p_extra);
+    static int cb_check_passwd(MYSQL_RES *mresult, void *p_extra);
 
     int gen_verifycode(VerifyRequest *reqobj, VerifyResponse *respobj);
     int check_password(VerifyRequest *reqobj, VerifyResponse *respobj);

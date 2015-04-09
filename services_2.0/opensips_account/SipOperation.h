@@ -12,11 +12,14 @@ using namespace google::protobuf::io;
 
 class SipOperation : public com::caredear::Operation
 {
-    static uint64_t m_cid;
-    static int cb_get_cid(MYSQL_RES *mresult);
+    struct sips_info{
+        uint64_t s_cid;
+        char s_token[512];
+    };
 
-    static char m_token[512];
-    static int cb_get_token(MYSQL_RES *mresult);
+    static int cb_get_cid(MYSQL_RES *mresult, void *p_extra);
+    static int cb_get_token(MYSQL_RES *mresult, void *p_extra);
+
 public:
     SipOperation() {
     }

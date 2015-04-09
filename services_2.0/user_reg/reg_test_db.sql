@@ -3,6 +3,7 @@ DELETE FROM uc_passport WHERE email='ilovecss@email.com' OR username='ilovecss@e
 DELETE FROM uc_passport WHERE username='a_name' OR username='b_name';
 DELETE FROM uc_passport WHERE username='abcdefghijklmnopqr';
 DELETE FROM uc_passport WHERE email='499528974@qq.com';
+DELETE FROM uc_passport WHERE email='a_name';
 DELETE FROM uc_passport WHERE email='active@mail.com';
 DELETE FROM uc_passport WHERE usermobile='13022593515' OR usermobile='13022593516' OR usermobile='13022593517';
 DELETE FROM uc_passport WHERE usermobile='17705164171' OR usermobile='18911112222';

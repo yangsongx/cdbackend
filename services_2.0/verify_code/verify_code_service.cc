@@ -19,8 +19,6 @@ using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
-/* TODO obsoleted this soon... */
-pthread_mutex_t  vcs_mutex;
 VerifyCodeConfig  g_info;
 
 
@@ -52,6 +50,7 @@ int vcs_handler(int size, void *req, int *len_resp, void *resp)
     if(ok)
     {
 #if 1
+        INFO("incoming type=%d:\n", reqobj.type());
         ret = opr.handling_request(&reqobj, &respobj, len_resp, resp);
 #else
         char verifycode[12] = {'8'};
@@ -97,11 +96,6 @@ int main(int argc, char **argv)
     if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {
         ERR("*** Warning Failed init the whole service!\n");
-    }
-
-    if(pthread_mutex_init(&vcs_mutex, NULL) != 0)
-    {
-       ERR("*** Warning, failed create mutex IPC objs:%d\n", errno);
     }
 
     cfg.ac_cfgfile = NULL;
