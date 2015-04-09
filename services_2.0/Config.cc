@@ -1,9 +1,12 @@
 /**
- * Base class for all services' config, which main job is prepare
- * SQL, memcache related info based on a config file.
+ * Base class for all services' config, whose main job is prepare
+ * SQL, memcache related info, based on a config file.
  *
  * \history
- * [2015-4-8] Let MySQL support UTF-8, as we need Chinese Character
+ * [2015-04-09] call mysql_set_character_set() after connection,
+ *              to make it consistent with MySQL dev doc.
+ *              (http://dev.mysql.com/doc/refman/5.5/en/mysql-set-character-set.html)
+ * [2015-04-08] Let MySQL support UTF-8, as we need Chinese Character
  */
 #include "Config.h"
 #include <errmsg.h>
@@ -22,9 +25,6 @@ MYSQL *Config::conn_to_mysql(const char *ip, const char *usr, const char *passwd
 
         mysql_options(s, MYSQL_OPT_READ_TIMEOUT, &m_iSqlRdTimeout);
         mysql_options(s, MYSQL_OPT_WRITE_TIMEOUT, &m_iSqlWtTimeout);
-        //
-        // 2015-4-8 need support UTF-8
-        mysql_set_character_set(s, "utf8");
 
         if(!mysql_real_connect(s, ip,
                     usr,
@@ -42,9 +42,17 @@ MYSQL *Config::conn_to_mysql(const char *ip, const char *usr, const char *passwd
         else
         {
             INFO("Connecting to MySQL ... [OK]\n");
+
+            if(!mysql_set_character_set(s, "utf8"))
+            {
+                ERR("Warning , set UTF-8 failed\n");
+            }
+            else
+            {
+                INFO("Set SQL character set as UTF-8 [OK]\n");
+            }
         }
 
-        // TODO see not in the header
         if(pthread_mutex_init(&m_SqlMutex, NULL) != 0)
         {
             ERR("*** Warning, failed create mutex IPC objs:%d\n", errno);

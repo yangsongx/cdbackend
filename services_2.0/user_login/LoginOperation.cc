@@ -1,7 +1,8 @@
 /**
  *
  * \history
- * [2015-4-8] Use the same md5 hash algorithm as ShenZhen's
+ * [2015-04-09] Fix the update token bug(table name incorrect)
+ * [2015-04-08] Use the same md5 hash algorithm as ShenZhen's
  */
 #include "LoginOperation.h"
 
@@ -64,7 +65,7 @@ int LoginOperation::cb_check_accode(MYSQL_RES *mresult)
 {
     MYSQL_ROW row;
 
-    m_result = 0;
+    m_result = -1;
 
     if(!mresult)
     {
@@ -444,8 +445,6 @@ int LoginOperation::compare_user_password_wth_cid(LoginRequest *reqobj, const ch
         INFO("the compare result:%d\n", compare_result);
     }
 
-
-
     return compare_result;
 }
 
@@ -481,9 +480,10 @@ int LoginOperation::set_session_info_to_db(struct user_session *u, char *old)
 
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT ticket FROM %s WHERE caredearid=%lu AND session=\'%s\'",
-            USERCENTER_MAIN_TBL, u->us_cid, u->us_sessionid);
+            USERCENTER_SESSION_TBL, u->us_cid, u->us_sessionid);
 
 
+    old[0] = '\0';
     ret = sql_cmd(sqlcmd, cb_wr_db_session);
     if(ret == CDS_OK)
     {
@@ -526,7 +526,7 @@ int LoginOperation::overwrite_existed_session_in_db(struct user_session *u)
 
     snprintf(sqlcmd, sizeof(sqlcmd),
             "UPDATE %s SET ticket=\'%s\',lastoperatetime=NOW() WHERE caredearid=%ld AND session=\'%s\'",
-            USERCENTER_MAIN_TBL, u->us_token,
+            USERCENTER_SESSION_TBL, u->us_token,
             u->us_cid, u->us_sessionid);
 
     sql_cmd(sqlcmd, NULL);

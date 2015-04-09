@@ -95,11 +95,17 @@ int VerifyCodeOperation::check_password(VerifyRequest *reqobj, VerifyResponse *r
             snprintf(sqlcmd, sizeof(sqlcmd),
                     "SELECT id FROM %s WHERE id=%lu AND loginpassword=\'%s\'",
                     USERCENTER_MAIN_TBL, m_Cid, md5data);
+
             ret = sql_cmd(sqlcmd, cb_check_passwd);
             if(ret == CDS_OK && m_result == 1)
             {
                 INFO("User's password is correct\n");
                 ret = CDS_OK;
+            }
+            else
+            {
+                // all others should be considered as incorrect password
+                ret = CDS_ERR_INCORRECT_CODE;
             }
         }
         else

@@ -112,6 +112,11 @@ int Operation::set_mem_value_with_cas(const char *key, const char *value, uint32
     return rc;
 }
 
+/**
+ * TODO I think this API should use memcached_return_t, not int, for
+ * return value
+ *
+ */
 int Operation::rm_mem_value(const char *key)
 {
     memcached_return_t rc;

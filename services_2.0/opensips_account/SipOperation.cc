@@ -90,7 +90,7 @@ int SipOperation::handling_request(::google::protobuf::Message *p_obj, ::google:
             "SELECT caredearid,ticket FROM %s WHERE session=\'%s\'",
             USERCENTER_SESSION_TBL, reqobj->session().c_str());
     ret = sql_cmd(sqlcmd, cb_get_token);
-    if(ret == CDS_OK)
+    if(ret == CDS_OK && m_cid != (uint64_t) -1)
     {
         if(cid != m_cid)
         {
@@ -98,8 +98,14 @@ int SipOperation::handling_request(::google::protobuf::Message *p_obj, ::google:
                     cid, m_cid);
         }
 
+        INFO("%s  =====> %s\n", reqobj->user_name().c_str(), m_token);
         // set the token, even above cid mis-match happen
         respobj->set_user_credential(m_token);
+    }
+    else
+    {
+        ERR("error found when choosing token(ret:%d), set a error resule code\n", ret);
+        ret = CDS_ERR_UMATCH_USER_INFO;
     }
 
     if(compose_result(ret, NULL, p_ndr, len_resp, resp) != 0)
