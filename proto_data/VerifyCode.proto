@@ -2,20 +2,21 @@
 
 package com.caredear;
 
-enum Updatetype{
+enum VerifyType{
     MOBILE_PHONE = 0;
     EMAIL = 1;
     OTHERS = 2;
+    CHECK_PASSWD_VALIDATION = 3; // required by ShenZhen, to check the passwd is correct or not
 }
 
-message UpdateRequest{
-    required Updatetype reg_type = 1;  //
-    required string     reg_ticket = 2;
-    optional string     reg_value = 3;  //
+message VerifyRequest{
+    required VerifyType type = 1;  //
+    required string     ticket = 2;
+    optional string     passwd = 3;  // only available for VerifyType::CHECK_PASSWD_VALIDATION
 }
 
 // FIXME - result code be consistent with Web defination?
-message UpdateResponse{
+message VerifyResponse{
     required int32 result_code = 1; //CDS_XXX error code
     optional string extra_msg = 2;
 }

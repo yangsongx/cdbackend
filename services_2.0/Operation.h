@@ -81,6 +81,37 @@ namespace caredear{
                 /* currently always return 0 */
                 return 0;
             }
+
+            /* this is creating a random code based on uuid */
+            static int gen_random_code(char *result) {
+                char a[2];
+                uuid_t id;
+                char a1,a2,a3,a4,a5,a6;
+
+                uuid_generate(id);
+
+                // extract first-two and last-one digit hex as verifiy code
+                *(unsigned short *) a  = (unsigned short )(id[0] << 16 | id[1] << 8 | id[15]);
+
+                a1 = (a[0] & 0x0F);
+                a2 = ((a[0] & 0xF0) >> 4);
+                a3 = (a[1] & 0x0F);
+                a4 = ((a[1] & 0xF0) >> 4);
+                a5 = (a[2] & 0x0F);
+                a6 = ((a[2] & 0xF0) >> 4);
+
+
+                sprintf(result, "%c%c%c%c%c%c",
+                     a1 > 9 ? (a1 - 6) + 0x30 : a1 + 0x30,
+                     a2 > 9 ? (a2 - 6) + 0x30  : a2 + 0x30,
+                     a3 > 9 ? (a3 - 6) +0x30 : a3 + 0x30,
+                     a4 > 9 ? (a4 - 6) + 0x30 : a4 + 0x30,
+                     a5 > 9 ? (a5 - 6) +0x30 : a5 + 0x30,
+                     a6 > 9 ? (a6 - 6) + 0x30 : a6 + 0x30
+                );
+
+                return *(int *) a;
+            }
     };
 }
 }

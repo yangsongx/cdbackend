@@ -35,39 +35,40 @@ void  protobuf_AddDesc_VerifyCode_2eproto();
 void protobuf_AssignDesc_VerifyCode_2eproto();
 void protobuf_ShutdownFile_VerifyCode_2eproto();
 
-class UpdateRequest;
-class UpdateResponse;
+class VerifyRequest;
+class VerifyResponse;
 
-enum Updatetype {
+enum VerifyType {
   MOBILE_PHONE = 0,
   EMAIL = 1,
-  OTHERS = 2
+  OTHERS = 2,
+  CHECK_PASSWD_VALIDATION = 3
 };
-bool Updatetype_IsValid(int value);
-const Updatetype Updatetype_MIN = MOBILE_PHONE;
-const Updatetype Updatetype_MAX = OTHERS;
-const int Updatetype_ARRAYSIZE = Updatetype_MAX + 1;
+bool VerifyType_IsValid(int value);
+const VerifyType VerifyType_MIN = MOBILE_PHONE;
+const VerifyType VerifyType_MAX = CHECK_PASSWD_VALIDATION;
+const int VerifyType_ARRAYSIZE = VerifyType_MAX + 1;
 
-const ::google::protobuf::EnumDescriptor* Updatetype_descriptor();
-inline const ::std::string& Updatetype_Name(Updatetype value) {
+const ::google::protobuf::EnumDescriptor* VerifyType_descriptor();
+inline const ::std::string& VerifyType_Name(VerifyType value) {
   return ::google::protobuf::internal::NameOfEnum(
-    Updatetype_descriptor(), value);
+    VerifyType_descriptor(), value);
 }
-inline bool Updatetype_Parse(
-    const ::std::string& name, Updatetype* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<Updatetype>(
-    Updatetype_descriptor(), name, value);
+inline bool VerifyType_Parse(
+    const ::std::string& name, VerifyType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<VerifyType>(
+    VerifyType_descriptor(), name, value);
 }
 // ===================================================================
 
-class UpdateRequest : public ::google::protobuf::Message {
+class VerifyRequest : public ::google::protobuf::Message {
  public:
-  UpdateRequest();
-  virtual ~UpdateRequest();
+  VerifyRequest();
+  virtual ~VerifyRequest();
 
-  UpdateRequest(const UpdateRequest& from);
+  VerifyRequest(const VerifyRequest& from);
 
-  inline UpdateRequest& operator=(const UpdateRequest& from) {
+  inline VerifyRequest& operator=(const VerifyRequest& from) {
     CopyFrom(from);
     return *this;
   }
@@ -81,17 +82,17 @@ class UpdateRequest : public ::google::protobuf::Message {
   }
 
   static const ::google::protobuf::Descriptor* descriptor();
-  static const UpdateRequest& default_instance();
+  static const VerifyRequest& default_instance();
 
-  void Swap(UpdateRequest* other);
+  void Swap(VerifyRequest* other);
 
   // implements Message ----------------------------------------------
 
-  UpdateRequest* New() const;
+  VerifyRequest* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const UpdateRequest& from);
-  void MergeFrom(const UpdateRequest& from);
+  void CopyFrom(const VerifyRequest& from);
+  void MergeFrom(const VerifyRequest& from);
   void Clear();
   bool IsInitialized() const;
 
@@ -113,70 +114,70 @@ class UpdateRequest : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required .com.caredear.Updatetype reg_type = 1;
-  inline bool has_reg_type() const;
-  inline void clear_reg_type();
-  static const int kRegTypeFieldNumber = 1;
-  inline ::com::caredear::Updatetype reg_type() const;
-  inline void set_reg_type(::com::caredear::Updatetype value);
+  // required .com.caredear.VerifyType type = 1;
+  inline bool has_type() const;
+  inline void clear_type();
+  static const int kTypeFieldNumber = 1;
+  inline ::com::caredear::VerifyType type() const;
+  inline void set_type(::com::caredear::VerifyType value);
 
-  // required string reg_ticket = 2;
-  inline bool has_reg_ticket() const;
-  inline void clear_reg_ticket();
-  static const int kRegTicketFieldNumber = 2;
-  inline const ::std::string& reg_ticket() const;
-  inline void set_reg_ticket(const ::std::string& value);
-  inline void set_reg_ticket(const char* value);
-  inline void set_reg_ticket(const char* value, size_t size);
-  inline ::std::string* mutable_reg_ticket();
-  inline ::std::string* release_reg_ticket();
-  inline void set_allocated_reg_ticket(::std::string* reg_ticket);
+  // required string ticket = 2;
+  inline bool has_ticket() const;
+  inline void clear_ticket();
+  static const int kTicketFieldNumber = 2;
+  inline const ::std::string& ticket() const;
+  inline void set_ticket(const ::std::string& value);
+  inline void set_ticket(const char* value);
+  inline void set_ticket(const char* value, size_t size);
+  inline ::std::string* mutable_ticket();
+  inline ::std::string* release_ticket();
+  inline void set_allocated_ticket(::std::string* ticket);
 
-  // optional string reg_value = 3;
-  inline bool has_reg_value() const;
-  inline void clear_reg_value();
-  static const int kRegValueFieldNumber = 3;
-  inline const ::std::string& reg_value() const;
-  inline void set_reg_value(const ::std::string& value);
-  inline void set_reg_value(const char* value);
-  inline void set_reg_value(const char* value, size_t size);
-  inline ::std::string* mutable_reg_value();
-  inline ::std::string* release_reg_value();
-  inline void set_allocated_reg_value(::std::string* reg_value);
+  // optional string passwd = 3;
+  inline bool has_passwd() const;
+  inline void clear_passwd();
+  static const int kPasswdFieldNumber = 3;
+  inline const ::std::string& passwd() const;
+  inline void set_passwd(const ::std::string& value);
+  inline void set_passwd(const char* value);
+  inline void set_passwd(const char* value, size_t size);
+  inline ::std::string* mutable_passwd();
+  inline ::std::string* release_passwd();
+  inline void set_allocated_passwd(::std::string* passwd);
 
-  // @@protoc_insertion_point(class_scope:com.caredear.UpdateRequest)
+  // @@protoc_insertion_point(class_scope:com.caredear.VerifyRequest)
  private:
-  inline void set_has_reg_type();
-  inline void clear_has_reg_type();
-  inline void set_has_reg_ticket();
-  inline void clear_has_reg_ticket();
-  inline void set_has_reg_value();
-  inline void clear_has_reg_value();
+  inline void set_has_type();
+  inline void clear_has_type();
+  inline void set_has_ticket();
+  inline void clear_has_ticket();
+  inline void set_has_passwd();
+  inline void clear_has_passwd();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
-  ::std::string* reg_ticket_;
-  ::std::string* reg_value_;
-  int reg_type_;
+  ::std::string* ticket_;
+  ::std::string* passwd_;
+  int type_;
   friend void  protobuf_AddDesc_VerifyCode_2eproto();
   friend void protobuf_AssignDesc_VerifyCode_2eproto();
   friend void protobuf_ShutdownFile_VerifyCode_2eproto();
 
   void InitAsDefaultInstance();
-  static UpdateRequest* default_instance_;
+  static VerifyRequest* default_instance_;
 };
 // -------------------------------------------------------------------
 
-class UpdateResponse : public ::google::protobuf::Message {
+class VerifyResponse : public ::google::protobuf::Message {
  public:
-  UpdateResponse();
-  virtual ~UpdateResponse();
+  VerifyResponse();
+  virtual ~VerifyResponse();
 
-  UpdateResponse(const UpdateResponse& from);
+  VerifyResponse(const VerifyResponse& from);
 
-  inline UpdateResponse& operator=(const UpdateResponse& from) {
+  inline VerifyResponse& operator=(const VerifyResponse& from) {
     CopyFrom(from);
     return *this;
   }
@@ -190,17 +191,17 @@ class UpdateResponse : public ::google::protobuf::Message {
   }
 
   static const ::google::protobuf::Descriptor* descriptor();
-  static const UpdateResponse& default_instance();
+  static const VerifyResponse& default_instance();
 
-  void Swap(UpdateResponse* other);
+  void Swap(VerifyResponse* other);
 
   // implements Message ----------------------------------------------
 
-  UpdateResponse* New() const;
+  VerifyResponse* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const UpdateResponse& from);
-  void MergeFrom(const UpdateResponse& from);
+  void CopyFrom(const VerifyResponse& from);
+  void MergeFrom(const VerifyResponse& from);
   void Clear();
   bool IsInitialized() const;
 
@@ -241,7 +242,7 @@ class UpdateResponse : public ::google::protobuf::Message {
   inline ::std::string* release_extra_msg();
   inline void set_allocated_extra_msg(::std::string* extra_msg);
 
-  // @@protoc_insertion_point(class_scope:com.caredear.UpdateResponse)
+  // @@protoc_insertion_point(class_scope:com.caredear.VerifyResponse)
  private:
   inline void set_has_result_code();
   inline void clear_has_result_code();
@@ -259,273 +260,273 @@ class UpdateResponse : public ::google::protobuf::Message {
   friend void protobuf_ShutdownFile_VerifyCode_2eproto();
 
   void InitAsDefaultInstance();
-  static UpdateResponse* default_instance_;
+  static VerifyResponse* default_instance_;
 };
 // ===================================================================
 
 
 // ===================================================================
 
-// UpdateRequest
+// VerifyRequest
 
-// required .com.caredear.Updatetype reg_type = 1;
-inline bool UpdateRequest::has_reg_type() const {
+// required .com.caredear.VerifyType type = 1;
+inline bool VerifyRequest::has_type() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void UpdateRequest::set_has_reg_type() {
+inline void VerifyRequest::set_has_type() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void UpdateRequest::clear_has_reg_type() {
+inline void VerifyRequest::clear_has_type() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void UpdateRequest::clear_reg_type() {
-  reg_type_ = 0;
-  clear_has_reg_type();
+inline void VerifyRequest::clear_type() {
+  type_ = 0;
+  clear_has_type();
 }
-inline ::com::caredear::Updatetype UpdateRequest::reg_type() const {
-  // @@protoc_insertion_point(field_get:com.caredear.UpdateRequest.reg_type)
-  return static_cast< ::com::caredear::Updatetype >(reg_type_);
+inline ::com::caredear::VerifyType VerifyRequest::type() const {
+  // @@protoc_insertion_point(field_get:com.caredear.VerifyRequest.type)
+  return static_cast< ::com::caredear::VerifyType >(type_);
 }
-inline void UpdateRequest::set_reg_type(::com::caredear::Updatetype value) {
-  assert(::com::caredear::Updatetype_IsValid(value));
-  set_has_reg_type();
-  reg_type_ = value;
-  // @@protoc_insertion_point(field_set:com.caredear.UpdateRequest.reg_type)
+inline void VerifyRequest::set_type(::com::caredear::VerifyType value) {
+  assert(::com::caredear::VerifyType_IsValid(value));
+  set_has_type();
+  type_ = value;
+  // @@protoc_insertion_point(field_set:com.caredear.VerifyRequest.type)
 }
 
-// required string reg_ticket = 2;
-inline bool UpdateRequest::has_reg_ticket() const {
+// required string ticket = 2;
+inline bool VerifyRequest::has_ticket() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void UpdateRequest::set_has_reg_ticket() {
+inline void VerifyRequest::set_has_ticket() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void UpdateRequest::clear_has_reg_ticket() {
+inline void VerifyRequest::clear_has_ticket() {
   _has_bits_[0] &= ~0x00000002u;
 }
-inline void UpdateRequest::clear_reg_ticket() {
-  if (reg_ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    reg_ticket_->clear();
+inline void VerifyRequest::clear_ticket() {
+  if (ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    ticket_->clear();
   }
-  clear_has_reg_ticket();
+  clear_has_ticket();
 }
-inline const ::std::string& UpdateRequest::reg_ticket() const {
-  // @@protoc_insertion_point(field_get:com.caredear.UpdateRequest.reg_ticket)
-  return *reg_ticket_;
+inline const ::std::string& VerifyRequest::ticket() const {
+  // @@protoc_insertion_point(field_get:com.caredear.VerifyRequest.ticket)
+  return *ticket_;
 }
-inline void UpdateRequest::set_reg_ticket(const ::std::string& value) {
-  set_has_reg_ticket();
-  if (reg_ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    reg_ticket_ = new ::std::string;
+inline void VerifyRequest::set_ticket(const ::std::string& value) {
+  set_has_ticket();
+  if (ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    ticket_ = new ::std::string;
   }
-  reg_ticket_->assign(value);
-  // @@protoc_insertion_point(field_set:com.caredear.UpdateRequest.reg_ticket)
+  ticket_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.VerifyRequest.ticket)
 }
-inline void UpdateRequest::set_reg_ticket(const char* value) {
-  set_has_reg_ticket();
-  if (reg_ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    reg_ticket_ = new ::std::string;
+inline void VerifyRequest::set_ticket(const char* value) {
+  set_has_ticket();
+  if (ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    ticket_ = new ::std::string;
   }
-  reg_ticket_->assign(value);
-  // @@protoc_insertion_point(field_set_char:com.caredear.UpdateRequest.reg_ticket)
+  ticket_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.VerifyRequest.ticket)
 }
-inline void UpdateRequest::set_reg_ticket(const char* value, size_t size) {
-  set_has_reg_ticket();
-  if (reg_ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    reg_ticket_ = new ::std::string;
+inline void VerifyRequest::set_ticket(const char* value, size_t size) {
+  set_has_ticket();
+  if (ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    ticket_ = new ::std::string;
   }
-  reg_ticket_->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:com.caredear.UpdateRequest.reg_ticket)
+  ticket_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.VerifyRequest.ticket)
 }
-inline ::std::string* UpdateRequest::mutable_reg_ticket() {
-  set_has_reg_ticket();
-  if (reg_ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    reg_ticket_ = new ::std::string;
+inline ::std::string* VerifyRequest::mutable_ticket() {
+  set_has_ticket();
+  if (ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    ticket_ = new ::std::string;
   }
-  // @@protoc_insertion_point(field_mutable:com.caredear.UpdateRequest.reg_ticket)
-  return reg_ticket_;
+  // @@protoc_insertion_point(field_mutable:com.caredear.VerifyRequest.ticket)
+  return ticket_;
 }
-inline ::std::string* UpdateRequest::release_reg_ticket() {
-  clear_has_reg_ticket();
-  if (reg_ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+inline ::std::string* VerifyRequest::release_ticket() {
+  clear_has_ticket();
+  if (ticket_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     return NULL;
   } else {
-    ::std::string* temp = reg_ticket_;
-    reg_ticket_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    ::std::string* temp = ticket_;
+    ticket_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
     return temp;
   }
 }
-inline void UpdateRequest::set_allocated_reg_ticket(::std::string* reg_ticket) {
-  if (reg_ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    delete reg_ticket_;
+inline void VerifyRequest::set_allocated_ticket(::std::string* ticket) {
+  if (ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete ticket_;
   }
-  if (reg_ticket) {
-    set_has_reg_ticket();
-    reg_ticket_ = reg_ticket;
+  if (ticket) {
+    set_has_ticket();
+    ticket_ = ticket;
   } else {
-    clear_has_reg_ticket();
-    reg_ticket_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    clear_has_ticket();
+    ticket_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
-  // @@protoc_insertion_point(field_set_allocated:com.caredear.UpdateRequest.reg_ticket)
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.VerifyRequest.ticket)
 }
 
-// optional string reg_value = 3;
-inline bool UpdateRequest::has_reg_value() const {
+// optional string passwd = 3;
+inline bool VerifyRequest::has_passwd() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
-inline void UpdateRequest::set_has_reg_value() {
+inline void VerifyRequest::set_has_passwd() {
   _has_bits_[0] |= 0x00000004u;
 }
-inline void UpdateRequest::clear_has_reg_value() {
+inline void VerifyRequest::clear_has_passwd() {
   _has_bits_[0] &= ~0x00000004u;
 }
-inline void UpdateRequest::clear_reg_value() {
-  if (reg_value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    reg_value_->clear();
+inline void VerifyRequest::clear_passwd() {
+  if (passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    passwd_->clear();
   }
-  clear_has_reg_value();
+  clear_has_passwd();
 }
-inline const ::std::string& UpdateRequest::reg_value() const {
-  // @@protoc_insertion_point(field_get:com.caredear.UpdateRequest.reg_value)
-  return *reg_value_;
+inline const ::std::string& VerifyRequest::passwd() const {
+  // @@protoc_insertion_point(field_get:com.caredear.VerifyRequest.passwd)
+  return *passwd_;
 }
-inline void UpdateRequest::set_reg_value(const ::std::string& value) {
-  set_has_reg_value();
-  if (reg_value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    reg_value_ = new ::std::string;
+inline void VerifyRequest::set_passwd(const ::std::string& value) {
+  set_has_passwd();
+  if (passwd_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    passwd_ = new ::std::string;
   }
-  reg_value_->assign(value);
-  // @@protoc_insertion_point(field_set:com.caredear.UpdateRequest.reg_value)
+  passwd_->assign(value);
+  // @@protoc_insertion_point(field_set:com.caredear.VerifyRequest.passwd)
 }
-inline void UpdateRequest::set_reg_value(const char* value) {
-  set_has_reg_value();
-  if (reg_value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    reg_value_ = new ::std::string;
+inline void VerifyRequest::set_passwd(const char* value) {
+  set_has_passwd();
+  if (passwd_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    passwd_ = new ::std::string;
   }
-  reg_value_->assign(value);
-  // @@protoc_insertion_point(field_set_char:com.caredear.UpdateRequest.reg_value)
+  passwd_->assign(value);
+  // @@protoc_insertion_point(field_set_char:com.caredear.VerifyRequest.passwd)
 }
-inline void UpdateRequest::set_reg_value(const char* value, size_t size) {
-  set_has_reg_value();
-  if (reg_value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    reg_value_ = new ::std::string;
+inline void VerifyRequest::set_passwd(const char* value, size_t size) {
+  set_has_passwd();
+  if (passwd_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    passwd_ = new ::std::string;
   }
-  reg_value_->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:com.caredear.UpdateRequest.reg_value)
+  passwd_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.VerifyRequest.passwd)
 }
-inline ::std::string* UpdateRequest::mutable_reg_value() {
-  set_has_reg_value();
-  if (reg_value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    reg_value_ = new ::std::string;
+inline ::std::string* VerifyRequest::mutable_passwd() {
+  set_has_passwd();
+  if (passwd_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    passwd_ = new ::std::string;
   }
-  // @@protoc_insertion_point(field_mutable:com.caredear.UpdateRequest.reg_value)
-  return reg_value_;
+  // @@protoc_insertion_point(field_mutable:com.caredear.VerifyRequest.passwd)
+  return passwd_;
 }
-inline ::std::string* UpdateRequest::release_reg_value() {
-  clear_has_reg_value();
-  if (reg_value_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+inline ::std::string* VerifyRequest::release_passwd() {
+  clear_has_passwd();
+  if (passwd_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     return NULL;
   } else {
-    ::std::string* temp = reg_value_;
-    reg_value_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    ::std::string* temp = passwd_;
+    passwd_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
     return temp;
   }
 }
-inline void UpdateRequest::set_allocated_reg_value(::std::string* reg_value) {
-  if (reg_value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    delete reg_value_;
+inline void VerifyRequest::set_allocated_passwd(::std::string* passwd) {
+  if (passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete passwd_;
   }
-  if (reg_value) {
-    set_has_reg_value();
-    reg_value_ = reg_value;
+  if (passwd) {
+    set_has_passwd();
+    passwd_ = passwd;
   } else {
-    clear_has_reg_value();
-    reg_value_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    clear_has_passwd();
+    passwd_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
-  // @@protoc_insertion_point(field_set_allocated:com.caredear.UpdateRequest.reg_value)
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.VerifyRequest.passwd)
 }
 
 // -------------------------------------------------------------------
 
-// UpdateResponse
+// VerifyResponse
 
 // required int32 result_code = 1;
-inline bool UpdateResponse::has_result_code() const {
+inline bool VerifyResponse::has_result_code() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void UpdateResponse::set_has_result_code() {
+inline void VerifyResponse::set_has_result_code() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void UpdateResponse::clear_has_result_code() {
+inline void VerifyResponse::clear_has_result_code() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void UpdateResponse::clear_result_code() {
+inline void VerifyResponse::clear_result_code() {
   result_code_ = 0;
   clear_has_result_code();
 }
-inline ::google::protobuf::int32 UpdateResponse::result_code() const {
-  // @@protoc_insertion_point(field_get:com.caredear.UpdateResponse.result_code)
+inline ::google::protobuf::int32 VerifyResponse::result_code() const {
+  // @@protoc_insertion_point(field_get:com.caredear.VerifyResponse.result_code)
   return result_code_;
 }
-inline void UpdateResponse::set_result_code(::google::protobuf::int32 value) {
+inline void VerifyResponse::set_result_code(::google::protobuf::int32 value) {
   set_has_result_code();
   result_code_ = value;
-  // @@protoc_insertion_point(field_set:com.caredear.UpdateResponse.result_code)
+  // @@protoc_insertion_point(field_set:com.caredear.VerifyResponse.result_code)
 }
 
 // optional string extra_msg = 2;
-inline bool UpdateResponse::has_extra_msg() const {
+inline bool VerifyResponse::has_extra_msg() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void UpdateResponse::set_has_extra_msg() {
+inline void VerifyResponse::set_has_extra_msg() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void UpdateResponse::clear_has_extra_msg() {
+inline void VerifyResponse::clear_has_extra_msg() {
   _has_bits_[0] &= ~0x00000002u;
 }
-inline void UpdateResponse::clear_extra_msg() {
+inline void VerifyResponse::clear_extra_msg() {
   if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     extra_msg_->clear();
   }
   clear_has_extra_msg();
 }
-inline const ::std::string& UpdateResponse::extra_msg() const {
-  // @@protoc_insertion_point(field_get:com.caredear.UpdateResponse.extra_msg)
+inline const ::std::string& VerifyResponse::extra_msg() const {
+  // @@protoc_insertion_point(field_get:com.caredear.VerifyResponse.extra_msg)
   return *extra_msg_;
 }
-inline void UpdateResponse::set_extra_msg(const ::std::string& value) {
+inline void VerifyResponse::set_extra_msg(const ::std::string& value) {
   set_has_extra_msg();
   if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     extra_msg_ = new ::std::string;
   }
   extra_msg_->assign(value);
-  // @@protoc_insertion_point(field_set:com.caredear.UpdateResponse.extra_msg)
+  // @@protoc_insertion_point(field_set:com.caredear.VerifyResponse.extra_msg)
 }
-inline void UpdateResponse::set_extra_msg(const char* value) {
+inline void VerifyResponse::set_extra_msg(const char* value) {
   set_has_extra_msg();
   if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     extra_msg_ = new ::std::string;
   }
   extra_msg_->assign(value);
-  // @@protoc_insertion_point(field_set_char:com.caredear.UpdateResponse.extra_msg)
+  // @@protoc_insertion_point(field_set_char:com.caredear.VerifyResponse.extra_msg)
 }
-inline void UpdateResponse::set_extra_msg(const char* value, size_t size) {
+inline void VerifyResponse::set_extra_msg(const char* value, size_t size) {
   set_has_extra_msg();
   if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     extra_msg_ = new ::std::string;
   }
   extra_msg_->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:com.caredear.UpdateResponse.extra_msg)
+  // @@protoc_insertion_point(field_set_pointer:com.caredear.VerifyResponse.extra_msg)
 }
-inline ::std::string* UpdateResponse::mutable_extra_msg() {
+inline ::std::string* VerifyResponse::mutable_extra_msg() {
   set_has_extra_msg();
   if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     extra_msg_ = new ::std::string;
   }
-  // @@protoc_insertion_point(field_mutable:com.caredear.UpdateResponse.extra_msg)
+  // @@protoc_insertion_point(field_mutable:com.caredear.VerifyResponse.extra_msg)
   return extra_msg_;
 }
-inline ::std::string* UpdateResponse::release_extra_msg() {
+inline ::std::string* VerifyResponse::release_extra_msg() {
   clear_has_extra_msg();
   if (extra_msg_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     return NULL;
@@ -535,7 +536,7 @@ inline ::std::string* UpdateResponse::release_extra_msg() {
     return temp;
   }
 }
-inline void UpdateResponse::set_allocated_extra_msg(::std::string* extra_msg) {
+inline void VerifyResponse::set_allocated_extra_msg(::std::string* extra_msg) {
   if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete extra_msg_;
   }
@@ -546,7 +547,7 @@ inline void UpdateResponse::set_allocated_extra_msg(::std::string* extra_msg) {
     clear_has_extra_msg();
     extra_msg_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
-  // @@protoc_insertion_point(field_set_allocated:com.caredear.UpdateResponse.extra_msg)
+  // @@protoc_insertion_point(field_set_allocated:com.caredear.VerifyResponse.extra_msg)
 }
 
 
@@ -559,10 +560,10 @@ inline void UpdateResponse::set_allocated_extra_msg(::std::string* extra_msg) {
 namespace google {
 namespace protobuf {
 
-template <> struct is_proto_enum< ::com::caredear::Updatetype> : ::google::protobuf::internal::true_type {};
+template <> struct is_proto_enum< ::com::caredear::VerifyType> : ::google::protobuf::internal::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::Updatetype>() {
-  return ::com::caredear::Updatetype_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::com::caredear::VerifyType>() {
+  return ::com::caredear::VerifyType_descriptor();
 }
 
 }  // namespace google

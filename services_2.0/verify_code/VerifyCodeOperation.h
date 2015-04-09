@@ -6,25 +6,44 @@
 
 #include "VerifyCode.pb.h"
 #include "VerifyCodeConfig.h"
+// TODO below header will be obsolted soon..
 #include "uuid.h"
+
+#include "Operation.h"
 
 
 using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
-class VerifyCodeOperation {
+class VerifyCodeOperation : public com::caredear::Operation {
 
-    VerifyCodeConfig *m_cfgInfo;
+    static uint64_t m_Cid;
+    static int m_result;
+    static int cb_get_cid(MYSQL_RES *mresult);
+    static int cb_check_passwd(MYSQL_RES *mresult);
 
-    //int update_usercenter_session(LoginRequest *reqobj, struct user_session *u);
+    int gen_verifycode(VerifyRequest *reqobj, VerifyResponse *respobj);
+    int check_password(VerifyRequest *reqobj, VerifyResponse *respobj);
+    int record_code_to_db(VerifyRequest *reqobj, const char *code);
 
 public:
-    int set_conf(VerifyCodeConfig *c);
-    int compose_result(int code, const char *errmsg, UpdateResponse *p_obj, int *p_resplen, void *p_respdata);
+    VerifyCodeOperation() {
+    }
 
-    int gen_verifycode(char *result);
-    int do_update_vcode(UpdateRequest *reqobj, UpdateResponse *respobj, int *len_resp, void *resp, char *vcode);
+    VerifyCodeOperation(Config *c) : Operation(c){
+    }
+
+    virtual int handling_request(::google::protobuf::Message *reqobj,
+            ::google::protobuf::Message *respobj,
+            int *len_resp,
+            void *resp);
+
+    virtual int compose_result(int code, const char *errmsg,
+            ::google::protobuf::Message *obj,
+            int *p_resplen,
+            void *p_respdata);
+
 };
 
 #endif

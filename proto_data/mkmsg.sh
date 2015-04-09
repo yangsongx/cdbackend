@@ -79,3 +79,12 @@ if [ $? -eq 0 ]; then
 else
   echo "Netdisk IDL generation [**failed]"
 fi
+
+# For verifycode
+protoc --cpp_out="../services_2.0/verify_code/" VerifyCode.proto
+if [ $? -eq 0 ]; then
+  echo "VerifyCode IDL generation [OK]"
+else
+  echo "VerifyCode IDL generation [**failed]"
+fi
+

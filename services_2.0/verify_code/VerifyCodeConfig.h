@@ -18,27 +18,20 @@
 #include <mysql.h>
 
 #include <libmemcached/memcached.h>
+#include "Config.h"
 
-class VerifyCodeConfig {
-    char  m_strSqlIP[32];
-    char  m_strSqlUserName[32];
-    char  m_strSqlUserPassword[32];
 
-    char  m_strMemIP[32];
-    int   m_iMemPort;
-
-    int prepare_job();
+class VerifyCodeConfig : public com::caredear::Config {
 
     public:
-        VerifyCodeConfig();
+        int   m_iMobileVerifyExpir;
 
-        MYSQL *m_Sql;
-        memcached_st *m_Memcached;
-    int   m_iMobileVerifyExpir;
-    int   m_iEmailVerifyExpir;
+    public:
+        VerifyCodeConfig(){
+            m_strMemIP[0] = '\0';
+        }
 
-        int init(const char *config_file);
-        int reconnect_sql();
+        virtual int parse_cfg (const char *config_file);
 };
 
 #endif

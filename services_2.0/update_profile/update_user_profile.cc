@@ -20,6 +20,7 @@ using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
+/* TODO below mutex SHOULD be obsoleted soon... */
 pthread_mutex_t  uup_mutex;
 UpdateProfileConfig  g_info;
 
@@ -118,7 +119,7 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
-    if(g_info.init("/etc/cds_cfg.xml") != 0)
+    if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {
         ERR("*** Warning Failed init the whole service!\n");
     }

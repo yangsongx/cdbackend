@@ -31,7 +31,8 @@ int RegOperation::cb_check_user_existence(MYSQL_RES *p_result)
 }
 
 
-/**
+/** TODO, this API should be delted as base::gen_random_code() already do the same thing!
+ *
  * Generate a random 6-digit number, used for email/sms verify code
  *
  */
@@ -315,7 +316,7 @@ int RegOperation::add_new_user_entry(RegisterRequest *pRegInfo, uint64_t *cid)
 
     if(ret == CDS_OK)
     {
-        INFO("new reg usr insertion [OK]\n");
+        INFO("new reg usr insertion [OK](name:%s)\n", pRegInfo->reg_name().c_str());
 
         // opensips-specific
         if(add_opensips_entry(pRegInfo) != CDS_OK)

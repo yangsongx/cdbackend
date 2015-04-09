@@ -19,24 +19,17 @@
 
 #include <libmemcached/memcached.h>
 
-class UpdateProfileConfig {
-    char  m_strSqlIP[32];
-    char  m_strSqlUserName[32];
-    char  m_strSqlUserPassword[32];
+#include "Config.h"
 
-    char  m_strMemIP[32];
-    int   m_iMemPort;
+class UpdateProfileConfig : public com::caredear::Config {
 
-    int prepare_job();
 
     public:
-        UpdateProfileConfig();
+        UpdateProfileConfig(){
+            m_strMemIP[0] = '\0';
+        }
 
-        MYSQL *m_Sql;
-        memcached_st *m_Memcached;
-
-        int init(const char *config_file);
-        int reconnect_sql();
+        virtual int parse_cfg(const char *config_file);
 };
 
 #endif

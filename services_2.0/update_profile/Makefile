@@ -3,6 +3,7 @@
 DEBUG=true
 THIRD_PARTY=../../3rd_party/
 CDSBASE = ../../common/cds_base/
+BASECLS=../
 
 CC = g++
 
@@ -11,11 +12,13 @@ SRC = update_user_profile.cc \
       UpdateProfileConfig.cc \
       UpdateProfileOperation.cc \
       UpdateProfile.pb.cc \
+      $(BASECLS)Config.cc \
+      $(BASECLS)Operation.cc \
       update_user_profile.cc
 
 
 #include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = -I$(CDSBASE) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x
+CXXFLAGS = -I$(CDSBASE) -I$(BASECLS) -I/usr/include/libxml2/ `mysql_config --cflags` -fpermissive -std=c++0x
 
 # Release should use -O2
 

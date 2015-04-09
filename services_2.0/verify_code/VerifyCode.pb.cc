@@ -21,13 +21,13 @@ namespace caredear {
 
 namespace {
 
-const ::google::protobuf::Descriptor* UpdateRequest_descriptor_ = NULL;
+const ::google::protobuf::Descriptor* VerifyRequest_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
-  UpdateRequest_reflection_ = NULL;
-const ::google::protobuf::Descriptor* UpdateResponse_descriptor_ = NULL;
+  VerifyRequest_reflection_ = NULL;
+const ::google::protobuf::Descriptor* VerifyResponse_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
-  UpdateResponse_reflection_ = NULL;
-const ::google::protobuf::EnumDescriptor* Updatetype_descriptor_ = NULL;
+  VerifyResponse_reflection_ = NULL;
+const ::google::protobuf::EnumDescriptor* VerifyType_descriptor_ = NULL;
 
 }  // namespace
 
@@ -38,40 +38,40 @@ void protobuf_AssignDesc_VerifyCode_2eproto() {
     ::google::protobuf::DescriptorPool::generated_pool()->FindFileByName(
       "VerifyCode.proto");
   GOOGLE_CHECK(file != NULL);
-  UpdateRequest_descriptor_ = file->message_type(0);
-  static const int UpdateRequest_offsets_[3] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(UpdateRequest, reg_type_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(UpdateRequest, reg_ticket_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(UpdateRequest, reg_value_),
+  VerifyRequest_descriptor_ = file->message_type(0);
+  static const int VerifyRequest_offsets_[3] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(VerifyRequest, type_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(VerifyRequest, ticket_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(VerifyRequest, passwd_),
   };
-  UpdateRequest_reflection_ =
+  VerifyRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
-      UpdateRequest_descriptor_,
-      UpdateRequest::default_instance_,
-      UpdateRequest_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(UpdateRequest, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(UpdateRequest, _unknown_fields_),
+      VerifyRequest_descriptor_,
+      VerifyRequest::default_instance_,
+      VerifyRequest_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(VerifyRequest, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(VerifyRequest, _unknown_fields_),
       -1,
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
-      sizeof(UpdateRequest));
-  UpdateResponse_descriptor_ = file->message_type(1);
-  static const int UpdateResponse_offsets_[2] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(UpdateResponse, result_code_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(UpdateResponse, extra_msg_),
+      sizeof(VerifyRequest));
+  VerifyResponse_descriptor_ = file->message_type(1);
+  static const int VerifyResponse_offsets_[2] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(VerifyResponse, result_code_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(VerifyResponse, extra_msg_),
   };
-  UpdateResponse_reflection_ =
+  VerifyResponse_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
-      UpdateResponse_descriptor_,
-      UpdateResponse::default_instance_,
-      UpdateResponse_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(UpdateResponse, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(UpdateResponse, _unknown_fields_),
+      VerifyResponse_descriptor_,
+      VerifyResponse::default_instance_,
+      VerifyResponse_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(VerifyResponse, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(VerifyResponse, _unknown_fields_),
       -1,
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
-      sizeof(UpdateResponse));
-  Updatetype_descriptor_ = file->enum_type(0);
+      sizeof(VerifyResponse));
+  VerifyType_descriptor_ = file->enum_type(0);
 }
 
 namespace {
@@ -85,18 +85,18 @@ inline void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-    UpdateRequest_descriptor_, &UpdateRequest::default_instance());
+    VerifyRequest_descriptor_, &VerifyRequest::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-    UpdateResponse_descriptor_, &UpdateResponse::default_instance());
+    VerifyResponse_descriptor_, &VerifyResponse::default_instance());
 }
 
 }  // namespace
 
 void protobuf_ShutdownFile_VerifyCode_2eproto() {
-  delete UpdateRequest::default_instance_;
-  delete UpdateRequest_reflection_;
-  delete UpdateResponse::default_instance_;
-  delete UpdateResponse_reflection_;
+  delete VerifyRequest::default_instance_;
+  delete VerifyRequest_reflection_;
+  delete VerifyResponse::default_instance_;
+  delete VerifyResponse_reflection_;
 }
 
 void protobuf_AddDesc_VerifyCode_2eproto() {
@@ -106,19 +106,19 @@ void protobuf_AddDesc_VerifyCode_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\020VerifyCode.proto\022\014com.caredear\"b\n\rUpda"
-    "teRequest\022*\n\010reg_type\030\001 \002(\0162\030.com.carede"
-    "ar.Updatetype\022\022\n\nreg_ticket\030\002 \002(\t\022\021\n\treg"
-    "_value\030\003 \001(\t\"8\n\016UpdateResponse\022\023\n\013result"
-    "_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t*5\n\nUpdate"
-    "type\022\020\n\014MOBILE_PHONE\020\000\022\t\n\005EMAIL\020\001\022\n\n\006OTH"
-    "ERS\020\002", 245);
+    "\n\020VerifyCode.proto\022\014com.caredear\"W\n\rVeri"
+    "fyRequest\022&\n\004type\030\001 \002(\0162\030.com.caredear.V"
+    "erifyType\022\016\n\006ticket\030\002 \002(\t\022\016\n\006passwd\030\003 \001("
+    "\t\"8\n\016VerifyResponse\022\023\n\013result_code\030\001 \002(\005"
+    "\022\021\n\textra_msg\030\002 \001(\t*R\n\nVerifyType\022\020\n\014MOB"
+    "ILE_PHONE\020\000\022\t\n\005EMAIL\020\001\022\n\n\006OTHERS\020\002\022\033\n\027CH"
+    "ECK_PASSWD_VALIDATION\020\003", 263);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "VerifyCode.proto", &protobuf_RegisterTypes);
-  UpdateRequest::default_instance_ = new UpdateRequest();
-  UpdateResponse::default_instance_ = new UpdateResponse();
-  UpdateRequest::default_instance_->InitAsDefaultInstance();
-  UpdateResponse::default_instance_->InitAsDefaultInstance();
+  VerifyRequest::default_instance_ = new VerifyRequest();
+  VerifyResponse::default_instance_ = new VerifyResponse();
+  VerifyRequest::default_instance_->InitAsDefaultInstance();
+  VerifyResponse::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_VerifyCode_2eproto);
 }
 
@@ -128,15 +128,16 @@ struct StaticDescriptorInitializer_VerifyCode_2eproto {
     protobuf_AddDesc_VerifyCode_2eproto();
   }
 } static_descriptor_initializer_VerifyCode_2eproto_;
-const ::google::protobuf::EnumDescriptor* Updatetype_descriptor() {
+const ::google::protobuf::EnumDescriptor* VerifyType_descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return Updatetype_descriptor_;
+  return VerifyType_descriptor_;
 }
-bool Updatetype_IsValid(int value) {
+bool VerifyType_IsValid(int value) {
   switch(value) {
     case 0:
     case 1:
     case 2:
+    case 3:
       return true;
     default:
       return false;
@@ -147,84 +148,84 @@ bool Updatetype_IsValid(int value) {
 // ===================================================================
 
 #ifndef _MSC_VER
-const int UpdateRequest::kRegTypeFieldNumber;
-const int UpdateRequest::kRegTicketFieldNumber;
-const int UpdateRequest::kRegValueFieldNumber;
+const int VerifyRequest::kTypeFieldNumber;
+const int VerifyRequest::kTicketFieldNumber;
+const int VerifyRequest::kPasswdFieldNumber;
 #endif  // !_MSC_VER
 
-UpdateRequest::UpdateRequest()
+VerifyRequest::VerifyRequest()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:com.caredear.UpdateRequest)
+  // @@protoc_insertion_point(constructor:com.caredear.VerifyRequest)
 }
 
-void UpdateRequest::InitAsDefaultInstance() {
+void VerifyRequest::InitAsDefaultInstance() {
 }
 
-UpdateRequest::UpdateRequest(const UpdateRequest& from)
+VerifyRequest::VerifyRequest(const VerifyRequest& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:com.caredear.UpdateRequest)
+  // @@protoc_insertion_point(copy_constructor:com.caredear.VerifyRequest)
 }
 
-void UpdateRequest::SharedCtor() {
+void VerifyRequest::SharedCtor() {
   ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
-  reg_type_ = 0;
-  reg_ticket_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  reg_value_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  type_ = 0;
+  ticket_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  passwd_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
-UpdateRequest::~UpdateRequest() {
-  // @@protoc_insertion_point(destructor:com.caredear.UpdateRequest)
+VerifyRequest::~VerifyRequest() {
+  // @@protoc_insertion_point(destructor:com.caredear.VerifyRequest)
   SharedDtor();
 }
 
-void UpdateRequest::SharedDtor() {
-  if (reg_ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    delete reg_ticket_;
+void VerifyRequest::SharedDtor() {
+  if (ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete ticket_;
   }
-  if (reg_value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    delete reg_value_;
+  if (passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete passwd_;
   }
   if (this != default_instance_) {
   }
 }
 
-void UpdateRequest::SetCachedSize(int size) const {
+void VerifyRequest::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
 }
-const ::google::protobuf::Descriptor* UpdateRequest::descriptor() {
+const ::google::protobuf::Descriptor* VerifyRequest::descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return UpdateRequest_descriptor_;
+  return VerifyRequest_descriptor_;
 }
 
-const UpdateRequest& UpdateRequest::default_instance() {
+const VerifyRequest& VerifyRequest::default_instance() {
   if (default_instance_ == NULL) protobuf_AddDesc_VerifyCode_2eproto();
   return *default_instance_;
 }
 
-UpdateRequest* UpdateRequest::default_instance_ = NULL;
+VerifyRequest* VerifyRequest::default_instance_ = NULL;
 
-UpdateRequest* UpdateRequest::New() const {
-  return new UpdateRequest;
+VerifyRequest* VerifyRequest::New() const {
+  return new VerifyRequest;
 }
 
-void UpdateRequest::Clear() {
+void VerifyRequest::Clear() {
   if (_has_bits_[0 / 32] & 7) {
-    reg_type_ = 0;
-    if (has_reg_ticket()) {
-      if (reg_ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-        reg_ticket_->clear();
+    type_ = 0;
+    if (has_ticket()) {
+      if (ticket_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        ticket_->clear();
       }
     }
-    if (has_reg_value()) {
-      if (reg_value_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-        reg_value_->clear();
+    if (has_passwd()) {
+      if (passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        passwd_->clear();
       }
     }
   }
@@ -232,62 +233,62 @@ void UpdateRequest::Clear() {
   mutable_unknown_fields()->Clear();
 }
 
-bool UpdateRequest::MergePartialFromCodedStream(
+bool VerifyRequest::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:com.caredear.UpdateRequest)
+  // @@protoc_insertion_point(parse_start:com.caredear.VerifyRequest)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required .com.caredear.Updatetype reg_type = 1;
+      // required .com.caredear.VerifyType type = 1;
       case 1: {
         if (tag == 8) {
           int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          if (::com::caredear::Updatetype_IsValid(value)) {
-            set_reg_type(static_cast< ::com::caredear::Updatetype >(value));
+          if (::com::caredear::VerifyType_IsValid(value)) {
+            set_type(static_cast< ::com::caredear::VerifyType >(value));
           } else {
             mutable_unknown_fields()->AddVarint(1, value);
           }
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(18)) goto parse_reg_ticket;
+        if (input->ExpectTag(18)) goto parse_ticket;
         break;
       }
 
-      // required string reg_ticket = 2;
+      // required string ticket = 2;
       case 2: {
         if (tag == 18) {
-         parse_reg_ticket:
+         parse_ticket:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_reg_ticket()));
+                input, this->mutable_ticket()));
           ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-            this->reg_ticket().data(), this->reg_ticket().length(),
+            this->ticket().data(), this->ticket().length(),
             ::google::protobuf::internal::WireFormat::PARSE,
-            "reg_ticket");
+            "ticket");
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(26)) goto parse_reg_value;
+        if (input->ExpectTag(26)) goto parse_passwd;
         break;
       }
 
-      // optional string reg_value = 3;
+      // optional string passwd = 3;
       case 3: {
         if (tag == 26) {
-         parse_reg_value:
+         parse_passwd:
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_reg_value()));
+                input, this->mutable_passwd()));
           ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-            this->reg_value().data(), this->reg_value().length(),
+            this->passwd().data(), this->passwd().length(),
             ::google::protobuf::internal::WireFormat::PARSE,
-            "reg_value");
+            "passwd");
         } else {
           goto handle_unusual;
         }
@@ -309,111 +310,111 @@ bool UpdateRequest::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:com.caredear.UpdateRequest)
+  // @@protoc_insertion_point(parse_success:com.caredear.VerifyRequest)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:com.caredear.UpdateRequest)
+  // @@protoc_insertion_point(parse_failure:com.caredear.VerifyRequest)
   return false;
 #undef DO_
 }
 
-void UpdateRequest::SerializeWithCachedSizes(
+void VerifyRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:com.caredear.UpdateRequest)
-  // required .com.caredear.Updatetype reg_type = 1;
-  if (has_reg_type()) {
+  // @@protoc_insertion_point(serialize_start:com.caredear.VerifyRequest)
+  // required .com.caredear.VerifyType type = 1;
+  if (has_type()) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
-      1, this->reg_type(), output);
+      1, this->type(), output);
   }
 
-  // required string reg_ticket = 2;
-  if (has_reg_ticket()) {
+  // required string ticket = 2;
+  if (has_ticket()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->reg_ticket().data(), this->reg_ticket().length(),
+      this->ticket().data(), this->ticket().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "reg_ticket");
+      "ticket");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      2, this->reg_ticket(), output);
+      2, this->ticket(), output);
   }
 
-  // optional string reg_value = 3;
-  if (has_reg_value()) {
+  // optional string passwd = 3;
+  if (has_passwd()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->reg_value().data(), this->reg_value().length(),
+      this->passwd().data(), this->passwd().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "reg_value");
+      "passwd");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      3, this->reg_value(), output);
+      3, this->passwd(), output);
   }
 
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:com.caredear.UpdateRequest)
+  // @@protoc_insertion_point(serialize_end:com.caredear.VerifyRequest)
 }
 
-::google::protobuf::uint8* UpdateRequest::SerializeWithCachedSizesToArray(
+::google::protobuf::uint8* VerifyRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:com.caredear.UpdateRequest)
-  // required .com.caredear.Updatetype reg_type = 1;
-  if (has_reg_type()) {
+  // @@protoc_insertion_point(serialize_to_array_start:com.caredear.VerifyRequest)
+  // required .com.caredear.VerifyType type = 1;
+  if (has_type()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
-      1, this->reg_type(), target);
+      1, this->type(), target);
   }
 
-  // required string reg_ticket = 2;
-  if (has_reg_ticket()) {
+  // required string ticket = 2;
+  if (has_ticket()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->reg_ticket().data(), this->reg_ticket().length(),
+      this->ticket().data(), this->ticket().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "reg_ticket");
+      "ticket");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        2, this->reg_ticket(), target);
+        2, this->ticket(), target);
   }
 
-  // optional string reg_value = 3;
-  if (has_reg_value()) {
+  // optional string passwd = 3;
+  if (has_passwd()) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->reg_value().data(), this->reg_value().length(),
+      this->passwd().data(), this->passwd().length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE,
-      "reg_value");
+      "passwd");
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        3, this->reg_value(), target);
+        3, this->passwd(), target);
   }
 
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:com.caredear.UpdateRequest)
+  // @@protoc_insertion_point(serialize_to_array_end:com.caredear.VerifyRequest)
   return target;
 }
 
-int UpdateRequest::ByteSize() const {
+int VerifyRequest::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required .com.caredear.Updatetype reg_type = 1;
-    if (has_reg_type()) {
+    // required .com.caredear.VerifyType type = 1;
+    if (has_type()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::EnumSize(this->reg_type());
+        ::google::protobuf::internal::WireFormatLite::EnumSize(this->type());
     }
 
-    // required string reg_ticket = 2;
-    if (has_reg_ticket()) {
+    // required string ticket = 2;
+    if (has_ticket()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
-          this->reg_ticket());
+          this->ticket());
     }
 
-    // optional string reg_value = 3;
-    if (has_reg_value()) {
+    // optional string passwd = 3;
+    if (has_passwd()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
-          this->reg_value());
+          this->passwd());
     }
 
   }
@@ -428,10 +429,10 @@ int UpdateRequest::ByteSize() const {
   return total_size;
 }
 
-void UpdateRequest::MergeFrom(const ::google::protobuf::Message& from) {
+void VerifyRequest::MergeFrom(const ::google::protobuf::Message& from) {
   GOOGLE_CHECK_NE(&from, this);
-  const UpdateRequest* source =
-    ::google::protobuf::internal::dynamic_cast_if_available<const UpdateRequest*>(
+  const VerifyRequest* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const VerifyRequest*>(
       &from);
   if (source == NULL) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -440,56 +441,56 @@ void UpdateRequest::MergeFrom(const ::google::protobuf::Message& from) {
   }
 }
 
-void UpdateRequest::MergeFrom(const UpdateRequest& from) {
+void VerifyRequest::MergeFrom(const VerifyRequest& from) {
   GOOGLE_CHECK_NE(&from, this);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    if (from.has_reg_type()) {
-      set_reg_type(from.reg_type());
+    if (from.has_type()) {
+      set_type(from.type());
     }
-    if (from.has_reg_ticket()) {
-      set_reg_ticket(from.reg_ticket());
+    if (from.has_ticket()) {
+      set_ticket(from.ticket());
     }
-    if (from.has_reg_value()) {
-      set_reg_value(from.reg_value());
+    if (from.has_passwd()) {
+      set_passwd(from.passwd());
     }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
-void UpdateRequest::CopyFrom(const ::google::protobuf::Message& from) {
+void VerifyRequest::CopyFrom(const ::google::protobuf::Message& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void UpdateRequest::CopyFrom(const UpdateRequest& from) {
+void VerifyRequest::CopyFrom(const VerifyRequest& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool UpdateRequest::IsInitialized() const {
+bool VerifyRequest::IsInitialized() const {
   if ((_has_bits_[0] & 0x00000003) != 0x00000003) return false;
 
   return true;
 }
 
-void UpdateRequest::Swap(UpdateRequest* other) {
+void VerifyRequest::Swap(VerifyRequest* other) {
   if (other != this) {
-    std::swap(reg_type_, other->reg_type_);
-    std::swap(reg_ticket_, other->reg_ticket_);
-    std::swap(reg_value_, other->reg_value_);
+    std::swap(type_, other->type_);
+    std::swap(ticket_, other->ticket_);
+    std::swap(passwd_, other->passwd_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
   }
 }
 
-::google::protobuf::Metadata UpdateRequest::GetMetadata() const {
+::google::protobuf::Metadata VerifyRequest::GetMetadata() const {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::Metadata metadata;
-  metadata.descriptor = UpdateRequest_descriptor_;
-  metadata.reflection = UpdateRequest_reflection_;
+  metadata.descriptor = VerifyRequest_descriptor_;
+  metadata.reflection = VerifyRequest_reflection_;
   return metadata;
 }
 
@@ -497,27 +498,27 @@ void UpdateRequest::Swap(UpdateRequest* other) {
 // ===================================================================
 
 #ifndef _MSC_VER
-const int UpdateResponse::kResultCodeFieldNumber;
-const int UpdateResponse::kExtraMsgFieldNumber;
+const int VerifyResponse::kResultCodeFieldNumber;
+const int VerifyResponse::kExtraMsgFieldNumber;
 #endif  // !_MSC_VER
 
-UpdateResponse::UpdateResponse()
+VerifyResponse::VerifyResponse()
   : ::google::protobuf::Message() {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:com.caredear.UpdateResponse)
+  // @@protoc_insertion_point(constructor:com.caredear.VerifyResponse)
 }
 
-void UpdateResponse::InitAsDefaultInstance() {
+void VerifyResponse::InitAsDefaultInstance() {
 }
 
-UpdateResponse::UpdateResponse(const UpdateResponse& from)
+VerifyResponse::VerifyResponse(const VerifyResponse& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:com.caredear.UpdateResponse)
+  // @@protoc_insertion_point(copy_constructor:com.caredear.VerifyResponse)
 }
 
-void UpdateResponse::SharedCtor() {
+void VerifyResponse::SharedCtor() {
   ::google::protobuf::internal::GetEmptyString();
   _cached_size_ = 0;
   result_code_ = 0;
@@ -525,12 +526,12 @@ void UpdateResponse::SharedCtor() {
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
-UpdateResponse::~UpdateResponse() {
-  // @@protoc_insertion_point(destructor:com.caredear.UpdateResponse)
+VerifyResponse::~VerifyResponse() {
+  // @@protoc_insertion_point(destructor:com.caredear.VerifyResponse)
   SharedDtor();
 }
 
-void UpdateResponse::SharedDtor() {
+void VerifyResponse::SharedDtor() {
   if (extra_msg_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete extra_msg_;
   }
@@ -538,28 +539,28 @@ void UpdateResponse::SharedDtor() {
   }
 }
 
-void UpdateResponse::SetCachedSize(int size) const {
+void VerifyResponse::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
 }
-const ::google::protobuf::Descriptor* UpdateResponse::descriptor() {
+const ::google::protobuf::Descriptor* VerifyResponse::descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return UpdateResponse_descriptor_;
+  return VerifyResponse_descriptor_;
 }
 
-const UpdateResponse& UpdateResponse::default_instance() {
+const VerifyResponse& VerifyResponse::default_instance() {
   if (default_instance_ == NULL) protobuf_AddDesc_VerifyCode_2eproto();
   return *default_instance_;
 }
 
-UpdateResponse* UpdateResponse::default_instance_ = NULL;
+VerifyResponse* VerifyResponse::default_instance_ = NULL;
 
-UpdateResponse* UpdateResponse::New() const {
-  return new UpdateResponse;
+VerifyResponse* VerifyResponse::New() const {
+  return new VerifyResponse;
 }
 
-void UpdateResponse::Clear() {
+void VerifyResponse::Clear() {
   if (_has_bits_[0 / 32] & 3) {
     result_code_ = 0;
     if (has_extra_msg()) {
@@ -572,11 +573,11 @@ void UpdateResponse::Clear() {
   mutable_unknown_fields()->Clear();
 }
 
-bool UpdateResponse::MergePartialFromCodedStream(
+bool VerifyResponse::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:com.caredear.UpdateResponse)
+  // @@protoc_insertion_point(parse_start:com.caredear.VerifyResponse)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
     tag = p.first;
@@ -627,17 +628,17 @@ bool UpdateResponse::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:com.caredear.UpdateResponse)
+  // @@protoc_insertion_point(parse_success:com.caredear.VerifyResponse)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:com.caredear.UpdateResponse)
+  // @@protoc_insertion_point(parse_failure:com.caredear.VerifyResponse)
   return false;
 #undef DO_
 }
 
-void UpdateResponse::SerializeWithCachedSizes(
+void VerifyResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:com.caredear.UpdateResponse)
+  // @@protoc_insertion_point(serialize_start:com.caredear.VerifyResponse)
   // required int32 result_code = 1;
   if (has_result_code()) {
     ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->result_code(), output);
@@ -657,12 +658,12 @@ void UpdateResponse::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
   }
-  // @@protoc_insertion_point(serialize_end:com.caredear.UpdateResponse)
+  // @@protoc_insertion_point(serialize_end:com.caredear.VerifyResponse)
 }
 
-::google::protobuf::uint8* UpdateResponse::SerializeWithCachedSizesToArray(
+::google::protobuf::uint8* VerifyResponse::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:com.caredear.UpdateResponse)
+  // @@protoc_insertion_point(serialize_to_array_start:com.caredear.VerifyResponse)
   // required int32 result_code = 1;
   if (has_result_code()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->result_code(), target);
@@ -683,11 +684,11 @@ void UpdateResponse::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:com.caredear.UpdateResponse)
+  // @@protoc_insertion_point(serialize_to_array_end:com.caredear.VerifyResponse)
   return target;
 }
 
-int UpdateResponse::ByteSize() const {
+int VerifyResponse::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
@@ -717,10 +718,10 @@ int UpdateResponse::ByteSize() const {
   return total_size;
 }
 
-void UpdateResponse::MergeFrom(const ::google::protobuf::Message& from) {
+void VerifyResponse::MergeFrom(const ::google::protobuf::Message& from) {
   GOOGLE_CHECK_NE(&from, this);
-  const UpdateResponse* source =
-    ::google::protobuf::internal::dynamic_cast_if_available<const UpdateResponse*>(
+  const VerifyResponse* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const VerifyResponse*>(
       &from);
   if (source == NULL) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -729,7 +730,7 @@ void UpdateResponse::MergeFrom(const ::google::protobuf::Message& from) {
   }
 }
 
-void UpdateResponse::MergeFrom(const UpdateResponse& from) {
+void VerifyResponse::MergeFrom(const VerifyResponse& from) {
   GOOGLE_CHECK_NE(&from, this);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_result_code()) {
@@ -742,25 +743,25 @@ void UpdateResponse::MergeFrom(const UpdateResponse& from) {
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
-void UpdateResponse::CopyFrom(const ::google::protobuf::Message& from) {
+void VerifyResponse::CopyFrom(const ::google::protobuf::Message& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void UpdateResponse::CopyFrom(const UpdateResponse& from) {
+void VerifyResponse::CopyFrom(const VerifyResponse& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool UpdateResponse::IsInitialized() const {
+bool VerifyResponse::IsInitialized() const {
   if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
 
   return true;
 }
 
-void UpdateResponse::Swap(UpdateResponse* other) {
+void VerifyResponse::Swap(VerifyResponse* other) {
   if (other != this) {
     std::swap(result_code_, other->result_code_);
     std::swap(extra_msg_, other->extra_msg_);
@@ -770,11 +771,11 @@ void UpdateResponse::Swap(UpdateResponse* other) {
   }
 }
 
-::google::protobuf::Metadata UpdateResponse::GetMetadata() const {
+::google::protobuf::Metadata VerifyResponse::GetMetadata() const {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::Metadata metadata;
-  metadata.descriptor = UpdateResponse_descriptor_;
-  metadata.reflection = UpdateResponse_reflection_;
+  metadata.descriptor = VerifyResponse_descriptor_;
+  metadata.reflection = VerifyResponse_reflection_;
   return metadata;
 }
 

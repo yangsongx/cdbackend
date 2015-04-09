@@ -19,6 +19,7 @@ using namespace std;
 using namespace com::caredear;
 using namespace google::protobuf::io;
 
+/* TODO obsoleted this soon... */
 pthread_mutex_t  vcs_mutex;
 VerifyCodeConfig  g_info;
 
@@ -27,11 +28,9 @@ int vcs_handler(int size, void *req, int *len_resp, void *resp)
 {
     bool ok = false;
     int ret = CDS_OK;
-    VerifyCodeOperation opr;
-    UpdateRequest  reqobj;
-    UpdateResponse respobj;
-
-    opr.set_conf(&g_info);
+    VerifyCodeOperation opr(&g_info);
+    VerifyRequest  reqobj;
+    VerifyResponse respobj;
 
     if(size >= DATA_BUFFER_SIZE)
     {
@@ -52,6 +51,9 @@ int vcs_handler(int size, void *req, int *len_resp, void *resp)
     ok = reqobj.ParseFromCodedStream(&is);
     if(ok)
     {
+#if 1
+        ret = opr.handling_request(&reqobj, &respobj, len_resp, resp);
+#else
         char verifycode[12] = {'8'};
         opr.gen_verifycode(verifycode);
 
@@ -60,7 +62,7 @@ int vcs_handler(int size, void *req, int *len_resp, void *resp)
         if(opr.compose_result(ret,verifycode,&respobj, len_resp, resp)){
             ERR("** failed seriliaze for the error case\n");
         }
-
+#endif
     }
     else
     {
@@ -70,6 +72,8 @@ int vcs_handler(int size, void *req, int *len_resp, void *resp)
         {
             ERR("** failed seriliaze for the error case\n");
         }
+
+        ret = CDS_GENERIC_ERROR;
     }
 
     return ret;
@@ -90,7 +94,7 @@ int main(int argc, char **argv)
     mtrace();
 #endif
 
-    if(g_info.init("/etc/cds_cfg.xml") != 0)
+    if(g_info.parse_cfg("/etc/cds_cfg.xml") != 0)
     {
         ERR("*** Warning Failed init the whole service!\n");
     }
