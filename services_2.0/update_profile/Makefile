@@ -8,7 +8,6 @@ BASECLS=../
 CC = g++
 
 SRC = update_user_profile.cc \
-      data_access.cc \
       UpdateProfileConfig.cc \
       UpdateProfileOperation.cc \
       UpdateProfile.pb.cc \

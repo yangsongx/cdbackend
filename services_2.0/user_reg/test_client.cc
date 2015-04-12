@@ -2261,7 +2261,6 @@ int main(int argc, char **argv)
     execute_ut_case(test_activation_email_1);
     execute_ut_case(test_activation_css_email);
     execute_ut_case(test_css_login_after_activation);
-#if 0
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // next will try testing the auth feature...
@@ -2320,7 +2319,7 @@ int main(int argc, char **argv)
 
     //misc testing...
     execute_ut_case(test_sql_auto_reconnect);
-#endif
+
 end_of_testing:
 
     printf("\n\n release useless resource...");

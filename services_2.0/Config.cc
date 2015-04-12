@@ -43,7 +43,7 @@ MYSQL *Config::conn_to_mysql(const char *ip, const char *usr, const char *passwd
         {
             INFO("Connecting to MySQL ... [OK]\n");
 
-            if(!mysql_set_character_set(s, "utf8"))
+            if(mysql_set_character_set(s, "utf8"))
             {
                 ERR("Warning , set UTF-8 failed\n");
             }

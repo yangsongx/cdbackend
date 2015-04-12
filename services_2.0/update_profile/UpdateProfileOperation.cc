@@ -1,6 +1,10 @@
+/**
+ *
+ * \history
+ * [2015-04-12] Fix the  unique SQL check logic
+ */
 #include "UpdateProfileOperation.h"
 #include "UpdateProfileConfig.h"
-//#include "data_access.h"
 
 int UpdateProfileOperation::cb_check_code(MYSQL_RES *mresult, void *p_extra)
 {
@@ -80,12 +84,14 @@ int UpdateProfileOperation::unique_record(UpdateRequest *reqobj)
 
     // can reuse the cb
     ret = sql_cmd(sqlcmd, cb_check_code, &result);
-    if(ret == CDS_OK && result == 1)
+    if(ret == CDS_OK && result == 0)
     {
         return 1;
     }
     else
     {
+        // for error case, logout the sql cmd
+        LOG("the SQL:%s\n", sqlcmd);
         return 0;
     }
 
@@ -209,6 +215,8 @@ int UpdateProfileOperation::handling_request(::google::protobuf::Message *reg_re
     int ret = CDS_GENERIC_ERROR;
     UpdateRequest *reqobj = (UpdateRequest *) reg_req;
     UpdateResponse *respobj = (UpdateResponse *) reg_resp;
+
+    LOG("-(type:%d)-(data:%s)-(uid:%s)---->\n", reqobj->reg_type(), reqobj->update_data().c_str(), reqobj->uid().c_str());
 
     switch(reqobj->reg_type())
     {

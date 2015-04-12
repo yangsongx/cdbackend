@@ -1,16 +1,12 @@
 /**
+ * Login handling code logic.
  *
  * \history
+ * [2015-04-12] Fix a buffer overflow bug for copy old token
  * [2015-04-09] Fix the update token bug(table name incorrect)
  * [2015-04-08] Use the same md5 hash algorithm as ShenZhen's
  */
 #include "LoginOperation.h"
-
-//int LoginOperation::m_shenzhenFlag = 0;
-//int LoginOperation::m_result= 0;
-//char LoginOperation::m_buffer[512];
-
-//uint64_t LoginOperation::m_cid = (uint64_t) -1;
 
 int LoginOperation::cb_get_shenzhen_flag(MYSQL_RES *mresult, void *p_extra)
 {
@@ -123,8 +119,8 @@ int LoginOperation::cb_wr_db_session(MYSQL_RES *mresult, void *p_extra)
     {
         if(row[0] != NULL)
         {
-            // home 128 is enough
-            strncpy(data, row[0], 128);
+            // don't exceed the incoming parameter's length!
+            strncpy(data, row[0], 63);
         }
     }
 
@@ -302,11 +298,8 @@ int LoginOperation::process_user_and_credential(LoginRequest *reqobj, LoginRespo
         INFO("%s ==> %ld,[Login OK]\n", reqobj->login_name().c_str(), cid);
 
         char uuiddata[64]; // string like '3ab554e6-1533-4cea-9f6d-26edfd869c6e'
-#if 1
         get_uuid(uuiddata);
-#else
-        gen_uuid(uuiddata);
-#endif
+
         struct user_session us;
         us.us_cid = cid;
         us.us_sessionid = reqobj->login_session().c_str();
@@ -394,7 +387,7 @@ int LoginOperation::handling_request(::google::protobuf::Message *login_req, ::g
      */
 #if 1
     if(reqobj->has_device_type()) {
-        INFO("an older product, add device type\n");
+        INFO("an older product, add device type(%d)\n", reqobj->device_type());
         add_device_type(reqobj);
     }
 #endif
@@ -509,6 +502,7 @@ int LoginOperation::set_session_info_to_db(struct user_session *u, char *old)
         {
             // old existed session
             INFO("Will obsolete token(%s)...\n", old);
+            // TODO, need check the return value!
             overwrite_existed_session_in_db(u);
         }
     }
