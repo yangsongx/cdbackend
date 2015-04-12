@@ -81,8 +81,11 @@ char    g_phone_sms_verifycode[64]; // store SMS verify code
 char    g_aname_first_token[64];
 char    g_bname_first_token[64];
 
+char   g_aname_verifycode[8];
+
 char         g_css_email_verifycode[8];
 list<string> g_css_tokens;
+uint64_t     g_css_cid; // CSS' CID
 
 // copy code from CDS to avoid dependent on that package
 int the_md5(const char *data, int length, char *result)
@@ -611,12 +614,6 @@ int test_insert_new_user_password4() {
             CDS_OK);
 }
 
-int test_rollback_logic()
-{
-    printf("WOW, you need a rollback test case!\n");
-    return -1;
-}
-
 int test_ping_reg_service()
 {
     int ret = -1;
@@ -692,6 +689,9 @@ int _email_testing(DeviceType dt, const char *source, const char *name, const ch
                 if(!strcmp(name,"ilovecss@email.com")){
                     printf("    This is CSS' email verify code, need remember hers\n");
                     strcpy(g_css_email_verifycode, resp.reg_verifycode().c_str());
+                } else if(!strcmp(name, "a_name")) {
+                    strcpy(g_aname_verifycode, resp.reg_verifycode().c_str());
+                    printf("    the a-name code:%s\n", g_aname_verifycode);
                 }
             }
 
@@ -1507,8 +1507,12 @@ int test_activation_phone_smscode5() {
 
 
 int test_activation_email_1() {
-    printf("TODO, need activation with 'a_name' case in test_normal_email_login()\n");
-    return -1;
+    //printf("TODO, need activation with 'a_name' case in test_normal_email_login()\n");
+    printf("  will try activate the \'a_name\' email with %s code\n", g_aname_verifycode);
+    return _activation_testing(RegLoginType::EMAIL_PASSWD,
+            "a_name", // DO NOT MODIFY
+            g_aname_verifycode, // DO NOT MODIFY
+            CDS_OK);
 }
 
 // try activate the CSS's 'ilovecss@email.com' email account
@@ -1593,6 +1597,12 @@ int _auth_testing(const char *token, const char *session, int sysid, int passfla
             }
             if(resp.has_caredear_id()) {
                 printf("   user's cid = %ld\n", resp.caredear_id());
+                // Save CSS's CID for later testing..
+                string item = g_css_tokens.front();
+                if(!strcmp(token, item.c_str())) {
+                    g_css_cid = resp.caredear_id();
+                    printf("the CSS CID:%lu\n", g_css_cid);
+                }
             }
 
             if(resp.result_code() == passflag) {
@@ -1953,18 +1963,164 @@ int test_misfield_mem_auth3() {
 /////////////////////////////////////////////////////////////////////
 // modify profile test
 /////////////////////////////////////////////////////////////////////
+
+int _test_passwd(PasswordType type, uint64_t cid, const char *old, const char *newpasswd, int passflag){
+    int ret = -1;
+    PasswordManagerRequest req;
+    PasswordManagerResponse resp;
+
+    req.set_type(type);
+    req.set_caredear_id(cid);
+    req.set_old_passwd(old);
+    req.set_new_passwd(newpasswd);
+
+    size_t size;
+    unsigned short len = req.ByteSize();
+    char *b = (char *)malloc(len + 2);
+
+    if(!b) {
+        printf("***malloc return NULL\n");
+        return -1;
+    }
+
+    ArrayOutputStream aos(b, len + 2);
+    CodedOutputStream cos(&aos);
+    cos.WriteRaw(&len, sizeof(len));
+    if(req.SerializeToCodedStream(&cos)) {
+        size = write(mSockPasswd, b, (len + 2));
+        printf("    ===>Server wrote with %ld byte\n", size);
+    }
+    free(b);
+   
+    // Now, waiting for response..
+    size = read(mSockPasswd, gBuffer, sizeof(gBuffer));
+    printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
+    if(*(unsigned short *)gBuffer > 0) {
+        ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
+        CodedInputStream is(&in);
+        if(resp.ParseFromCodedStream(&is)) {
+            printf("     result_code = %d\n", resp.result_code());
+            if(resp.has_extra_msg()) {
+                printf("   extra msg = %s\n", resp.extra_msg().c_str());
+            }
+
+
+            if(resp.result_code() == passflag) {
+                ret = 0;
+            }
+        }
+    }
+
+    return ret;
+}
+
+// change previous 'css' password, for bad old password case..
 int test_change_password() {
-    return -1;
+    const char *oldpasswd = "badcsspassword"; // DO NOT MODIFY, for this is a intent error
+    const char *newpasswd = "whatever"; // whatever, as this is failure case
+
+    printf("   CSS CID is %lu\n", g_css_cid);
+
+    // CID can be got after auth successfully
+    return _test_passwd(PasswordType::MODIFY,
+            g_css_cid,
+            oldpasswd,
+            newpasswd,
+            CDS_ERR_INCORRECT_CODE);
 }
 
-// using new passwod should pass
+// using incorrect cid with correct password
 int test_change_password2() {
-    return -1;
+    const char *oldpasswd = "cssisbeautiful"; // DO NOT MODIFY, for this is a intent error
+    const char *newpasswd = "whatever"; // whatever, as this is failure case
+
+    printf("   CSS CID is %lu\n", g_css_cid);
+
+    // CID can be got after auth successfully
+    return _test_passwd(PasswordType::MODIFY,
+            (g_css_cid+ 1),
+            oldpasswd,
+            newpasswd,
+            CDS_ERR_INCORRECT_CODE);
 }
 
-// Using old password should failed!
+// Now, modify the correct password on CSS
 int test_change_password3() {
-    return -1;
+    const char *oldpasswd = "cssisbeautiful"; // DO NOT MODIFY, for this is a intent error
+    const char *newpasswd = "cssmodifiedpasswd"; // whatever, as this is failure case
+
+    char md5str[36];
+    char newmd5str[36];
+
+    printf("   CSS CID is %lu\n", g_css_cid);
+    the_md5(oldpasswd, strlen(oldpasswd), md5str);
+    the_md5(newpasswd, strlen(newpasswd), newmd5str);
+
+    // CID can be got after auth successfully
+    return _test_passwd(PasswordType::MODIFY,
+            (g_css_cid),
+            md5str,
+            newmd5str,
+            CDS_OK);
+}
+
+//verify old password should failed to login
+int test_change_password4() {
+    const char *expired_passwd="cssisbeautiful";
+    char md5str[36];
+
+    the_md5(expired_passwd, strlen(expired_passwd), md5str);
+
+    return _email_passwd_testing(EMAIL_PASSWD,
+            "1994",
+            "ilovecss@email.com",
+            (const char*)md5str,
+            CDS_ERR_UMATCH_USER_INFO);
+}
+
+// Now, use new password
+int test_change_password5() {
+    const char *passwd="cssmodifiedpasswd";
+    char md5str[36];
+
+    the_md5(passwd, strlen(passwd), md5str);
+
+    return _email_passwd_testing(EMAIL_PASSWD,
+            "1994",
+            "ilovecss@email.com",
+            (const char*)md5str,
+            CDS_OK);
+}
+
+// a complicated test based on previous case
+int test_change_password6() {
+    string valid_token;
+
+    if(g_css_tokens.size() <= 1) {
+        // at least 2 case as we come here
+        printf("at least 2 case as we come here, so this case is failed\n");
+        return -1;
+    }
+
+    // last is the valid token.
+    valid_token = g_css_tokens.back();
+    g_css_tokens.pop_back();
+
+    printf("Now, %lu tokes remained\n", g_css_tokens.size());
+    list<string>::iterator it;
+    for(it = g_css_tokens.begin(); it != g_css_tokens.end(); it++)
+    {
+        printf("try the %s token...\n", it->c_str());
+        if(_auth_testing(it->c_str(), "2", 2, CDS_OK) != 0){
+            printf("    Yeah, old token SHOULD failed here, next one\n");
+        } else {
+            printf("    Attention, old token can pass?no!, failed it\n");
+            return -1;
+        }
+    }
+
+    printf("    Here, try correct one(%s)...\n", valid_token.c_str());
+    return _auth_testing(valid_token.c_str(), "2", 2, CDS_OK);
 }
 
 // inner util for ping specified @s socket
@@ -2295,8 +2451,6 @@ int main(int argc, char **argv)
     execute_ut_case(test_misfield_mem_auth2);
     execute_ut_case(test_misfield_mem_auth3);
 
-    execute_ut_case(test_rollback_logic);
-
     ///
     //TODO need add modify profile test case here...
     //
@@ -2314,7 +2468,9 @@ int main(int argc, char **argv)
     execute_ut_case(test_change_password);
     execute_ut_case(test_change_password2);
     execute_ut_case(test_change_password3);
-
+    execute_ut_case(test_change_password4);
+    execute_ut_case(test_change_password5);
+    execute_ut_case(test_change_password6);
 
 
     //misc testing...

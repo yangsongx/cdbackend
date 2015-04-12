@@ -167,12 +167,18 @@ int LoginOperation::delete_usercenter_session(LoginRequest *reqobj)
 {
     int ret = CDS_OK;
     char sqlcmd[1024];
+    int count;
 
     snprintf(sqlcmd, sizeof(sqlcmd),
             "DELETE FROM %s WHERE ticket=\'%s\' AND session=\'%s\'",
             USERCENTER_SESSION_TBL, reqobj->logout_ticket().c_str(), reqobj->login_session().c_str());
 
     ret = sql_cmd(sqlcmd, NULL, NULL);
+    count = mysql_affected_rows(m_pCfg->m_Sql);
+    if(count != 1)
+    {
+        ERR("Warning, seems didn't delete the record from DB(return %d)\n", count);
+    }
 
     return ret;
 }
@@ -496,7 +502,6 @@ int LoginOperation::set_session_info_to_db(struct user_session *u, char *old)
         {
             // new session
             insert_new_session_in_db(u);
-            ret = 1;
         }
         else
         {
@@ -504,6 +509,7 @@ int LoginOperation::set_session_info_to_db(struct user_session *u, char *old)
             INFO("Will obsolete token(%s)...\n", old);
             // TODO, need check the return value!
             overwrite_existed_session_in_db(u);
+            ret = 1;
         }
     }
 
