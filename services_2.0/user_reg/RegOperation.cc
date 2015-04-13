@@ -1,6 +1,7 @@
 /**
  *
  * \history
+ * [2015-04-13] use a new sip domain for insert record to SIPS DB
  * [2015-04-10] use new API prototype to avoid use static variable
  */
 #include "RegOperation.h"
@@ -453,8 +454,9 @@ int RegOperation::add_opensips_entry(RegisterRequest *pRegInfo)
         return ret;
     }
 
+    /* [2015-04-13] new user center use new domain as 'rdp2.caredear.com' */
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "INSERT INTO %s (username,domain) VALUES (\'%s\',\'rdp.caredear.com\')",
+            "INSERT INTO %s (username,domain) VALUES (\'%s\',\'rdp2.caredear.com\')",
             OPENSIPS_SUB_TBL, pRegInfo->reg_name().c_str());
 
     // OpenSIPs is another DB, so use a different API
