@@ -30,7 +30,7 @@
 #include <errmsg.h>
 #include <list>
 #include <openssl/md5.h>
-
+#include "uuid.h"
 #include <libmemcached/memcached.h>
 
 #include "cds_public.h"
@@ -2272,6 +2272,53 @@ int test_sql_auto_reconnect() {
     return ret;
 }
 
+
+/* directly copy from Operation class */
+static int _gen_random_code(char *result) {
+    char a[4];
+    uuid_t id;
+    char tmp[64];
+    char a1,a2,a3,a4,a5,a6;
+
+    uuid_generate(id);
+
+    uuid_unparse(id, tmp);
+
+    printf("the unparse:%s\n", tmp);
+
+    printf("%#x %#x %#x\n", id[0], id[1], id[15]);
+
+    // extract first-two and last-one digit hex as verifiy code
+    *(int *) a  = (int)((id[0] << 16 | id[1] << 8) | id[15]);
+    printf("after extract, the value:%#x\n", *(int*) a);
+
+    a1 = (a[0] & 0x0F);
+    a2 = ((a[0] & 0xF0) >> 4);
+    a3 = (a[1] & 0x0F);
+    a4 = ((a[1] & 0xF0) >> 4);
+    a5 = (a[2] & 0x0F);
+    a6 = ((a[2] & 0xF0) >> 4);
+
+
+    sprintf(result, "%c%c%c%c%c%c",
+         a1 > 9 ? (a1 - 6) + 0x30 : a1 + 0x30,
+         a2 > 9 ? (a2 - 6) + 0x30  : a2 + 0x30,
+         a3 > 9 ? (a3 - 6) +0x30 : a3 + 0x30,
+         a4 > 9 ? (a4 - 6) + 0x30 : a4 + 0x30,
+         a5 > 9 ? (a5 - 6) +0x30 : a5 + 0x30,
+         a6 > 9 ? (a6 - 6) + 0x30 : a6 + 0x30
+    );
+
+    return *(int *) a;
+}
+
+int test_random_code_generation() {
+    char random[7];
+    _gen_random_code(random);
+    printf("the random:%s\n", random);
+    return 0;
+}
+
 /**
  * Main Entry point
  *
@@ -2474,7 +2521,8 @@ int main(int argc, char **argv)
 
 
     //misc testing...
-    execute_ut_case(test_sql_auto_reconnect);
+    //execute_ut_case(test_sql_auto_reconnect);
+    execute_ut_case(test_random_code_generation);
 
 end_of_testing:
 

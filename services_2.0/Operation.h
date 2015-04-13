@@ -3,6 +3,7 @@
  * DB or memcached.
  *
  * \history
+ * [2015-04-13] Fix random(6-digit) code generation bug
  * [2015-04-10] Let SQL command support extra parameter, which would avoid using static variable in caller
  * [2015-04-01] Try fix the SQL time-out reconnecting BUG
  */
@@ -85,14 +86,14 @@ namespace caredear{
 
             /* this is creating a random code based on uuid */
             static int gen_random_code(char *result) {
-                char a[2];
+                char a[4];
                 uuid_t id;
                 char a1,a2,a3,a4,a5,a6;
 
                 uuid_generate(id);
 
                 // extract first-two and last-one digit hex as verifiy code
-                *(unsigned short *) a  = (unsigned short )(id[0] << 16 | id[1] << 8 | id[15]);
+                *(int *) a  = (int)(id[0] << 16 | id[1] << 8 | id[15]);
 
                 a1 = (a[0] & 0x0F);
                 a2 = ((a[0] & 0xF0) >> 4);

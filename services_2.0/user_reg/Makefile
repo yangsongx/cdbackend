@@ -40,7 +40,8 @@ CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
 LDFLAGS = -L . -L $(CDSBASE) -L $(THIRD_PARTY)libuuid/ -lcds -pthread -levent -lssl -lcrypto -lxml2 -lprotobuf -lmemcached `mysql_config --libs` -luuid-static
-TESTLDFLAGS = -lprotobuf -lxml2 `mysql_config --libs` -lssl -lcrypto -lmemcached
+
+TESTLDFLAGS = -lprotobuf -lxml2 `mysql_config --libs` -lssl -lcrypto -lmemcached -L . -luuid-static
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
