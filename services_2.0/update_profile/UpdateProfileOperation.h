@@ -1,3 +1,8 @@
+/**
+ *
+ *\history
+ * [2015-04-13] Need add SIPs DB for mobile phone case
+ */
 #ifndef _UUP_OPER_H
 #define _UUP_OPER_H
 
@@ -15,9 +20,10 @@ using namespace google::protobuf::io;
 class UpdateProfileOperation : public com::caredear::Operation {
 
     static int cb_check_code(MYSQL_RES *mresult, void *p_extra);
+    static int cb_check_sipaccount(MYSQL_RES *mresult, void *p_extra);
 
     int add_user_mobile_phone(UpdateRequest *reqobj);
-
+    int add_mobile_to_sips_db(UpdateRequest *reqobj);
     int add_user_password(UpdateRequest *reqobj);
     int add_user_name(UpdateRequest *reqobj);
     int pass_code_verify(UpdateRequest *reqobj);

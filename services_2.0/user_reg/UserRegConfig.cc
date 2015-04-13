@@ -77,7 +77,7 @@ int UserRegConfig::parse_cfg(const char *config_file)
                     ctx, buffer, sizeof(buffer));
             m_iEmailVerifyExpir = atoi(buffer);
 
-            /* next, will */
+            /* next, will get OpenSIPs DB config info... */
             get_node_via_xpath("//service_2/user_register_service/sipsserver/ip",
                     ctx, buffer, sizeof(buffer));
             strncpy(m_sipIP, buffer, sizeof(m_sipIP));

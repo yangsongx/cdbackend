@@ -1,3 +1,7 @@
+/**
+ *
+ *
+ */
 #ifndef _UUP_CONFIG_H
 #define _UUP_CONFIG_H
 
@@ -23,8 +27,20 @@
 
 class UpdateProfileConfig : public com::caredear::Config {
 
+    protected:
+        virtual int prepare_db_and_mem();
 
     public:
+         /* SIPs DB SQL info */
+        char  m_sipIP[32];
+        int   m_sipPort;
+        char  m_sipUser[32];
+        char  m_sipPasswd[32];
+
+        MYSQL *m_SipsSql;
+
+        ///////////////////////////////////////////////////////
+
         UpdateProfileConfig(){
             m_strMemIP[0] = '\0';
         }

@@ -1,5 +1,22 @@
+/**
+ *
+ * \history
+ * [2015-04-13] Need get OpenSIPs DB config as well
+ */
 #include "UpdateProfileConfig.h"
 
+int UpdateProfileConfig::prepare_db_and_mem()
+{
+    Config::prepare_db_and_mem();
+
+    m_SipsSql = conn_to_mysql(m_sipIP, m_sipUser, m_sipPasswd);
+    if(!m_SipsSql)
+    {
+        ERR("*** Failed connect to the SIPs SQL server!\n");
+    }
+
+    return 0;
+}
 
 int UpdateProfileConfig::parse_cfg(const char *config_file)
 {
@@ -35,6 +52,21 @@ int UpdateProfileConfig::parse_cfg(const char *config_file)
                     m_strSqlIP, m_strSqlUserName, m_strSqlUserPassword);
 
             // FIXME - don't use memcached currently
+
+            // OpenSIPs section...
+            get_node_via_xpath("//service_2/update_user_profile/sipsserver/ip",
+                    ctx, buffer, sizeof(buffer));
+            strncpy(m_sipIP, buffer, sizeof(m_sipIP));
+
+            get_node_via_xpath("//service_2/update_user_profile/sipsserver/user",
+                    ctx, buffer, sizeof(buffer));
+            strncpy(m_sipUser, buffer, sizeof(m_sipUser));
+
+            get_node_via_xpath("//service_2/update_user_profile/sipsserver/password",
+                    ctx, buffer, sizeof(buffer));
+            strncpy(m_sipPasswd, buffer, sizeof(m_sipPasswd));
+
+            LOG("OpenSIPs DB ip:%s\n", m_sipIP);
 
             xmlXPathFreeContext(ctx);
 

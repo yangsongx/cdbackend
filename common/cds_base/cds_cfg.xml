@@ -96,6 +96,18 @@
                 <databasename></databasename>
             </sqlserver>
         </attr_modify>
+        <update_user_profile>
+            <sqlserver>
+                <ip>192.168.4.198</ip>
+                <user>root</user>
+                <password>root</password>
+            </sqlserver>
+            <sipsserver>
+                <ip>192.168.4.198</ip>
+                <user>root</user>
+                <password>root</password>
+            </sipsserver>
+        </update_user_profile>
     </service_2>
 
     <xmpp_auth_2>

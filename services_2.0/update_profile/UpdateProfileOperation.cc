@@ -24,6 +24,27 @@ int UpdateProfileOperation::cb_check_code(MYSQL_RES *mresult, void *p_extra)
     return 0;
 }
 
+int UpdateProfileOperation::cb_check_sipaccount(MYSQL_RES *mresult, void *p_extra)
+{
+    MYSQL_ROW row;
+    int *data = (int *)p_extra;
+
+    *data = 0;
+
+    row = mysql_fetch_row(mresult);
+    if(row != NULL)
+    {
+        if(mysql_num_rows(mresult) != 1)
+        {
+            ERR("Warning, not single record found in SIPs DB\n");
+        }
+        *data = 1;
+    }
+
+    return 0;
+}
+
+
 /**
  *
  * return 1 means code correct, otherwise it is failed
@@ -99,9 +120,52 @@ int UpdateProfileOperation::unique_record(UpdateRequest *reqobj)
     return 0;
 }
 
+int UpdateProfileOperation::add_mobile_to_sips_db(UpdateRequest *reqobj)
+{
+    char sqlcmd[1024];
+    int flags;
+    int ret;
+    UpdateProfileConfig *c = (UpdateProfileConfig *)m_pCfg;
+
+    if(reqobj->reg_type() != Updatetype::MOBILE_PHONE)
+    {
+        ERR("don't support NON-mobile case!\n");
+        return -1;
+    }
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT id FROM %s WHERE username=\'%s\'",
+            OPENSIPS_SUB_TBL, reqobj->update_data().c_str());
+    ret = sql_cmd_with_specify_server(&c->m_SipsSql, sqlcmd, cb_check_sipaccount, &flags);
+    if(ret == CDS_OK && flags == 0)
+    {
+        // didn't found existed record in DB
+        snprintf(sqlcmd, sizeof(sqlcmd),
+                "INSERT INTO %s (username,domain) VALUES (\'%s\',\'rdp2.caredear.com\')",
+                OPENSIPS_SUB_TBL, reqobj->update_data().c_str());
+        ret = sql_cmd_with_specify_server(&c->m_SipsSql, sqlcmd, NULL, NULL);
+        flags = mysql_affected_rows(c->m_SipsSql);
+        if(flags != 1)
+        {
+            ERR("warning, insertion got %d affected lines", flags);
+        }
+        else
+        {
+            INFO("also add the mobile account to Sips DB [OK]\n");
+        }
+    }
+    else
+    {
+        ERR("either select or found existed user in Sips db, failed insert to sips db\n");
+    }
+
+    return 0;
+}
+
 int UpdateProfileOperation::add_user_mobile_phone(UpdateRequest *reqobj)
 {
     int ret = CDS_OK;
+    int count;
     char sqlcmd[1024];
 
     // first check mobile code is correct or not
@@ -123,8 +187,15 @@ int UpdateProfileOperation::add_user_mobile_phone(UpdateRequest *reqobj)
             "UPDATE %s SET usermobile=\'%s\' WHERE id=\'%s\'",
             USERCENTER_MAIN_TBL, reqobj->update_data().c_str(),
             reqobj->uid().c_str());
-    // FIXME, UPDATE SHOULD NEVER just check return value
+
     ret = sql_cmd(sqlcmd, NULL, NULL);
+    count = mysql_affected_rows(m_pCfg->m_Sql);
+    if(count != 1)
+    {
+        ERR("Warning, seems didn't update the record in DB(return %d)\n", count);
+    }
+
+    //[2015-04-13] Need add the mobile account into SIPs DB
 
     return ret;
 }
