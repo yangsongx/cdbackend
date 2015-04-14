@@ -1,3 +1,8 @@
+/**
+ *
+ *\history
+ * [2015-04-14] Support legacy token auth support
+ */
 #include "SipOperation.h"
 
 
@@ -84,8 +89,8 @@ int SipOperation::handling_request(::google::protobuf::Message *p_obj, ::google:
 
     struct sips_info info;
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT caredearid,ticket FROM %s WHERE session=\'%s\'",
-            USERCENTER_SESSION_TBL, reqobj->session().c_str());
+            "SELECT caredearid,ticket FROM %s WHERE session=\'%s\' AND caredearid=%lu",
+            USERCENTER_SESSION_TBL, reqobj->session().c_str(), cid);
     ret = sql_cmd(sqlcmd, cb_get_token, &info);
     if(ret == CDS_OK && info.s_cid != (uint64_t) -1)
     {

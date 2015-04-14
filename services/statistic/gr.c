@@ -3,6 +3,9 @@
  *
  * This is a program select all wanted User data from Server,
  * for statistic the QingLiang APK's data, analysis some patterns.
+ *
+ *\history
+ * [2015-04-14] try test on the new 2.0 arch user center design.
  */
 
 #include <stdio.h>
@@ -75,18 +78,22 @@ MYSQL *GET_MYSQL()
         ctx = xmlXPathNewContext(doc);
         if(ctx != NULL)
         {
-            get_node_via_xpath("/config/sqlserver/ip", ctx, sql_ip, sizeof(sql_ip));
-            get_node_via_xpath("/config/sqlserver/port", ctx, buf, sizeof(buf));
-            sql_port = atoi(buf);
-            get_node_via_xpath("/config/sqlserver/user", ctx, sql_usr, sizeof(sql_usr));
-            get_node_via_xpath("/config/sqlserver/password", ctx, sql_passwd, sizeof(sql_passwd));
+            get_node_via_xpath("/config/service_2/user_register_service/sqlserver/ip",
+                    ctx, sql_ip, sizeof(sql_ip));
 
-            // the database always be ucen curretnly!
+            get_node_via_xpath("/config/service_2/user_register_service/sqlserver/port",
+                    ctx, buf, sizeof(buf));
+            sql_port = atoi(buf);
+
+            get_node_via_xpath("/config/service_2/user_register_service/sqlserver/user",
+                    ctx, sql_usr, sizeof(sql_usr));
+            get_node_via_xpath("/config/service_2/user_register_service/sqlserver/password",
+                    ctx, sql_passwd, sizeof(sql_passwd));
 
             msql = mysql_init(NULL);
             if(msql != NULL)
             {
-                if(!mysql_real_connect(msql, sql_ip, sql_usr, sql_passwd, "ucen", sql_port, NULL, 0))
+                if(!mysql_real_connect(msql, sql_ip, sql_usr, sql_passwd, "uc", sql_port, NULL, 0))
                 {
                     printf("** Failed connect to MySQL:%s\n", mysql_error(msql));
                     mysql_close(msql);

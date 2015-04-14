@@ -22,8 +22,7 @@ SRC = $(QINIU_SDK)qiniu/auth_mac.cc \
       NetdiskOperation.cc \
       NetdiskConfig.cc \
       NetdiskMessage.pb.cc \
-      nds_main.cc \
-      nds_sql.cc
+      nds_main.cc
 
 TEST_SRC = test_nds.cc \
            NetdiskMessage.pb.cc \

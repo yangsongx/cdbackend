@@ -1,3 +1,8 @@
+/**
+ *
+ *\history
+ * [2015-04-14] remove the uuid.h header including
+ */
 #ifndef _VCS_LOGINOPER_H
 #define _VCS_LOGINOPER_H
 
@@ -6,8 +11,6 @@
 
 #include "VerifyCode.pb.h"
 #include "VerifyCodeConfig.h"
-// TODO below header will be obsolted soon..
-#include "uuid.h"
 
 #include "Operation.h"
 
@@ -18,8 +21,6 @@ using namespace google::protobuf::io;
 
 class VerifyCodeOperation : public com::caredear::Operation {
 
-    //static uint64_t m_Cid;
-    //static int m_result;
     static int cb_get_cid(MYSQL_RES *mresult, void *p_extra);
     static int cb_check_passwd(MYSQL_RES *mresult, void *p_extra);
 

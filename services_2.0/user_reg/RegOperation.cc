@@ -1,6 +1,7 @@
 /**
  *
  * \history
+ * [2015-04-14] redirect random code generation to base class
  * [2015-04-13] use a new sip domain for insert record to SIPS DB
  * [2015-04-10] use new API prototype to avoid use static variable
  */
@@ -36,41 +37,6 @@ int RegOperation::cb_check_user_existence(MYSQL_RES *p_result, void *p_extra)
     return 0;
 }
 
-
-/** TODO, this API should be delted as base::gen_random_code() already do the same thing!
- *
- * Generate a random 6-digit number, used for email/sms verify code
- *
- */
-int RegOperation::gen_verifycode(char *result)
-{
-    char a[2];
-    uuid_t id;
-    char a1,a2,a3,a4,a5,a6;
-
-    uuid_generate(id);
-
-    // extract first-two and last-one digit hex as verifiy code
-    *(unsigned short *) a  = (unsigned short )(id[0] << 16 | id[1] << 8 | id[15]);
-
-    a1 = (a[0] & 0x0F);
-    a2 = ((a[0] & 0xF0) >> 4);
-    a3 = (a[1] & 0x0F);
-    a4 = ((a[1] & 0xF0) >> 4);
-    a5 = (a[2] & 0x0F);
-    a6 = ((a[2] & 0xF0) >> 4);
-
-    sprintf(result, "%c%c%c%c%c%c",
-             a1 > 9 ? (a1 - 6) + 0x30 : a1 + 0x30,
-             a2 > 9 ? (a2 - 6) + 0x30  : a2 + 0x30,
-             a3 > 9 ? (a3 - 6) +0x30 : a3 + 0x30,
-             a4 > 9 ? (a4 - 6) + 0x30 : a4 + 0x30,
-             a5 > 9 ? (a5 - 6) +0x30 : a5 + 0x30,
-             a6 > 9 ? (a6 - 6) + 0x30 : a6 + 0x30
-            );
-
-    return *(int *) a;
-}
 
 int RegOperation::compose_result(int code, const char *errmsg, ::google::protobuf::Message *obj, int *p_resplen, void *p_respdata)
 {
@@ -151,7 +117,7 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
         {
             // tell a verification code here
             char verifycode[12] = {'8'};
-            gen_verifycode(verifycode);
+            gen_random_code(verifycode);
             respobj->set_reg_verifycode(verifycode);
 
             LOG("==>the verification code=%s\n", verifycode);

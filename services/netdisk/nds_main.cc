@@ -44,8 +44,6 @@ using namespace std;
 using namespace google::protobuf::io;
 using namespace com::caredear;
 
-static MYSQL *nds_sql = NULL;
-
 NetdiskConfig g_info;
 time_t        g_ndsStart;
 
@@ -57,101 +55,6 @@ const char *qiniu_bucket;
 const char *qiniu_domain;
 unsigned int qiniu_expires = 2592000; // 30 dyas by default
 unsigned int qiniu_quota = 10000; // set 10000 here just for debug..., correct should go into config...
-
-
-/**
- * Wraper for send back data, via protobuf
- *
- *@result_code: the CDS_XXX error code
- *@p_respdata: the raw response buffer(embeded into CDS)
- *
- * reutrn 0 for successful, otherwise return -1
- */
-int sendback_response(int result_code, const char *errmsg, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
-{
-    unsigned short len;
-
-    p_ndr->set_result_code(result_code);
-
-    /* the error message is only valid for error case */
-    if(result_code != CDS_OK && errmsg != NULL)
-    {
-        p_ndr->set_errormsg(errmsg);
-    }
-
-    len = p_ndr->ByteSize();
-    LOG("the response payload len=%d\n", len);
-
-    if(len >= 1024)
-    {
-        ERR("FATAL ERROR, response exceed 1k!, should we continue?\n");
-    }
-
-    // we use 2-byte as leading length
-    *p_resplen = (len + 2);
-
-    ArrayOutputStream aos(p_respdata, *p_resplen);
-    CodedOutputStream cos(&aos);
-
-    // add the leading-len
-    cos.WriteRaw(&len, sizeof(len));
-    return ((p_ndr->SerializeToCodedStream(&cos) == true) ? 0 : -1);
-}
-
-/**
- * Created the upload policy
- *
- */
-int generate_upload_token(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
-{
-    Qiniu_RS_PutPolicy put_policy;
-
-    // per req creates one
-    Qiniu_Client_InitMacAuth(&qn, 1024, NULL);
-
-    memset(&put_policy, 0x00, sizeof(put_policy));
-    put_policy.scope = qiniu_bucket;
-    put_policy.expires = qiniu_expires;
-
-    char *uptoken= Qiniu_RS_PutPolicy_Token(&put_policy, NULL);
-    if(uptoken == NULL)
-    {
-        ERR("*** got NULL mem pointer");
-        sendback_response(CDS_ERR_NOMEMORY, "no memory", p_ndr, p_resplen, p_respdata);
-        return CDS_ERR_NOMEMORY;
-    }
-
-    LOG("upload token:%s\n", uptoken);
-    p_ndr->set_uploadtoken(uptoken);
-
-    // compose the response data....
-    if(sendback_response(CDS_OK, NULL, p_ndr, p_resplen, p_respdata) != 0)
-    {
-        ERR("Warning, failed serialize upload response data\n");
-    }
-
-    // DO NOT FORGET release resource...
-    Qiniu_Free(uptoken);
-    Qiniu_Client_Cleanup(&qn);
-
-    return CDS_OK;
-}
-
-/**
- * Debug cookie flag
- *
- */
-int in_debug_mode()
-{
-    int debug = 0;
-
-    if(access("/tmp/nd.debug", F_OK) == 0)
-    {
-        debug = 1;
-    }
-
-    return debug;
-}
 
 
 /**
@@ -182,83 +85,7 @@ int ping_nds_handler(int size, void *req, int *len_resp, void *resp)
     return ret;
 }
 
-/**
- * handler for user try uploading a file to netdisk. This function will just return
- * upload token to caller.
- *
- */
-int do_upload(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
-{
-    int ret = CDS_OK;
 
-    p_ndr->set_opcode(UPLOADING);
-
-    ret = preprocess_upload_req(nds_sql, p_obj);
-    if(ret == CDS_ERR_SQL_DISCONNECTED) {
-        ERR("SQL idle timeout, need reconnet\n");
-        mysql_close(nds_sql);
-
-        nds_sql = GET_CMSSQL(&sql_cfg);
-        if(nds_sql == NULL) {
-            ERR("failed reconnect to SQL\n");
-            return CDS_ERR_SQL_DISCONNECTED;
-
-        } else {
-            INFO("Reconnect to netdisk DB [OK]\n");
-
-            ret = preprocess_upload_req(nds_sql, p_obj);
-        }
-       
-    }
-
-    switch(ret)
-    {
-        case CDS_ERR_SQL_EXECUTE_FAILED:
-            break;
-
-        case CDS_FILE_ALREADY_EXISTED:
-            if(sendback_response(ret, "already existed", p_ndr, p_resplen, p_respdata) != 0)
-            {
-                ERR("Warning, failed serialize already existed data\n");
-            }
-            return ret;
-
-        default:
-            ; // continue...
-    }
-
-    if(exceed_quota(nds_sql, p_obj) != 0)
-    {
-        INFO("User exceed the quota!");
-        // Exceed quota!
-        if(sendback_response(CDS_ERR_EXCEED_QUOTA, "exceed quota", p_ndr, p_resplen, p_respdata) != 0)
-        {
-            ERR("Warning, failed serialize exceed quota data\n");
-        }
-
-        return CDS_ERR_EXCEED_QUOTA;
-    }
-
-    ret = generate_upload_token(p_obj, p_ndr, p_resplen, p_respdata);
-
-    return ret;
-}
-
-
-int do_sharing(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata)
-{
-    int ret = CDS_OK;
-    char md5[42]; // MD5SUM is actually 33(including '\0') chars...
-
-    p_ndr->set_opcode(SHARE);
-
-    if(share_file(nds_sql, p_obj, md5) != 0)
-    {
-        ret = CDS_ERR_SQL_EXECUTE_FAILED;
-    }
-
-    return ret;
-}
 
 /**
  * call back function, handle obj is NetdiskMessage(NetdiskRequest/NetdiskResponse)
@@ -267,7 +94,6 @@ int do_sharing(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, vo
  */
 int nds_handler(int size, void *req, int *len_resp, void *resp)
 {
-    unsigned short len;
     int ret = CDS_OK;
     bool ok = false;
     NetdiskOperation opr(&g_info);
@@ -410,23 +236,12 @@ int main(int argc, char **argv)
         ERR("*** Warning Failed init the config XML file!\n");
     }
 
-    // TODO, below SQL MUTEX is not used future....
-    if(INIT_DB_MUTEX() != 0)
-    {
-        FREE_CMSSQL(nds_sql);
-        ERR("Failed create IPC objs:%d\n", errno);
-        return -2;
-    }
 
     cfg.ac_cfgfile = NULL;
     cfg.ac_handler = nds_handler;
     cfg.ping_handler = ping_nds_handler;
 	cfg.ac_lentype = LEN_TYPE_BIN; /* we use binary leading type */
     cds_init(&cfg, argc, argv);
-
-    // TODO, SQL mUTEX not used future
-    CLEAN_DB_MUTEX();
-    FREE_CMSSQL(nds_sql);
 
     return 0;
 }

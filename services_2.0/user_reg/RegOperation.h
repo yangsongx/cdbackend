@@ -14,7 +14,6 @@
  * which would cause min/max macro definition confliction! */
 #include <my_global.h>
 #include <mysql.h>
-#include "uuid.h" //libuuid
 
 #include "Operation.h"
 
@@ -51,8 +50,6 @@ class RegOperation : public com::caredear::Operation{
         RegOperation(Config *c) : com::caredear::Operation(c) {
         }
         // end of constructors...
-
-        int gen_verifycode(char *result);
 
         virtual int handling_request(::google::protobuf::Message *reg_req,
             ::google::protobuf::Message *reg_resp,
