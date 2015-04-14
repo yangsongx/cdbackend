@@ -2,6 +2,7 @@
  * Login handling code logic.
  *
  * \history
+ * [2015-04-14] Don't compare the password for third login case
  * [2015-04-12] Fix a buffer overflow bug for copy old token
  * [2015-04-09] Fix the update token bug(table name incorrect)
  * [2015-04-08] Use the same md5 hash algorithm as ShenZhen's
@@ -269,7 +270,7 @@ int LoginOperation::match_user_credential_in_db(LoginRequest *reqobj, unsigned l
             INFO("name[%s] ==> cid[%ld]\n",reqobj->login_name().c_str(), *p_cid);
             
             // next, we will try compose the passwd based on the got cid
-            if(reqobj->login_type() != RegLoginType::MOBILE_PHONE)
+            if(reqobj->login_type() != RegLoginType::MOBILE_PHONE && reqobj->login_type() != RegLoginType::OTHERS)
             {
                 char md5data[64];
                 // can re-use the sqlcmd here.
@@ -278,6 +279,11 @@ int LoginOperation::match_user_credential_in_db(LoginRequest *reqobj, unsigned l
                 LOG("phase-I cipher[%s] ==> phase-II cipher[%s]\n", sqlcmd, md5data);
 
                 ret = compare_user_password_wth_cid(reqobj, md5data, *p_cid);
+            }
+            else if(reqobj->login_type() == RegLoginType::OTHERS)
+            {
+                LOG("For third login case, we directly return OK as it already done via CAS\n");
+                ret = CDS_OK;
             }
             else
             {
