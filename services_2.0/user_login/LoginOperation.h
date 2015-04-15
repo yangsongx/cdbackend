@@ -44,6 +44,8 @@ class LoginOperation : public com::caredear::Operation {
     int compare_user_password_wth_cid(LoginRequest *reqobj, const char *targetdata, uint64_t cid);
     int compare_user_smscode_wth_cid(LoginRequest *reqobj, const char *code, uint64_t cid);
 
+    int add_new_3rd_party_entry_to_db(LoginRequest *reqobj, uint64_t *p_cid);
+
 public:
     LoginOperation() {
     }

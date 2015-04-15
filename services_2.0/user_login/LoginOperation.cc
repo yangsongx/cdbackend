@@ -2,6 +2,7 @@
  * Login handling code logic.
  *
  * \history
+ * [2015-04-15] Support ShenZhen reqirement for 3rd party login case
  * [2015-04-14] Don't compare the password for third login case
  * [2015-04-12] Fix a buffer overflow bug for copy old token
  * [2015-04-09] Fix the update token bug(table name incorrect)
@@ -211,6 +212,45 @@ int LoginOperation::compose_result(int code, const char *errmsg, ::google::proto
     return ((p_obj->SerializeToCodedStream(&cos) == true) ? 0 : -1);
 }
 
+int LoginOperation::add_new_3rd_party_entry_to_db(LoginRequest *reqobj, uint64_t *p_cid)
+{
+    int ret;
+    char sqlcmd[1024];
+
+    /* FIXME, for this 3rd party case, how to handle the device/source?
+     * currently, I just hard code a 88 for this special case */
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "INSERT INTO %s (third,device,source,createtime,status) "
+            "VALUES (\'%s\',88,\'88\',NOW(),1)",
+            USERCENTER_MAIN_TBL,
+            reqobj->login_name().c_str());
+    ret = sql_cmd(sqlcmd, NULL, NULL);
+    if(ret == CDS_OK)
+    {
+        ret = mysql_affected_rows(m_pCfg->m_Sql);
+        if(ret != 1)
+        {
+            ERR("Warning, insertion got %d return value\n", ret);
+            // set a error code
+            ret = CDS_ERR_SQL_EXECUTE_FAILED;
+        }
+        else
+        {
+            INFO("new 3rd party entry inserted [OK]\n");
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id FROM %s WHERE third=\'%s\'",
+                    USERCENTER_MAIN_TBL, reqobj->login_name().c_str());
+            ret = sql_cmd(sqlcmd, cb_check_name, p_cid);
+            if(ret == CDS_OK)
+            {
+                LOG("3rd party login(first time) got %lu CID\n", *p_cid);
+            }
+        }
+    }
+
+    return ret;
+}
+
 int LoginOperation::match_user_credential_in_db(LoginRequest *reqobj, unsigned long *p_cid)
 {
     int ret;
@@ -249,7 +289,12 @@ int LoginOperation::match_user_credential_in_db(LoginRequest *reqobj, unsigned l
             break;
 
         case RegLoginType::CID_PASSWD:
-            // TODO how to handle with CareDear ID login?
+            /* We still need choose ID, to avoid requester
+             * using an in-valide CID to login */
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "SELECT id FROM %s WHERE id=\'%s\'",
+                    USERCENTER_MAIN_TBL,
+                    reqobj->login_name().c_str());
             break;
 
         default:
@@ -261,8 +306,17 @@ int LoginOperation::match_user_credential_in_db(LoginRequest *reqobj, unsigned l
     {
         if(cid == (uint64_t) -1)
         {
-            // this means DB didn't contain such record
-            ret = CDS_ERR_UMATCH_USER_INFO;
+            if(reqobj->login_type() == RegLoginType::OTHERS)
+            {
+                /* Special handling for ShenZhen's 3rd login type */
+                INFO("the first-time of 3rd party login, insert it to DB\n");
+                ret = add_new_3rd_party_entry_to_db(reqobj, &cid);
+            }
+            else
+            {
+                // this means DB didn't contain such record
+                ret = CDS_ERR_UMATCH_USER_INFO;
+            }
         }
         else
         {
