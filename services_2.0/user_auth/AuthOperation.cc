@@ -2,6 +2,7 @@
  * User Auth operation class
  *
  * \history
+ * [2015-04-15] avod overflow for the too-long session case
  * [2015-04-08] For mem value corrupt case, need restore it from DB
  * [2015-04-02] Fix a mem value miss-field bug (normally, value is in 3 column, we need avoid Non-3 column case)
  *
@@ -88,7 +89,8 @@ int AuthOperation::split_val_into_fields(char *value, struct auth_data_wrapper *
         if((s = strtok_r(NULL, " ", &saveptr)) != NULL)
         {
             col_cnt++;
-            strcpy(w->adw_session, s);
+            /* [2015-04-15] avod overflow, the 64 here is pick from struct definition */
+            strncpy(w->adw_session, s, 64);
             if((l = strtok_r(NULL, " " , &saveptr)) != NULL)
             {
                 col_cnt++;
