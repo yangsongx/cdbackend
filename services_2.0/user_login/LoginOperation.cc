@@ -2,6 +2,9 @@
  * Login handling code logic.
  *
  * \history
+ * [2015-04-16] Fix incorrect caredear id bug for first time of 3rd party login
+ *              Before bug fix - the caredear id returned -1
+ *              After bug fix - caredear id returned a valide number.
  * [2015-04-15] Support ShenZhen reqirement for 3rd party login case
  * [2015-04-14] Don't compare the password for third login case
  * [2015-04-12] Fix a buffer overflow bug for copy old token
@@ -310,7 +313,7 @@ int LoginOperation::match_user_credential_in_db(LoginRequest *reqobj, unsigned l
             {
                 /* Special handling for ShenZhen's 3rd login type */
                 INFO("the first-time of 3rd party login, insert it to DB\n");
-                ret = add_new_3rd_party_entry_to_db(reqobj, &cid);
+                ret = add_new_3rd_party_entry_to_db(reqobj, p_cid);
             }
             else
             {
