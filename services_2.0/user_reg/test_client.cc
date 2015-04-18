@@ -1598,10 +1598,15 @@ int _auth_testing(const char *token, const char *session, int sysid, int passfla
             if(resp.has_caredear_id()) {
                 printf("   user's cid = %ld\n", resp.caredear_id());
                 // Save CSS's CID for later testing..
+                /* 2015-04-18 some case, CSS case failed as DB treat too long in 'souce' field,
+                 * so g_css_token list may be empty, we need check this to avoid core dump when
+                 * run the test program */
+                if(!g_css_tokens.empty()){
                 string item = g_css_tokens.front();
                 if(!strcmp(token, item.c_str())) {
                     g_css_cid = resp.caredear_id();
                     printf("the CSS CID:%lu\n", g_css_cid);
+                }
                 }
             }
 
@@ -1798,12 +1803,17 @@ int test_auth_normal_case7() {
 int test_auth_css_email(){
     // for the previously reg/login case, 
     // CSS use sysid-2 and sessionid-2
+    if(!g_css_tokens.empty()) {
     string t = g_css_tokens.front();
     return _auth_testing(
             t.c_str(),
             "2", // see above comments
             2, // dito
             CDS_OK);
+    } else {
+        printf("  seems previously CSS case failed, mare it as failed too\n");
+        return -1;
+    }
 }
 
 // check if a normal login(with time update)
