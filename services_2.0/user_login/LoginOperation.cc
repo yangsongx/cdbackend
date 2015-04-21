@@ -2,6 +2,7 @@
  * Login handling code logic.
  *
  * \history
+ * [2015-04-21] Check the return value for delete mem value.
  * [2015-04-16] Fix incorrect caredear id bug for first time of 3rd party login
  *              Before bug fix - the caredear id returned -1
  *              After bug fix - caredear id returned a valide number.
@@ -155,9 +156,10 @@ int LoginOperation::update_usercenter_session(LoginRequest *reqobj, struct user_
     if(set_session_info_to_db(u, oldtoken) == 1)
     {
         // need delete old token's memcach
-        if(rm_mem_value(oldtoken) != 0)
+        rc = rm_mem_value(oldtoken);
+        if(rc != MEMCACHED_SUCCESS)
         {
-            ERR("**Failed delete key(%s) from mem\n", oldtoken);
+            ERR("**Failed delete key(%s) from mem(%d)\n", oldtoken, rc);
         }
         else
         {

@@ -50,7 +50,7 @@ namespace caredear{
             int set_mem_value(const char *key, const char *value, uint32_t flag = 0, time_t expiration = 0);
             int set_mem_value_with_cas(const char *key, const char *value, uint32_t flag = 0, time_t expiration = 0);
             char *get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas);
-            int  rm_mem_value(const char *key);
+            memcached_return_t  rm_mem_value(const char *key);
 
             int sql_cmd(const char *cmd, cb_sqlfunc sql_cb, void *p_extra);
             int sql_cmd_via_transaction(int argc, char **argv, cb_sqlfunc sql_cb);

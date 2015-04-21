@@ -3,6 +3,7 @@
  * DB or memcached.
  *
  * \history
+ * [2015-04-20] re-design a prototype of rm_mem_value() API
  * [2015-04-10] Let SQL command support extra parameter, which would avoid using static variable in caller
  * [2015-04-01] Try fix the SQL time-out reconnecting BUG
  */
@@ -121,17 +122,12 @@ int Operation::set_mem_value_with_cas(const char *key, const char *value, uint32
 }
 
 /**
- * TODO I think this API should use memcached_return_t, not int, for
- * return value
+ *  Wrapper of a libmemcached lib util
  *
  */
-int Operation::rm_mem_value(const char *key)
+memcached_return_t Operation::rm_mem_value(const char *key)
 {
-    memcached_return_t rc;
-
-    rc = memcached_delete(m_pCfg->m_Memc, key, strlen(key), 0/* expiration */);
-
-    return (rc == MEMCACHED_SUCCESS ? 0 : 1);
+    return memcached_delete(m_pCfg->m_Memc, key, strlen(key), 0/* expiration */);
 }
 
 /**
