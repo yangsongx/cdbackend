@@ -3,20 +3,20 @@
     <service_2>
         <user_register_service>
             <memcache>
-                <ip>127.0.0.1</ip>
+                <ip>yz-memcache1</ip>
                 <port>11211</port>
             </memcache>
             <sqlserver>
-                <ip>192.168.4.198</ip>
-                <user>root</user>
-                <password>root</password>
+                <ip>yz-mysql1</ip>
+                <user>zyj</user>
+                <password>zhuyujie</password>
                 <!-- keep below blank -->
                 <databasename></databasename>
             </sqlserver>
 
             <!-- Register need also touch the SIPs DB -->
             <sipsserver>
-                <ip>192.168.1.13</ip>
+                <ip>yz-mysql1</ip>
                 <user>opensips</user>
                 <password>opensipsrw</password>
             </sipsserver>
@@ -28,13 +28,13 @@
 
         <verify_code_service>
             <memcache>
-                <ip>127.0.0.1</ip>
+                <ip>yz-memcache1</ip>
                 <port>11211</port>
             </memcache>
             <sqlserver>
-                <ip>192.168.4.198</ip>
-                <user>root</user>
-                <password>root</password>
+                <ip>yz-mysql1</ip>
+                <user>zyj</user>
+                <password>zhuyujie</password>
                 <!-- keep below blank -->
                 <databasename></databasename>
             </sqlserver>
@@ -47,13 +47,13 @@
 
         <user_login_service>
             <memcache>
-                <ip>127.0.0.1</ip>
+                <ip>yz-memcache1</ip>
                 <port>11211</port>
             </memcache>
             <sqlserver>
-                <ip>192.168.4.198</ip>
-                <user>root</user>
-                <password>root</password>
+                <ip>yz-mysql1</ip>
+                <user>zyj</user>
+                <password>zhuyujie</password>
                 <!-- keep below blank -->
                 <databasename></databasename>
             </sqlserver>
@@ -61,13 +61,13 @@
 
         <user_auth_service>
             <memcache>
-                <ip>127.0.0.1</ip>
+                <ip>yz-memcache1</ip>
                 <port>11211</port>
             </memcache>
             <sqlserver>
-                <ip>192.168.4.198</ip>
-                <user>root</user>
-                <password>root</password>
+                <ip>yz-mysql1</ip>
+                <user>zyj</user>
+                <password>zhuyujie</password>
                 <!-- keep below blank -->
                 <databasename></databasename>
             </sqlserver>
@@ -75,13 +75,13 @@
 
         <user_activation_service>
             <memcache>
-                <ip>127.0.0.1</ip>
+                <ip>yz-memcache1</ip>
                 <port>11211</port>
             </memcache>
             <sqlserver>
-                <ip>192.168.4.198</ip>
-                <user>root</user>
-                <password>root</password>
+                <ip>yz-mysql1</ip>
+                <user>zyj</user>
+                <password>zhuyujie</password>
                 <!-- keep below blank -->
                 <databasename></databasename>
             </sqlserver>
@@ -89,30 +89,43 @@
 
         <attr_modify>
             <sqlserver>
-                <ip>192.168.4.198</ip>
-                <user>root</user>
-                <password>root</password>
+                <ip>yz-mysql1</ip>
+                <user>zyj</user>
+                <password>zhuyujie</password>
                 <!-- keep below blank -->
                 <databasename></databasename>
             </sqlserver>
         </attr_modify>
         <update_user_profile>
             <sqlserver>
-                <ip>192.168.4.198</ip>
-                <user>root</user>
-                <password>root</password>
+                <ip>yz-mysql1</ip>
+                <user>zyj</user>
+                <password>zhuyujie</password>
             </sqlserver>
             <sipsserver>
-                <ip>192.168.4.198</ip>
-                <user>root</user>
-                <password>root</password>
+                <ip>yz-mysql1</ip>
+                <user>zyj</user>
+                <password>zhuyujie</password>
             </sipsserver>
         </update_user_profile>
+
+        <password_manager>
+            <sqlserver>
+                <ip>yz-mysql1</ip>
+                <user>zyj</user>
+                <password>zhuyujie</password>
+            </sqlserver>
+            <sipsserver>
+                <ip>yz-mysql1</ip>
+                <user>opensips</user>
+                <password>opensipsrw</password>
+            </sipsserver>
+        </password_manager>
     </service_2>
 
     <xmpp_auth_2>
-        <serverip>127.0.0.1</serverip>
-        <serverport>12000</serverport>
+        <serverip>yz-app-java2</serverip>
+        <serverport>13003</serverport>
         <goldenkey>nanjing21k</goldenkey>
     </xmpp_auth_2>
 
@@ -132,8 +145,8 @@
 
     <!-- for XMPP auth -->
     <tokenserver>
-        <ip>127.0.0.1</ip>
-        <port>12000</port>
+        <ip>yz-app-java1</ip>
+        <port>13003</port>
         <goldenkey>nanjing21k</goldenkey>
     </tokenserver>
 
@@ -181,7 +194,7 @@
             <quota>200000000</quota>
         </qiniu>
         <sqlserver>
-            <ip>192.168.1.13</ip>
+            <ip>yz-mysql1</ip>
             <user>netdisk</user>
             <password>heqi</password>
             <!-- keep below blank -->
@@ -192,9 +205,9 @@
     <!-- OpenSIPS' account auth -->
     <sips_account logfile="true">
         <sqlserver>
-            <ip>192.168.1.13</ip>
-            <user>ucen</user>
-            <password>heqi</password>
+            <ip>yz-mysql1</ip>
+            <user>zyj</user>
+            <password>zhuyujie</password>
             <!-- keep below blank -->
             <databasename></databasename>
         </sqlserver>

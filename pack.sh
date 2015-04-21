@@ -3,6 +3,10 @@
 # MUST NOT called directly, should embeded in Makefile
 #
 
+# auto script under /etc/init/
+
+AUTORUN_NAME=cds.conf
+
 function pre_init()
 {
     rm -rf native/
@@ -120,6 +124,18 @@ function pre_netdisk()
     cp services_2.0/netdisk/nds native/netdisk/
 }
 
+function pre_autorun_script()
+{
+    echo "start on runlevel [12345]">native/$AUTORUN_NAME
+    echo "stop on runlevel [^12345]">>native/$AUTORUN_NAME
+    echo "">>native/$AUTORUN_NAME
+    echo "task">>native/$AUTORUN_NAME
+    echo "exec svscan /opt/native">>native/$AUTORUN_NAME
+
+    chmod a+x native/$AUTORUN_NAME
+}
+
+
 function gen_package_sh()
 {
     # create start and stop script
@@ -196,7 +212,11 @@ function gen_package_sh()
     echo "  else">>backend.sh
     echo "    echo \"You don't need libcds.so\"">>backend.sh
     echo "  fi">>backend.sh
+
     echo "">>backend.sh
+    echo "cp native/cds.conf /etc/init/">>backend.sh
+    echo "">>backend.sh
+
     echo "  if [ -d \"/opt/native\" ]; then">>backend.sh
     echo "    cp -rf native/* /opt/native/">>backend.sh
     echo "  else">>backend.sh
@@ -246,6 +266,8 @@ function release_backend()
 
     pre_sips;
     pre_netdisk;
+
+    pre_autorun_script;
 
     gen_package_sh;
 }
