@@ -34,6 +34,7 @@ namespace caredear{
 
 
     class Operation {
+            memcached_return_t execute_get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas, char **pp_val);
             int execute_sql(MYSQL **pms, const char *cmd, cb_sqlfunc sql_cb, void *p_extra);
 
         public:
@@ -49,7 +50,7 @@ namespace caredear{
              * operation here */
             int set_mem_value(const char *key, const char *value, uint32_t flag = 0, time_t expiration = 0);
             int set_mem_value_with_cas(const char *key, const char *value, uint32_t flag = 0, time_t expiration = 0);
-            char *get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas);
+            char *get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas, memcached_return_t *rc);
             memcached_return_t  rm_mem_value(const char *key);
 
             int sql_cmd(const char *cmd, cb_sqlfunc sql_cb, void *p_extra);

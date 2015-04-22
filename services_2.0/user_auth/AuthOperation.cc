@@ -259,13 +259,14 @@ bool AuthOperation::is_allowed_access(AuthRequest *reqobj)
  */
 int AuthOperation::auth_token_in_session(AuthRequest *reqobj, AuthResponse *respobj, struct auth_data_wrapper *w)
 {
+    memcached_return_t rc;
     int ret = CDS_OK;
     char  *p_val;
     size_t val_len;
     int i;
 
     // first try from mem
-    p_val = get_mem_value(reqobj->auth_token().c_str(), &val_len, NULL /* don't need the CAS */);
+    p_val = get_mem_value(reqobj->auth_token().c_str(), &val_len, NULL /* don't need the CAS */, &rc);
     if(p_val)
     {
         // got value from mem, parse it...

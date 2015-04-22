@@ -48,6 +48,8 @@ namespace caredear{
             m_strSqlIP[0] = '\0';
             m_strMemIP[0] = '\0';
 
+            m_Memc = NULL;
+
             m_iSqlConnTimeout = 5;
             /* FIXME - by default, set it to a shorter 4-second */
             m_iSqlRdTimeout = m_iSqlWtTimeout = 4;
@@ -57,6 +59,7 @@ namespace caredear{
          * so they MUST override this function */
         virtual int parse_cfg(const char *config_file) = 0;
 
+        memcached_st *conn_to_memcached(const char *ip, int port);
         MYSQL *reconnect_sql(MYSQL *disconnectS, const char *ip, const char *usr, const char *passwd);
     };
 }   //caredear

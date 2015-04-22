@@ -3,6 +3,7 @@
  * DB or memcached.
  *
  * \history
+ * [2015-04-22] Support auto-reconnect to memcached
  * [2015-04-20] re-design a prototype of rm_mem_value() API
  * [2015-04-10] Let SQL command support extra parameter, which would avoid using static variable in caller
  * [2015-04-01] Try fix the SQL time-out reconnecting BUG
@@ -15,8 +16,13 @@
 #include <mysql.h>
 #include <errmsg.h>
 
+
+/* a C-style macro, a little wired in C++ source code, but it is more efficient */
+#define MEMCACHED_DOWN(x)   ((x) == MEMCACHED_SERVER_TEMPORARILY_DISABLED || (x) == MEMCACHED_NO_SERVERS)
+
 Operation::Operation()
 {
+    m_pCfg = NULL;
 }
 
 Operation::Operation(Config *c)
@@ -67,9 +73,24 @@ int Operation::set_mem_value(const char *key, const char *value, uint32_t flag /
             key, strlen(key),
             value, strlen(value),
             expiration, flag);
+    if(MEMCACHED_DOWN(rc))
+    {
+        INFO("seems memcached is down, re-try it...\n");
+        if(m_pCfg->m_Memc != NULL)
+        {
+            memcached_free(m_pCfg->m_Memc);
+        }
+        m_pCfg->conn_to_memcached(m_pCfg->m_strMemIP, m_pCfg->m_iMemPort);
+
+        rc = memcached_set(m_pCfg->m_Memc,
+                key, strlen(key),
+                value, strlen(value),
+                expiration, flag);
+    }
 
     return rc;
 }
+
 
 /**
  * Using CAS to set a mem value.
@@ -82,27 +103,18 @@ int Operation::set_mem_value_with_cas(const char *key, const char *value, uint32
     memcached_return_t rc;
     uint64_t cas_value;
 
-    val = memcached_get_by_key(m_pCfg->m_Memc,
-            NULL,
-            0,
-            key,
-            strlen(key),
-            &val_len,
-            0, &rc);
+    val = get_mem_value(key, &val_len, &cas_value, &rc);
     if(val != NULL)
     {
-        if(rc == MEMCACHED_SUCCESS)
-        {
-            cas_value = (m_pCfg->m_Memc->result).item_cas;
-            LOG("%s -> CAS %ld\n", key, cas_value);
+        cas_value = (m_pCfg->m_Memc->result).item_cas;
+        LOG("%s -> CAS %ld\n", key, cas_value);
 
-            rc = memcached_cas(m_pCfg->m_Memc,
-                    key, strlen(key),
-                    value, strlen(value),
-                    expiration,
-                    flag,
-                    cas_value);
-        }
+        rc = memcached_cas(m_pCfg->m_Memc,
+                 key, strlen(key),
+                 value, strlen(value),
+                 expiration,
+                 flag,
+                 cas_value);
 
         free(val);
     }
@@ -127,7 +139,23 @@ int Operation::set_mem_value_with_cas(const char *key, const char *value, uint32
  */
 memcached_return_t Operation::rm_mem_value(const char *key)
 {
-    return memcached_delete(m_pCfg->m_Memc, key, strlen(key), 0/* expiration */);
+    memcached_return_t rc;
+
+    rc = memcached_delete(m_pCfg->m_Memc, key, strlen(key), 0/* expiration */);
+    if(MEMCACHED_DOWN(rc))
+    {
+        INFO("seems memcached is down, re-try it...\n");
+        if(m_pCfg->m_Memc != NULL)
+        {
+            memcached_free(m_pCfg->m_Memc);
+        }
+        m_pCfg->conn_to_memcached(m_pCfg->m_strMemIP, m_pCfg->m_iMemPort);
+
+        // do it again!
+        rc = memcached_delete(m_pCfg->m_Memc, key, strlen(key), 0/* expiration */);
+    }
+
+    return rc;
 }
 
 /**
@@ -136,7 +164,29 @@ memcached_return_t Operation::rm_mem_value(const char *key)
  * return NULL if sth wrong, otherwise, callee need take responsibility to
  * free this returned pointer value data.
  */
-char *Operation::get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas)
+char *Operation::get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas, memcached_return_t *rc)
+{
+    char *val = NULL;
+
+    *rc = execute_get_mem_value(key, p_valen, p_cas, &val);
+
+    if(MEMCACHED_DOWN(*rc))
+    {
+        INFO("seems memcached is down, re-try it...\n");
+        if(m_pCfg->m_Memc != NULL)
+        {
+            memcached_free(m_pCfg->m_Memc);
+        }
+        m_pCfg->conn_to_memcached(m_pCfg->m_strMemIP, m_pCfg->m_iMemPort);
+
+        // do it again!
+        *rc = execute_get_mem_value(key, p_valen, p_cas, &val);
+    }
+
+    return val;
+}
+
+memcached_return_t Operation::execute_get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas, char **pp_val)
 {
     memcached_return_t rc;
     char *val;
@@ -160,11 +210,11 @@ char *Operation::get_mem_value(const char *key, size_t *p_valen, uint64_t *p_cas
                 *p_cas = (m_pCfg->m_Memc->result).item_cas;
                 LOG("%s -> CAS %ld\n", key, *p_cas);
             }
+            *pp_val = val;
         }
     }
 
-    /* DO NOT FORGET to free this if don't need it */
-    return val;
+    return rc;
 }
 
 /**

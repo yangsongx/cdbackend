@@ -13,6 +13,37 @@
 
 using namespace com::caredear;
 
+/**
+ * Try connecting to memached server via @ip:@port
+ *
+ * return NULL if failed connect to the server.
+ */
+memcached_st *Config::conn_to_memcached(const char *ip, int port)
+{
+    char cfg[128];
+
+    snprintf(cfg, sizeof(cfg), "--SERVER=%s:%d", ip, port);
+    m_Memc = memcached(cfg, strlen(cfg));
+    if(m_Memc != NULL)
+    {
+        INFO("Connecting to Memcached ... [OK]\n");
+        if(memcached_behavior_set(m_Memc,
+                    MEMCACHED_BEHAVIOR_SUPPORT_CAS, 1) == MEMCACHED_SUCCESS)
+        {
+            INFO("Set CAS Support... [OK]\n");
+        }
+        else
+        {
+            ERR("Set CAS Support... [Failed]\n");
+        }
+    }
+    else
+    {
+        ERR("failed connect to Memcached!\n");
+    }
+
+    return m_Memc;
+}
 
 MYSQL *Config::conn_to_mysql(const char *ip, const char *usr, const char *passwd)
 {
@@ -88,27 +119,7 @@ int Config::prepare_db_and_mem()
     }
 
     // here means memcach is available
-    char mem_cfg [128];
-    snprintf(mem_cfg, sizeof(mem_cfg),
-            "--SERVER=%s:%d", m_strMemIP, m_iMemPort);
-    m_Memc = memcached(mem_cfg, strlen(mem_cfg));
-    if(m_Memc != NULL)
-    {
-        INFO("Connecting to Memcached ... [OK]\n");
-        if(memcached_behavior_set(m_Memc,
-                MEMCACHED_BEHAVIOR_SUPPORT_CAS, 1) == MEMCACHED_SUCCESS)
-        {
-            INFO("Set CAS Support... [OK]\n");
-        }
-        else
-        {
-            ERR("Set CAS Support... [Failed]\n");
-        }
-    }
-    else
-    {
-        ERR("failed connect to Memcached!\n");
-    }
+    conn_to_memcached(m_strMemIP, m_iMemPort);
 
     return 0;
 }
