@@ -131,6 +131,11 @@ function pre_autorun_script()
     echo "">>native/$AUTORUN_NAME
     echo "task">>native/$AUTORUN_NAME
     echo "exec svscan /opt/native">>native/$AUTORUN_NAME
+    echo "post-start script">>native/$AUTORUN_NAME
+    echo "  sleep 3">>native/$AUTORUN_NAME
+    echo "  /opt/java/startall.sh">>native/$AUTORUN_NAME
+    echo "end script">>native/$AUTORUN_NAME
+
 
     chmod a+x native/$AUTORUN_NAME
 }
