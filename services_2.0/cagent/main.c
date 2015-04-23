@@ -177,6 +177,8 @@ void cleanup_res()
         free(g_thread_info);
 
     event_base_free(main_base);
+
+    exit(0);
 }
 
 void sig_handler(int signo)
@@ -196,6 +198,7 @@ void sig_handler(int signo)
 int main(int argc, char **argv)
 {
     int c;
+    int i;
     char *p;
     int agent_s = -1;
     struct sockaddr_in addr;
@@ -217,6 +220,7 @@ int main(int argc, char **argv)
                 break;
 
             case 's':
+                printf("hello?(%d)\n", g_totally_servers);
                 // store all server into a list
                 if(g_totally_servers == 0)
                 {
@@ -229,14 +233,15 @@ int main(int argc, char **argv)
                 }
                 else
                 {
-                    g_server = (struct server_info *)realloc(g_server, sizeof(struct server_info)*(++g_totally_servers));
+                    g_totally_servers++;
+                    g_server = (struct server_info *)realloc(g_server, sizeof(struct server_info)*(g_totally_servers));
                     if(g_server == NULL)
                     {
                         ERR("Warning, failed allocate the memory!\n");
                     }
                     else
                     {
-                        curs = g_server + g_totally_servers;
+                        curs = g_server + (g_totally_servers - 1);
                     }
                 }
                 p = strchr(optarg, ':');
@@ -275,7 +280,13 @@ int main(int argc, char **argv)
     }
 
     printf("libevent version:%s\n", event_get_version());
-    printf("\n\nTotally %d server in the list\n\n", g_totally_servers);
+    printf("\n\nTotally %d server in the list:\n", g_totally_servers);
+    for(i = 0; i < g_totally_servers; i++)
+    {
+        printf(" [%d] IP : %s, Port : %d\n", i, inet_ntoa(g_server[i].addr.sin_addr), ntohs(g_server[i].addr.sin_port));
+    }
+
+    printf("\n\n");
 
     agent_s = socket(AF_INET, SOCK_STREAM, 0);
     if(agent_s == -1)

@@ -9,7 +9,13 @@
 
 /* FIXME, don't let this program mised with libcds,
  * so macro re-defined here */
-#define LOG  printf
+
+#ifdef DEBUG
+#define LOG(fmt, args...)  printf(fmt, ##args)
+#else
+#define LOG(fmt, args...) do {}while(0)
+#endif
+
 #define ERR  printf
 #define INFO printf
 

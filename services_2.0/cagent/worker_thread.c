@@ -8,10 +8,18 @@
 
 LIBEVENT_THREAD *g_thread_info = NULL;
 
+/* this variable aims to hash on @g_totally_servers */
+static int last_background_server = -1;
+
+/**
+ * Connecting to a @hash-ed server
+ *
+ */
 int connect_to_hashed_server(int hash, listreq_t *req)
 {
     int ret = -1;
     struct server_info *svr = g_server + hash;
+
     req->lq_server->sv_machine = svr;
     if(connect(req->lq_server->sv_sock,
                 (struct sockaddr *)(&(req->lq_server->sv_machine->addr)),
@@ -46,11 +54,17 @@ void cb_server_back(int s, short event, void *arg)
         }
         else
         {
+            // TODO - for EINTR/EAGAIN case ?
+            LOG("background server probably closed, need cleanup...\n");
+            // TODO - for clean up job code..
         }
     }
     else
     {
+        // TODO - for EINTR/EAGAIN case ?
         ERR("   agent<-- closed----\n");
+        LOG("background server probably closed, need cleanup...\n");
+        // TODO - for clean up job code..
     }
 }
 
@@ -62,6 +76,7 @@ int route_request(listreq_t *req)
 
     if(!req->lq_server)
     {
+        // a new server from scratch
         req->lq_server = (dist_server_t *) malloc(sizeof(dist_server_t));
         if(req)
         {
@@ -69,10 +84,15 @@ int route_request(listreq_t *req)
             svr->sv_sock = socket(AF_INET, SOCK_STREAM, 0);
             if(svr->sv_sock != -1)
             {
+                /* before decide to connect socket, need hash it */
+                hash_index = (last_background_server + 1) % g_totally_servers;
+                last_background_server = hash_index;
+
                 if(connect_to_hashed_server(hash_index, req) == 0)
                 {
                     // Now, write to target, and register read back notify
-                    size = write(req->lq_server->sv_sock, req->lq_rx, req->lq_rxlen);
+                    LOG("Will try writing %d data to server(sock:%d)\n", req->lq_rxlen, svr->sv_sock);
+                    size = write(svr->sv_sock, req->lq_rx, req->lq_rxlen);
                     LOG("-----(%ld) -----> [hash %d]\n", size, hash_index);
                     event_set(&req->lq_server->sv_event, req->lq_server->sv_sock, EV_PERSIST|EV_READ, cb_server_back, (void *)req);
                     event_base_set(main_base, &req->lq_server->sv_event);
@@ -105,7 +125,7 @@ int route_request(listreq_t *req)
         // FIXME hope don't need event_add here;
     }
 
-    return 0;
+    return ret;
 }
 
 
@@ -116,7 +136,6 @@ int route_request(listreq_t *req)
 void cb_handling_request(int fd, short which, void *arg)
 {
     listreq_t *req = (listreq_t *)arg;
-    int hash_index = 0;
     size_t size;
 
     size = read(req->lq_sock, req->lq_rx, 1024); // suppose 1024 is max
@@ -136,7 +155,7 @@ void cb_handling_request(int fd, short which, void *arg)
     }
     else
     {
-            // FIXME - need handle EINTR/EAGAIN case...
+        // FIXME - need handle EINTR/EAGAIN case...
         ERR("client probably closed.\n");
         close_reqlist(req);
     }
