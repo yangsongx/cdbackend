@@ -267,6 +267,13 @@ int main(int argc, char **argv)
         }
     }
 
+    // only count on XML when user didn't input via '-s xxx:xx'
+    if(g_totally_servers == 0)
+    {
+        printf("seems didn't specify server info in command, try get them from cfg file...\n");
+        get_server_from_config("/etc/cds_cfg.xml");
+    }
+
     printf("libevent version:%s\n", event_get_version());
     printf("\n\nTotally %d server in the list\n\n", g_totally_servers);
 

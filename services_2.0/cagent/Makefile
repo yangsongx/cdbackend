@@ -13,9 +13,9 @@ CFLAGS += -g -O0
 LDFLAGS += -levent -pthread -lxml2
 
 .PHONY: all
-all:mym 
+all:cagent
 
-mym:$(OBJS)
+cagent:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 .c.o:
@@ -23,5 +23,5 @@ mym:$(OBJS)
 
 .PHONY:clean
 clean:
-	rm -f mym 
+	rm -f cagent
 	find . -name '*.o' -exec rm -rf {} ";"

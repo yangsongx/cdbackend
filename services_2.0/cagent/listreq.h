@@ -21,7 +21,6 @@ struct list_head{
     struct list_head *next;
 };
 
-
 typedef struct {
     pthread_t           lt_tid;
     int                 lt_notify[2]; // foreground notify background thread, we use pipe, so defined [2] here
@@ -82,6 +81,9 @@ extern listreq_t *pop_from_reqlist(struct list_head *h, pthread_mutex_t *m);
 extern void list_add_tail(struct list_head *n, struct list_head *h);
 extern void list_push_queue_safe(struct list_head *h, struct list_head *item, pthread_mutex_t *m);
 extern void spawn_worker_thread(int nr);
+
+
+extern int get_server_from_config(const char *fn);
 
 #define list_is_empty(list)   ((list) == (list)->next)
 
