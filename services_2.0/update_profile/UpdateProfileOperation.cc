@@ -1,6 +1,7 @@
 /**
  *
  * \history
+ * [2015-04-27] Add SIPs DB entry for mobile case
  * [2015-04-12] Fix the  unique SQL check logic
  */
 #include "UpdateProfileOperation.h"
@@ -19,6 +20,22 @@ int UpdateProfileOperation::cb_check_code(MYSQL_RES *mresult, void *p_extra)
     else
     {
         *data = 0;
+    }
+
+    return 0;
+}
+
+int UpdateProfileOperation::cb_get_repeat_id(MYSQL_RES *mresult, void *p_extra)
+{
+    MYSQL_ROW row;
+    uint64_t *data = (uint64_t *)p_extra;
+
+    *data = (uint64_t)-1;
+    row = mysql_fetch_row(mresult);
+    if(row != NULL)
+    {
+        if(row[0] != NULL)
+            *data = atol(row[0]);
     }
 
     return 0;
@@ -44,6 +61,53 @@ int UpdateProfileOperation::cb_check_sipaccount(MYSQL_RES *mresult, void *p_extr
     return 0;
 }
 
+/**
+ *
+ * Try remove redundent mobile  record
+ */
+void UpdateProfileOperation::strip_repeat_mobile_number(UpdateRequest *reqobj)
+{
+    char sqlcmd[1024];
+    uint64_t id;
+    int ret;
+
+    if(reqobj->reg_type() != Updatetype::MOBILE_PHONE)
+    {
+        ERR("Only available for mobile case!\n");
+        return;
+    }
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT id FROM %s WHERE usermobile=\'%s\' AND status=0",
+            USERCENTER_MAIN_TBL, reqobj->update_data().c_str());
+
+    ret = sql_cmd(sqlcmd, cb_get_repeat_id, &id);
+    if(ret == CDS_OK && id!= (uint64_t)-1)
+    {
+        INFO("Attention, need remove this guy(id-%lu)...\n", id);
+        snprintf(sqlcmd, sizeof(sqlcmd),
+                "DELETE FROM %s WHERE id=%lu",
+                USERCENTER_MAIN_TBL, id);
+        ret = sql_cmd(sqlcmd, NULL, NULL);
+        int flags = 0;
+        UpdateProfileConfig *c =
+            (UpdateProfileConfig *)m_pCfg;
+        flags = mysql_affected_rows(c->m_SipsSql);
+        if(flags != 1)
+        {
+            ERR("warning, deletetion got %d affected lines\n", flags);
+        }
+        else
+        {
+            INFO("Delete this reconrd [OK]\n");
+            // TODO, below should put into a DB in the future...
+            FILE *p = fopen("/opt/native/maping.id.table", "a+");
+            if(p) {
+                fprintf(p, "%lu =====> %s\n", id, reqobj->uid().c_str());
+                fclose(p);
+            }
+        }
+    }
+}
 
 /**
  *
@@ -65,6 +129,7 @@ int UpdateProfileOperation::pass_code_verify(UpdateRequest *reqobj)
     }
     else
     {
+        ERR("verify code failed, sql:%s\n", sqlcmd);
         return 0;
     }
 }
@@ -181,6 +246,8 @@ int UpdateProfileOperation::add_user_mobile_phone(UpdateRequest *reqobj)
         return CDS_ERR_USER_ALREADY_EXISTED;
     }
 
+    // 2015-4-24 Need remove in-active mobiles for such case
+    strip_repeat_mobile_number(reqobj);
 
     // now, add user mobile phone number into DB
     snprintf(sqlcmd, sizeof(sqlcmd),
@@ -196,6 +263,7 @@ int UpdateProfileOperation::add_user_mobile_phone(UpdateRequest *reqobj)
     }
 
     //[2015-04-13] Need add the mobile account into SIPs DB
+    add_mobile_to_sips_db(reqobj);
 
     return ret;
 }

@@ -19,6 +19,7 @@ using namespace google::protobuf::io;
 
 class UpdateProfileOperation : public com::caredear::Operation {
 
+    static int cb_get_repeat_id(MYSQL_RES *mresult, void *p_extra);
     static int cb_check_code(MYSQL_RES *mresult, void *p_extra);
     static int cb_check_sipaccount(MYSQL_RES *mresult, void *p_extra);
 
@@ -30,6 +31,7 @@ class UpdateProfileOperation : public com::caredear::Operation {
     int unique_record(UpdateRequest *reqobj);
     int add_user_email(UpdateRequest *reqobj);
 
+    void strip_repeat_mobile_number(UpdateRequest *reqobj);
 public:
     UpdateProfileOperation(){
     }
