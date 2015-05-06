@@ -39,11 +39,12 @@ void protobuf_AssignDesc_PasswordManager_2eproto() {
       "PasswordManager.proto");
   GOOGLE_CHECK(file != NULL);
   PasswordManagerRequest_descriptor_ = file->message_type(0);
-  static const int PasswordManagerRequest_offsets_[4] = {
+  static const int PasswordManagerRequest_offsets_[5] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PasswordManagerRequest, type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PasswordManagerRequest, caredear_id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PasswordManagerRequest, new_passwd_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PasswordManagerRequest, old_passwd_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(PasswordManagerRequest, cur_token_),
   };
   PasswordManagerRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -107,13 +108,14 @@ void protobuf_AddDesc_PasswordManager_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\025PasswordManager.proto\022\014com.caredear\"\177\n"
-    "\026PasswordManagerRequest\022(\n\004type\030\001 \002(\0162\032."
-    "com.caredear.PasswordType\022\023\n\013caredear_id"
-    "\030\002 \002(\004\022\022\n\nnew_passwd\030\003 \002(\t\022\022\n\nold_passwd"
-    "\030\004 \001(\t\"A\n\027PasswordManagerResponse\022\023\n\013res"
-    "ult_code\030\001 \002(\005\022\021\n\textra_msg\030\002 \001(\t*&\n\014Pas"
-    "swordType\022\n\n\006MODIFY\020\000\022\n\n\006FORGET\020\001", 273);
+    "\n\025PasswordManager.proto\022\014com.caredear\"\222\001"
+    "\n\026PasswordManagerRequest\022(\n\004type\030\001 \002(\0162\032"
+    ".com.caredear.PasswordType\022\023\n\013caredear_i"
+    "d\030\002 \002(\004\022\022\n\nnew_passwd\030\003 \002(\t\022\022\n\nold_passw"
+    "d\030\004 \001(\t\022\021\n\tcur_token\030\005 \001(\t\"A\n\027PasswordMa"
+    "nagerResponse\022\023\n\013result_code\030\001 \002(\005\022\021\n\tex"
+    "tra_msg\030\002 \001(\t*&\n\014PasswordType\022\n\n\006MODIFY\020"
+    "\000\022\n\n\006FORGET\020\001", 293);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "PasswordManager.proto", &protobuf_RegisterTypes);
   PasswordManagerRequest::default_instance_ = new PasswordManagerRequest();
@@ -151,6 +153,7 @@ const int PasswordManagerRequest::kTypeFieldNumber;
 const int PasswordManagerRequest::kCaredearIdFieldNumber;
 const int PasswordManagerRequest::kNewPasswdFieldNumber;
 const int PasswordManagerRequest::kOldPasswdFieldNumber;
+const int PasswordManagerRequest::kCurTokenFieldNumber;
 #endif  // !_MSC_VER
 
 PasswordManagerRequest::PasswordManagerRequest()
@@ -176,6 +179,7 @@ void PasswordManagerRequest::SharedCtor() {
   caredear_id_ = GOOGLE_ULONGLONG(0);
   new_passwd_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   old_passwd_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  cur_token_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -190,6 +194,9 @@ void PasswordManagerRequest::SharedDtor() {
   }
   if (old_passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete old_passwd_;
+  }
+  if (cur_token_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete cur_token_;
   }
   if (this != default_instance_) {
   }
@@ -217,7 +224,7 @@ PasswordManagerRequest* PasswordManagerRequest::New() const {
 }
 
 void PasswordManagerRequest::Clear() {
-  if (_has_bits_[0 / 32] & 15) {
+  if (_has_bits_[0 / 32] & 31) {
     type_ = 0;
     caredear_id_ = GOOGLE_ULONGLONG(0);
     if (has_new_passwd()) {
@@ -228,6 +235,11 @@ void PasswordManagerRequest::Clear() {
     if (has_old_passwd()) {
       if (old_passwd_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         old_passwd_->clear();
+      }
+    }
+    if (has_cur_token()) {
+      if (cur_token_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        cur_token_->clear();
       }
     }
   }
@@ -309,6 +321,23 @@ bool PasswordManagerRequest::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(42)) goto parse_cur_token;
+        break;
+      }
+
+      // optional string cur_token = 5;
+      case 5: {
+        if (tag == 42) {
+         parse_cur_token:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_cur_token()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->cur_token().data(), this->cur_token().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "cur_token");
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -369,6 +398,16 @@ void PasswordManagerRequest::SerializeWithCachedSizes(
       4, this->old_passwd(), output);
   }
 
+  // optional string cur_token = 5;
+  if (has_cur_token()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->cur_token().data(), this->cur_token().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "cur_token");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      5, this->cur_token(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -412,6 +451,17 @@ void PasswordManagerRequest::SerializeWithCachedSizes(
         4, this->old_passwd(), target);
   }
 
+  // optional string cur_token = 5;
+  if (has_cur_token()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->cur_token().data(), this->cur_token().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "cur_token");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        5, this->cur_token(), target);
+  }
+
   if (!unknown_fields().empty()) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         unknown_fields(), target);
@@ -449,6 +499,13 @@ int PasswordManagerRequest::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::StringSize(
           this->old_passwd());
+    }
+
+    // optional string cur_token = 5;
+    if (has_cur_token()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->cur_token());
     }
 
   }
@@ -490,6 +547,9 @@ void PasswordManagerRequest::MergeFrom(const PasswordManagerRequest& from) {
     if (from.has_old_passwd()) {
       set_old_passwd(from.old_passwd());
     }
+    if (from.has_cur_token()) {
+      set_cur_token(from.cur_token());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -518,6 +578,7 @@ void PasswordManagerRequest::Swap(PasswordManagerRequest* other) {
     std::swap(caredear_id_, other->caredear_id_);
     std::swap(new_passwd_, other->new_passwd_);
     std::swap(old_passwd_, other->old_passwd_);
+    std::swap(cur_token_, other->cur_token_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

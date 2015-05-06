@@ -1,3 +1,8 @@
+/**
+ *
+ * [2015-05-06] For password change case, older tokens(in other deivces) should be marked as invalid
+ *
+ */
 #include "PasswordOperation.h"
 
 char PasswordOperation::m_md5[36];
@@ -15,6 +20,24 @@ int PasswordOperation::cb_get_md5_in_db(MYSQL_RES *mresult, void *p_extra)
     else
     {
         ERR("Warning, we didn't find the password field in DB!\n");
+    }
+
+    return 0;
+}
+
+int PasswordOperation::cb_get_obsolete_token_in_db(MYSQL_RES *mresult, void *p_extra)
+{
+    string s;
+    list<string> *data = (list<string> *)p_extra;
+    MYSQL_ROW row;
+
+    while((row = mysql_fetch_row(mresult)) != NULL)
+    {
+        if(row[0] != NULL)
+            s = row[0];
+
+        /* add each token to list */
+        data->push_back(s);
     }
 
     return 0;
@@ -95,7 +118,7 @@ int PasswordOperation::modify_existed_password(PasswordManagerRequest *reqobj)
     }
     else
     {
-        printf("the req type:%d\n", reqobj->type());
+        LOG("the req type:%d\n", reqobj->type());
 
         if(reqobj->type() == PasswordType::FORGET)
         {
@@ -131,6 +154,74 @@ int PasswordOperation::modify_existed_password(PasswordManagerRequest *reqobj)
 }
 
 /**
+ * This included two steps:
+ * - from mem
+ * - from DB
+ */
+int PasswordOperation::obsolete_older_token(PasswordManagerRequest *reqobj)
+{
+    int ret = CDS_OK;
+    char sqlcmd[1024];
+    list<string> all_tokens;
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT ticket FROM %s WHERE caredearid=%lu\n",
+            USERCENTER_SESSION_TBL, reqobj->caredear_id());
+
+    ret = sql_cmd(sqlcmd, cb_get_obsolete_token_in_db, &all_tokens);
+    LOG("all token count = %lu\n", all_tokens.size());
+    if(ret == CDS_OK && !all_tokens.empty())
+    {
+        list<string>::iterator it;
+        for(it = all_tokens.begin(); it != all_tokens.end(); ++it)
+        {
+            if(reqobj->type() == PasswordType::FORGET || (reqobj->has_cur_token() && *it != reqobj->cur_token()))
+            {
+                delete_token_from_db(it->c_str());
+                delete_token_from_mem(it->c_str());
+            }
+            else
+            {
+                INFO("Oh, keep this guy(%s)...\n", it->c_str());
+            }
+        }
+    }
+
+    return ret;
+}
+
+int PasswordOperation::delete_token_from_db(const char *token)
+{
+    int ret = CDS_OK;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "DELETE FROM %s WHERE ticket=\'%s\'",
+            USERCENTER_SESSION_TBL, token);
+    ret = sql_cmd(sqlcmd, NULL, NULL);
+    if(ret == CDS_OK)
+    {
+        LOG("token(%s) deleted due to password changed by someone\n", token);
+    }
+
+    return 0;
+}
+
+int PasswordOperation::delete_token_from_mem(const char *token)
+{
+    memcached_return_t rc;
+
+    rc = rm_mem_value(token);
+    if(rc != MEMCACHED_SUCCESS)
+    {
+        ERR("failed rm the key(%s) from mem: %d\n",
+                token, rc);
+    }
+
+    return 0;
+}
+
+/**
  * Entry point of the password manager handling operation
  *
  */
@@ -141,6 +232,12 @@ int PasswordOperation::handling_request(::google::protobuf::Message *passwd_req,
     PasswordManagerResponse *respobj = (PasswordManagerResponse *)passwd_resp;
 
     ret = modify_existed_password(reqobj);
+
+    if(ret == CDS_OK)
+    {
+        INFO("FOR Password OK case, need try obsoleted older tokens immediately\n");
+        obsolete_older_token(reqobj);
+    }
 
     if(compose_result(ret, NULL, respobj, len_resp, resp) != 0)
     {
