@@ -2,6 +2,7 @@
  *
  *
  * \hisotry
+ * [2015-05-11] Birthday format should be in YYYY-MM-DD format
  * [2015-04-10] Using new API protype for SQL cmd
  */
 #include "AttributeOperation.h"
@@ -371,10 +372,15 @@ int AttributeOperation::query_user_attribute_from_db(AttributeModifyRequest *req
     int ret = CDS_OK;
     char sqlcmd[1024];
 
+    /* [Note at 2015-05-11]
+     *   As DB originaly desiged the birthday field as datetime,
+     *   so each insertion would cause hh:mm:ss, actually we don't
+     *   need such info for birthday info
+     */
 #if 1 // use a new SQL format
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT %s.username,%s.usermobile,%s.loginpassword,%s.email,"
-            "%s.realname,%s.nickname,%s.sex,%s.birthday,%s.headimg,%s.headimg2 "
+            "%s.realname,%s.nickname,%s.sex,date_format(%s.birthday,\'%%Y-%%m-%%d\') as birthday,%s.headimg,%s.headimg2 "
             "FROM %s LEFT JOIN %s ON %s.id=%s.caredearid WHERE %s.id=%lu",
             USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL, USERCENTER_MAIN_TBL,
             USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL, USERCENTER_ATTR_TBL,
@@ -395,6 +401,11 @@ int AttributeOperation::query_user_attribute_from_db(AttributeModifyRequest *req
     {
         // assign operator
         *respobj = data;
+    }
+    else
+    {
+        ERR("failed get user info from DB, SQL:\n");
+        ERR("%s\n", sqlcmd);
     }
 
     return ret;
