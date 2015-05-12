@@ -1,5 +1,7 @@
 /**
  *
+ * \history
+ * [2015-05-12] Check file's exsistence should combine with ISDELETE flag
  * [2015-05-11] make sure only one item in ISDELETE is 0
  * [2015-04-12] insert a new entry in USERS table need speicify a 'version' field in DB
  * [2015-04-10] use a new API prototype to avoid use static variable
@@ -312,7 +314,7 @@ int NetdiskOperation::preprocess_upload_req(NetdiskRequest *p_obj)
 
     // 2 - check the file to be uploaded existed in DB or NOT
     snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT ID FROM %s WHERE MD5=\'%s\'",
+            "SELECT ID FROM %s WHERE MD5=\'%s\' AND ISDELETE=0",
             NETDISK_FILE_TBL, p_obj->md5().c_str());
     i = 0;
     ret = sql_cmd(sqlcmd, cb_query_file_md5, &i); //i flag set 1 means existed
