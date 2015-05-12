@@ -114,7 +114,6 @@ int AttributeOperation::cb_check_attr_existence(MYSQL_RES *p_result, void *p_ext
     MYSQL_ROW  row;
     int *data = (int *)p_extra;
 
-    LOG("==CALLBACK==\n");
     if(!p_result)
     {
         return -1;

@@ -1,12 +1,11 @@
 /**
  *
+ * [2015-05-11] make sure only one item in ISDELETE is 0
  * [2015-04-12] insert a new entry in USERS table need speicify a 'version' field in DB
  * [2015-04-10] use a new API prototype to avoid use static variable
  */
 #include "NetdiskOperation.h"
 #include "NetdiskConfig.h"
-
-//NetdiskOperation::file_md5_size_t NetdiskOperation::m_md5_size;
 
 int NetdiskOperation::cb_query_quota(MYSQL_RES *p_result, void *p_extra)
 {
@@ -125,6 +124,26 @@ int NetdiskOperation::cb_query_file_md5(MYSQL_RES *p_result, void *p_extra)
     return 0;
 }
 
+int NetdiskOperation::cb_query_all_del_entry(MYSQL_RES *p_result, void *p_extra)
+{
+    MYSQL_ROW row;
+    list<struct isdelete_info> *data = (list<struct isdelete_info> *) p_extra;
+    struct isdelete_info item;
+
+    while((row = mysql_fetch_row(p_result)) != NULL)
+    {
+        if(row[0] != NULL && row[1] != NULL)
+        {
+            item.ii_id = atoi(row[0]);
+            item.ii_del = atoi(row[1]);
+
+            data->push_back(item);
+        }
+    }
+
+    return 0;
+}
+
 int NetdiskOperation::add_new_user_entry_in_db(NetdiskRequest *p_obj)
 {
     int ret = CDS_OK;
@@ -189,7 +208,7 @@ int NetdiskOperation::record_file_info_to_db(NetdiskRequest *p_obj)
 
     /* 2015-4-1 the record file to DB need be complicated than
      * we supposed */
-#if 1
+
     snprintf(sqlcmd, sizeof(sqlcmd),
             "SELECT ID FROM %s WHERE USER_NAME=\'%s\'",
             NETDISK_USER_TBL, p_obj->user().c_str());
@@ -197,34 +216,39 @@ int NetdiskOperation::record_file_info_to_db(NetdiskRequest *p_obj)
     if(ret == CDS_OK && uid > 0)
     {
         // got the user id
-
         snprintf(sqlcmd, sizeof(sqlcmd),
                 "SELECT ISDELETE FROM %s WHERE OWNER=%d AND MD5=\'%s\'",
                 NETDISK_FILE_TBL, uid, p_obj->md5().c_str());
-        uid = -1;
+        uid = -1; // re-use the uid store ISDELETE flag
         ret = sql_cmd(sqlcmd, cb_query_user_entry, &uid);
-        if(ret == CDS_OK && uid > 0)
+        if(ret == CDS_OK)
         {
-            INFO("an existed file under cur usr, with delete set\n");
-            snprintf(sqlcmd, sizeof(sqlcmd),
-                    "UPDATE %s SET ISDELETE=0 WHERE OWNER=%d AND MD5=\'%s\'",
+            if(uid > 0)
+            {
+                INFO("an existed file under cur usr, with delete set\n");
+                snprintf(sqlcmd, sizeof(sqlcmd),
+                    "UPDATE %s SET ISDELETE=0,MODIFY_TIME=NOW() WHERE OWNER=%d AND MD5=\'%s\'",
                     NETDISK_FILE_TBL, uid, p_obj->md5().c_str());
-            ret = sql_cmd(sqlcmd, NULL, NULL);
-            if(ret == CDS_OK)
-            {
-                INFO("UPDATE the exsited file flag OK\n");
+                ret = sql_cmd(sqlcmd, NULL, NULL);
+                if(ret == CDS_OK)
+                {
+                    INFO("UPDATE the exsited file flag OK\n");
+                }
+                else
+                {
+                    ERR("A pity, failed update the file flag\n");
+                }
             }
-            else
-            {
-                ERR("A pity, failed update the file flag\n");
-            }
+
+            // need make sure only one 0-ISDELETE item in record
+            unique_isdelete_flag(p_obj, uid);
+
 
             // return here, othwerwise, go below further more update steps...
             return ret;
         }
 
     }
-#endif
 
     // add quota
     snprintf(sqlcmd, sizeof(sqlcmd),
@@ -699,4 +723,62 @@ int NetdiskOperation::gen_download_url(const char *md5, NetdiskResponse *p_resp)
     Qiniu_Free(baseurl);
 
     return ret;
+}
+
+/**
+ *
+ *@id : the ID of DB tables in netdisk
+ */
+int NetdiskOperation::unique_isdelete_flag(NetdiskRequest *p_obj, int id)
+{
+    int ret;
+    char sqlcmd[1024];
+    list<struct isdelete_info> del_list;
+    list<struct isdelete_info>::iterator it;
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT ID,ISDELETE FROM %s WHERE OWNER=\'%d\' AND MD5 <> \'%s\'",
+            NETDISK_FILE_TBL, id, p_obj->md5().c_str());
+
+    ret = sql_cmd(sqlcmd, cb_query_all_del_entry, &del_list);
+    if(ret == CDS_OK)
+    {
+        LOG("current user had %ld items...\n", del_list.size());
+        for(it = del_list.begin(); it != del_list.end(); ++it)
+        {
+            if(it->ii_del == 0)
+            {
+                INFO("Oh, you need reset ISDELETE to 1...\n");
+                cleanup_del_flag(it->ii_id);
+            }
+        }
+    }
+
+    return 0;
+}
+
+/**
+ *
+ *@id: the ID of DB tables in netdisk
+ */
+int NetdiskOperation::cleanup_del_flag(int id)
+{
+    int i;
+    int ret;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE %s SET ISDELETE=1 WHERE ID=%d",
+            NETDISK_FILE_TBL, id);
+    ret = sql_cmd(sqlcmd, NULL, NULL);
+    if(ret == CDS_OK)
+    {
+        i = mysql_affected_rows(m_pCfg->m_Sql);
+        if(i != 1)
+        {
+            ERR("Warning, set ISDELETE=1 got %d affected row\n", i);
+        }
+    }
+
+    return 0;
 }

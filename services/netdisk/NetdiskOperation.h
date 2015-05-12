@@ -10,7 +10,9 @@
 
 #include "NetdiskMessage.pb.h"
 #include "Operation.h"
+#include <list>
 
+using namespace std;
 using namespace google::protobuf::io;
 
 // the file type mapped to DB
@@ -21,6 +23,11 @@ enum FILE_TYPE {
     FT_CONTACTS,    /**< backup contacts data file */
     FT_SMS,         /**< backup short SMS data file */
     FT_DOC          /**< others will be considered as documents... */
+};
+
+struct isdelete_info{
+    int   ii_id;  /**< ID in db */
+    int   ii_del; /**< ISDELETE in db */
 };
 
 class NetdiskOperation : public com::caredear::Operation {
@@ -44,6 +51,8 @@ class NetdiskOperation : public com::caredear::Operation {
     static int cb_query_file_md5(MYSQL_RES *p_result, void *p_extra);
     static int cb_query_netdisk_key(MYSQL_RES *p_result, void *p_extra);
     static int cb_query_quota(MYSQL_RES *p_result, void *p_extra);
+
+    static int cb_query_all_del_entry(MYSQL_RES *p_result, void *p_extra);
     // /////////////////////////////////////////////////////////////////////////////
 
 protected:
@@ -61,6 +70,8 @@ protected:
 
     int generate_upload_token(NetdiskRequest *p_obj, NetdiskResponse *p_ndr, int *p_resplen, void *p_respdata);
 
+    int cleanup_del_flag(int id);
+    int unique_isdelete_flag(NetdiskRequest *p_obj, int id);
 
 public:
     NetdiskOperation() {
