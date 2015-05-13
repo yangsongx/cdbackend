@@ -2,6 +2,7 @@
  *
  *
  * \hisotry
+ * [2015-05-13] Use correct gender type definition mapping
  * [2015-05-11] Birthday format should be in YYYY-MM-DD format
  * [2015-04-10] Using new API protype for SQL cmd
  */
@@ -76,7 +77,7 @@ int AttributeOperation::cb_query_attribute(MYSQL_RES *p_result, void *p_extra)
 
     if(row[6] != NULL && strlen(row[6]) > 0)
     {
-        if(atoi(row[6]) == 1)
+        if(atoi(row[6]) == 0)
         {
             m_QueryInfo->set_gender(GenderType::MALE);
         }
@@ -220,7 +221,7 @@ int AttributeOperation::insert_usr_attr_to_db(AttributeModifyRequest *reqobj)
     if(reqobj->has_gender())
     {
         snprintf(buffer, sizeof(buffer), "%d,",
-                reqobj->gender() == GenderType::MALE ? 1 : 0);
+                reqobj->gender() == GenderType::MALE ? 0 : 1);
         strcat(insert_str, buffer);
     }
     if(reqobj->has_birthday())
@@ -293,7 +294,7 @@ int AttributeOperation::update_usr_attr_to_db(AttributeModifyRequest *reqobj)
     if(reqobj->has_gender())
     {
         snprintf(buffer, sizeof(buffer), "sex=\'%d\',",
-                reqobj->gender() == GenderType::MALE ? 1 : 0);
+                reqobj->gender() == GenderType::MALE ? 0 : 1);
         strcat(set_str, buffer);
     }
 
