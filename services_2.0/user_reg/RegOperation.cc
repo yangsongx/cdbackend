@@ -1,6 +1,7 @@
 /**
  *
  * \history
+ * [2015-05-15] a workaround for iOS older user case
  * [2015-04-14] redirect random code generation to base class
  * [2015-04-13] use a new sip domain for insert record to SIPS DB
  * [2015-04-10] use new API prototype to avoid use static variable
@@ -193,8 +194,19 @@ bool RegOperation::user_already_exist(RegisterRequest *reqobj, int *p_active_sta
         }
         else
         {
-            *p_active_status = usrdata.ue_active_status;
+            if(reqobj->reg_device() == DeviceType::IOS)
+            {
+                // Workaround code
+                INFO("WOW, FOUND an IOS existed user, handle it specially, just overwrite it!\n");
+                *p_active_status = 0; // force set it as 0(inactive)
+            }
+            else
+            {
+                *p_active_status = usrdata.ue_active_status;
+            }
+
             *p_index = usrdata.ue_cid;
+
             return true;
         }
     }
