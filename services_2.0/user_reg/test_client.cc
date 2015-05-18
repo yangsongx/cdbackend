@@ -2,6 +2,13 @@
  *
  * Unit Test Code for User Register/Login/etc... Service.
  *
+ * =========== pre-built caredarid test data (in reg_test_db.sql)
+ *
+ * id  |           Note
+ * ---------------------------------------------
+ *   2 |  tested for iOS (null)-session bug
+ *  99 |  tested for XMPP auth
+ *
  */
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
@@ -1079,6 +1086,63 @@ int _phone_passwd_login_testing(const char *source, const char *name, const char
     return ret;
 }
 
+int _ios_phone_passwd_login(const char *name, const char *password, const char *session, char *token,int passflag) {
+    int ret = -1;
+    LoginRequest req;
+    LoginResponse resp;
+
+    req.set_login_type(RegLoginType::PHONE_PASSWD);
+    req.set_login_name(name);
+    req.set_login_password(password);
+
+    // NOTE, how to handle with below two items?
+    req.set_login_sysid("2");
+    req.set_login_session(session);
+
+    size_t size;
+    unsigned short len = req.ByteSize();
+    printf("    the reqobj's len = %d\n", len);
+
+    char *b = (char *)malloc(len + 2);
+    if(!b) {
+        printf("***malloc return NULL\n");
+        return -1;
+    }
+
+    ArrayOutputStream aos(b, len + 2);
+    CodedOutputStream cos(&aos);
+    cos.WriteRaw(&len, sizeof(len));
+    if(req.SerializeToCodedStream(&cos)) {
+        size = write(mSockLogin, b, (len + 2));
+        printf("    ===>Server wrote with %ld byte\n", size);
+    }
+    free(b);
+   
+    // Now, waiting for response..
+    size = read(mSockLogin, gBuffer, sizeof(gBuffer));
+    printf("    <==Server leading-len = %d\n", *(unsigned short *)gBuffer);
+    if(*(unsigned short *)gBuffer > 0) {
+        ArrayInputStream in(gBuffer + 2, *(unsigned short *)gBuffer);
+        CodedInputStream is(&in);
+        if(resp.ParseFromCodedStream(&is)) {
+            printf("     result_code = %d\n", resp.result_code());
+            if(resp.has_extra_msg()) {
+                printf("   extra msg = %s\n", resp.extra_msg().c_str());
+            }
+
+            if(resp.has_token()) {
+                printf("   LOGIN [OK], token msg = %s\n", resp.token().c_str());
+                strcpy(token, resp.token().c_str());
+            }
+
+            if(resp.result_code() == passflag) {
+                ret = 0;
+            }
+        }
+    }
+
+    return ret;
+}
 // a directly login, without activation.
 int test_phone_passwd_login()
 {
@@ -1142,6 +1206,56 @@ int test_phone_passwd_login5()
             "15150659598", // DO NOT MODIFY, this is NEVER reg in DB! Dai-MengQing's phone
             md5str,
             CDS_ERR_UMATCH_USER_INFO);
+
+    return -1;
+}
+
+int test_ios_null_session()
+{
+    // login with anther null session on iOS
+    const char *password="ios-null-session-passwd"; // DO NOT modify, pre-built password
+    char md5str[36];
+    char token[128];
+    the_md5(password, strlen(password), md5str);
+
+    printf("%s -->phase-I %s\n", password, md5str);
+
+    int i = _ios_phone_passwd_login(
+            "ios-null-ses", // mobile number, stripped due to DB limitation
+            md5str,
+            "(null)", // iOS bug session string
+            token,
+            CDS_OK);
+    if(i == CDS_OK)
+    {
+        printf("Wow, login got %s new token!\n", token);
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+// here checking only one-null session existed in the server
+int test_ios_null_session2()
+{
+    if(mysql_query(mSql, "SELECT id FROM uc_session WHERE caredearid=2"))
+    {
+        printf("***failed query the SQL data:%s\n", mysql_error(mSql));
+        return -1;
+    }
+
+    MYSQL_RES *mresult;
+    mresult = mysql_store_result(mSql);
+    if(mresult)
+    {
+        int i = mysql_num_rows(mresult);
+        printf("Totally %d lines of DB entry for caredearid-2\n", i);
+        mysql_free_result(mresult);
+
+        return i == 1 ? 0 : -1;
+    }
 
     return -1;
 }
@@ -2435,6 +2549,10 @@ int main(int argc, char **argv)
     execute_ut_case(test_phone_passwd_login3);
     execute_ut_case(test_phone_passwd_login4);
     execute_ut_case(test_phone_passwd_login5);
+
+    // added at 2015-05-18, iOS (null)-session bug, had to use workaround to fix it at server side
+    execute_ut_case(test_ios_null_session);
+    execute_ut_case(test_ios_null_session2);
 
     execute_ut_case(test_older_phone_add_device_type);
     execute_ut_case(test_older_phone_add_device_type2);

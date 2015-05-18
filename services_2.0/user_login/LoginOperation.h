@@ -7,6 +7,7 @@
 #include "UserLogin.pb.h"
 #include "UserLoginConfig.h"
 #include "Operation.h"
+#include <list>
 
 using namespace std;
 using namespace com::caredear;
@@ -20,12 +21,19 @@ class LoginOperation : public com::caredear::Operation {
         const char    *us_token;     /**< This session's token string */
     };
 
+    // iOS '(null)'-session
+    struct ios_null_session {
+        uint64_t ios_cid;
+        char     ios_token[512];
+    };
+
     static int cb_get_shenzhen_flag(MYSQL_RES *mresult, void *p_extra);
 
     static int cb_check_name(MYSQL_RES *mresult, void *p_extra);
 
     static int cb_check_accode(MYSQL_RES *mresult, void *p_extra);
     static int cb_wr_db_session(MYSQL_RES *mrsult, void *p_extra);
+    static int cb_check_null_session(MYSQL_RES *mrsult, void *p_extra);
 
     int update_usercenter_session(LoginRequest *reqobj, struct user_session *u);
     int set_session_info_to_db(struct user_session *u, char *old);
@@ -46,6 +54,7 @@ class LoginOperation : public com::caredear::Operation {
 
     int add_new_3rd_party_entry_to_db(LoginRequest *reqobj, uint64_t *p_cid);
 
+    int specially_handling_ios(LoginRequest *reqobj, uint64_t cid);
 public:
     LoginOperation() {
     }

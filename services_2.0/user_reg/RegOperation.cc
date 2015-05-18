@@ -1,6 +1,7 @@
 /**
  *
  * \history
+ * [2015-05-18] make the iOS workaround only usable for mobile case
  * [2015-05-15] a workaround for iOS older user case
  * [2015-04-14] redirect random code generation to base class
  * [2015-04-13] use a new sip domain for insert record to SIPS DB
@@ -194,7 +195,8 @@ bool RegOperation::user_already_exist(RegisterRequest *reqobj, int *p_active_sta
         }
         else
         {
-            if(reqobj->reg_device() == DeviceType::IOS)
+            if(reqobj->reg_device() == DeviceType::IOS
+                    && (reqobj->reg_type() == RegLoginType::PHONE_PASSWD || reqobj->reg_type() == RegLoginType::MOBILE_PHONE))
             {
                 // Workaround code
                 INFO("WOW, FOUND an IOS existed user, handle it specially, just overwrite it!\n");

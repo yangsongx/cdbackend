@@ -2,6 +2,7 @@
  * Login handling code logic.
  *
  * \history
+ * [2015-05-18] workaround for iOS session-'(null)' bug
  * [2015-04-21] Check the return value for delete mem value.
  * [2015-04-16] Fix incorrect caredear id bug for first time of 3rd party login
  *              Before bug fix - the caredear id returned -1
@@ -127,6 +128,38 @@ int LoginOperation::cb_wr_db_session(MYSQL_RES *mresult, void *p_extra)
         {
             // don't exceed the incoming parameter's length!
             strncpy(data, row[0], 63);
+        }
+    }
+
+    return 0;
+}
+
+int LoginOperation::cb_check_null_session(MYSQL_RES *mresult, void *p_extra)
+{
+    MYSQL_ROW row;
+    int j;
+    list<struct ios_null_session> *data = (list<struct ios_null_session> *)p_extra;
+    struct ios_null_session item;
+
+    if(!mresult)
+    {
+        return -1;
+    }
+
+    row = mysql_fetch_row(mresult);
+    if(row != NULL)
+    {
+        j = mysql_num_rows(mresult);
+        INFO("found totally %d rows for such \'(null)\' case.\n", j);
+        while((row = mysql_fetch_row(mresult)) != NULL)
+        {
+            if(row[0] != NULL && row[1] != NULL)
+            {
+                item.ios_cid = atol(row[0]);
+                strncpy(item.ios_token, row[1], 512);
+
+                data->push_back(item);
+            }
         }
     }
 
@@ -355,6 +388,57 @@ int LoginOperation::match_user_credential_in_db(LoginRequest *reqobj, unsigned l
     return ret;
 }
 
+/**
+ * Workaround code actually, hope in the future will obsolete
+ * this handling code
+ *
+ */
+int LoginOperation::specially_handling_ios(LoginRequest *reqobj, uint64_t cid)
+{
+    int ret;
+    int count;
+    list<struct ios_null_session> contain_null;
+    list<struct ios_null_session>::iterator it;
+    memcached_return_t rc;
+    char sqlcmd[1024];
+
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT id,ticket FROM %s WHERE caredearid=%lu AND session=\'(null)\'",
+            USERCENTER_SESSION_TBL, cid);
+
+    ret = sql_cmd(sqlcmd, cb_check_null_session, &contain_null);
+    if(ret == CDS_OK && contain_null.size() > 0)
+    {
+        INFO("Well, workaround for iOS (null)-session, force one-single token in DB\n");
+        // delete the existed null
+        for(it = contain_null.begin(); it != contain_null.end(); it++)
+        {
+            snprintf(sqlcmd, sizeof(sqlcmd),
+                    "DELETE FROM %s WHERE id=%lu",
+                    USERCENTER_SESSION_TBL, it->ios_cid);
+            ret = sql_cmd(sqlcmd, NULL, NULL);
+            count = mysql_affected_rows(m_pCfg->m_Sql);
+            if(ret == CDS_OK && count == 1)
+            {
+                INFO("DELETE the existedn (null) session(iOS case) [OK]\n");
+            }
+            else
+            {
+                ERR("Failed delete (null) session, ret:%d, count:%d\n", ret, count);
+            }
+
+            rc = rm_mem_value(it->ios_token);
+            if(rc != MEMCACHED_SUCCESS)
+            {
+                ERR("Failed delete the %s from mem(%d)\n", it->ios_token, rc);
+            }
+        }
+
+    }
+
+    return 0;
+}
+
 int LoginOperation::process_user_and_credential(LoginRequest *reqobj, LoginResponse *respobj)
 {
     int ret = -1;
@@ -375,6 +459,12 @@ int LoginOperation::process_user_and_credential(LoginRequest *reqobj, LoginRespo
         us.us_cid = cid;
         us.us_sessionid = reqobj->login_session().c_str();
         us.us_token = uuiddata;
+
+        // for iOS '(null)' session fix
+        if(!strcmp(reqobj->login_session().c_str(), IOS_BUG_SESSION))
+        {
+            specially_handling_ios(reqobj, cid);
+        }
 
         update_usercenter_session(reqobj, &us);
 

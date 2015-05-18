@@ -9,9 +9,12 @@ DELETE FROM uc_passport WHERE usermobile='13022593515' OR usermobile='1302259351
 DELETE FROM uc_passport WHERE usermobile='17705164171' OR usermobile='18911112222';
 DELETE FROM uc_passport WHERE usermobile='testinactive';
 DELETE FROM uc_passport WHERE usermobile='olderphone';
+DELETE FROM uc_passport WHERE usermobile='ios-null-ses';
+DELETE FROM uc_passport WHERE id=2;
 DELETE FROM uc_session WHERE ticket='aa776f46-cc18-4c44-a7c5-124c7afc45bf' OR ticket='11776f46-cc18-4c44-a7c5-124c7afc45bf' OR ticket='22776f46-cc18-4c44-a7c5-124c7afc45bf';
 DELETE FROM uc_session WHERE ticket='33776f46-cc18-4c44-a7c5-124c7afc45bf';
 DELETE FROM uc_session WHERE ticket='xmpptoken-cc18-4c44-a7c5-124c7afc45bf';
+DELETE FROM uc_session WHERE caredearid=2;
 DELETE FROM uc_session;
 DELETE FROM uc_sys_sessionconf WHERE sysid=2 OR sysid=99 OR sysid=1;
 /* User + Name case */
@@ -25,11 +28,15 @@ INSERT INTO uc_passport (usermobile,accode,codetime) VALUES ('13022593515','1234
 INSERT INTO uc_passport (usermobile,accode,codetime) VALUES ('13022593516','567890',UNIX_TIMESTAMP(NOW())-10);
 INSERT INTO uc_passport (usermobile,accode,codetime) VALUES ('13022593517','123456',UNIX_TIMESTAMP(NOW())+3600);
 INSERT INTO uc_passport (usermobile,accode,codetime) VALUES ('olderphone','336688',UNIX_TIMESTAMP(NOW()));
+INSERT INTO uc_passport (id,usermobile,loginpassword,status) VALUES (2,'ios-null-ses','120e4395aaac216902c3f0268581c7ff',1);
 /* Auth case */
 INSERT INTO uc_session (caredearid,ticket,session,lastoperatetime) VALUES (100,'aa776f46-cc18-4c44-a7c5-124c7afc45bf',2,NOW());
 INSERT INTO uc_session (caredearid,ticket,session,lastoperatetime) VALUES (100,'11776f46-cc18-4c44-a7c5-124c7afc45bf',2,FROM_UNIXTIME(UNIX_TIMESTAMP(NOW())-2593999));
 INSERT INTO uc_session (caredearid,ticket,session,lastoperatetime) VALUES (100,'22776f46-cc18-4c44-a7c5-124c7afc45bf',2,FROM_UNIXTIME(UNIX_TIMESTAMP(NOW())-1900));
 INSERT INTO uc_session (caredearid,ticket,session,lastoperatetime) VALUES (99,'xmpptoken-cc18-4c44-a7c5-124c7afc45bf',2,FROM_UNIXTIME(UNIX_TIMESTAMP(NOW())-1900));
+INSERT INTO uc_session (caredearid,ticket,session,lastoperatetime) VALUES (2,'ios-null-session-token','(null)',FROM_UNIXTIME(UNIX_TIMESTAMP(NOW())-1900));
+INSERT INTO uc_session (caredearid,ticket,session,lastoperatetime) VALUES (2,'ios-null-session-token2','(null)',FROM_UNIXTIME(UNIX_TIMESTAMP(NOW())-1900));
+INSERT INTO uc_session (caredearid,ticket,session,lastoperatetime) VALUES (2,'test-ios-null-session-token','(null)',FROM_UNIXTIME(UNIX_TIMESTAMP(NOW())-1900));
 INSERT INTO uc_sys_sessionconf (sysid,isorder,lefttime,type) VALUES (2,1,2592000,1);
 INSERT INTO uc_sys_sessionconf (sysid,isorder,lefttime,type) VALUES (1,1,2592000,1);
 INSERT INTO uc_sys_sessionconf (sysid,isorder,lefttime,type) VALUES (99,0,2592000,1);

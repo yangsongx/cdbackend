@@ -25,6 +25,11 @@
 
 #define OPENSIPS_SUB_TBL        "opensips.subscriber"
 
+/* NOTE - iOS client had bug, whose session is '(null)'
+ * Server had to do a workaround to resolve this
+ */
+#define IOS_BUG_SESSION  "(null)"
+
 using namespace com::caredear;
 
 typedef int (*cb_sqlfunc)(MYSQL_RES *p_result, void *p_extra);
