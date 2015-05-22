@@ -14,6 +14,6 @@ LOCAL_MODULE_TAGS := optional
 
 LOCAL_SHARED_LIBRARIES := liblog libcutils
 
-LOCAL_MODULE:= peer_detect
+LOCAL_MODULE:= pd
 
 include $(BUILD_EXECUTABLE)

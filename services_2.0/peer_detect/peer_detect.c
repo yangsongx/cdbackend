@@ -26,11 +26,12 @@ int main(int argc, char **argv)
     if(!strcmp(argv[1], "-s"))
     {
         PD_LOG("starting server...\n");
+        setup_server(s, METHOD_SSDP);
     }
     else if(!strcmp(argv[1], "-c"))
     {
         PD_LOG("starting client(scan available devices...)...\n");
-        scan_all_available_devices(s);
+        scan_all_available_devices(s, METHOD_SSDP);
     }
 
     close(s);

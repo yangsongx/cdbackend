@@ -32,7 +32,7 @@
 
 /* PD (Peer Detect) specific log macros... */
 #ifdef ANDROID_ENV
-#define PD_LOG LOGI
+#define PD_LOG LOGE
 #define PD_ERR LOGE
 #else
 #define PD_LOG printf
@@ -45,6 +45,16 @@
 
 #define PAYLOAD "21ke"
 #define RESPONSE "YES"
+
+#define SSDP_MCAST_ADDR  "239.255.255.250"
+
+/**
+ * Method for device detection
+ */
+enum{
+    METHOD_UNICAST = 0, /**< traditional TCP connection */
+    METHOD_SSDP
+};
 
 enum{
     SCAN_STAGE_1 = 0, /**< 0~99 */
@@ -59,7 +69,7 @@ typedef struct _available_dev_t{
 }available_dev_t;
 
 /* FUNCTION PROTOTYPE */
-extern int scan_all_available_devices(int sock);
-extern int setup_server(int sock);
+extern int scan_all_available_devices(int sock, int method);
+extern int setup_server(int sock, int method);
 
 #endif

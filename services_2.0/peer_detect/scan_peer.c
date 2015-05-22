@@ -172,7 +172,7 @@ int try_peek_device(int sock, int stage, struct in_addr *ip, int single)
     return 0;
 }
 
-int scan_all_available_devices(int sock)
+int detect_available_devices_unicast(int sock)
 {
     struct in_addr  local_ip;
     unsigned char *p; // store last fields of the IP
@@ -202,5 +202,45 @@ int scan_all_available_devices(int sock)
         try_peek_device(sock, SCAN_STAGE_3, &local_ip, 1 /* only match one device */);
     }
 
+    return 0;
+}
+
+int detect_available_devices_ssdp(int sock)
+{
+    int udpSock = (AF_INET, SOCK_DGRAM, 0);
+    char buf[128];
+    ssize_t size;
+    struct sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+
+    while(1)
+    {
+        sleep(4);
+        size = recvfrom(udpSock, buf, sizeof(buf), 0,
+                (struct sockaddr *)&addr, &len);
+        PD_ERR("Totally %ld bytes got\n", size);
+        if(size > 0) {
+        PD_ERR("buf:%s\n", buf);
+        PD_ERR("IP:%s\n", inet_ntoa(addr.sin_addr));
+        }
+    }
+
+    close(udpSock);
+}
+
+int scan_all_available_devices(int sock, int method)
+{
+    switch(method)
+    {
+        case METHOD_UNICAST:
+            break;
+
+        case METHOD_SSDP:
+            detect_available_devices_ssdp(sock);
+            break;
+
+        default:
+            break;
+    }
     return 0;
 }
