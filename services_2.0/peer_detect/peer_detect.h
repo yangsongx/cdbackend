@@ -43,7 +43,7 @@
 #define MAXINTERFACES 16
 #define CONTROLLER_PORT  2121
 
-#define PAYLOAD "21ke"
+#define PAYLOAD "21KE"
 #define RESPONSE "YES"
 
 #define SSDP_MCAST_ADDR  "239.255.255.250"
@@ -68,8 +68,13 @@ typedef struct _available_dev_t{
     /* FIXME maybe we need add more specific dev info data here */
 }available_dev_t;
 
+extern int glb_port;
+
 /* FUNCTION PROTOTYPE */
-extern int scan_all_available_devices(int sock, int method);
-extern int setup_server(int sock, int method);
+extern int prepare_ssdp_server(int port);
+extern int detect_available_devices_ssdp(int port);
+extern int detect_dev_ssdp_quick(int port, char *ip);
+extern int scan_all_available_devices(int method);
+extern int setup_server(int method);
 
 #endif

@@ -59,7 +59,7 @@ int talk_to_device(int sock, struct in_addr *target_ip)
     int  ret = -1;
 
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(CONTROLLER_PORT);
+    addr.sin_port = htons(glb_port);
     addr.sin_addr = *target_ip;
 
     if(connect(sock, (struct sockaddr *) &addr, sizeof(addr)) == -1)
@@ -205,30 +205,156 @@ int detect_available_devices_unicast(int sock)
     return 0;
 }
 
-int detect_available_devices_ssdp(int sock)
+int add_ip_to_dev_list(struct listnode *hdr, available_dev_t *node)
 {
-    int udpSock = (AF_INET, SOCK_DGRAM, 0);
+    struct listnode *pos;
+    available_dev_t *elem;
+
+    if(!node)
+    {
+        return -1;
+    }
+
+    list_for_each(pos, hdr)
+    {
+        elem = node_to_item(pos, available_dev_t, list);
+        PD_ERR("the elem on list's data:%s\n", inet_ntoa(elem->dev_ip));
+        if(memcmp(&(node->dev_ip), &(elem->dev_ip), sizeof(struct in_addr)))
+        {
+            list_add_tail(hdr, &(node->list));
+        }
+        else
+        {
+            PD_ERR("the same device, ignore it\n");
+            free(node);
+        }
+    }
+
+    return 0;
+}
+
+int detect_available_devices_ssdp(int port)
+{
+    int udpSock;
     char buf[128];
     ssize_t size;
     struct sockaddr_in addr;
     socklen_t len = sizeof(addr);
+    available_dev_t *item;
+
+    udpSock = socket(AF_INET, SOCK_DGRAM, 0);
+    if(udpSock < 0)
+    {
+        PD_ERR("failed create the UPD socket(%d)\n", errno);
+        return -1;
+    }
+
+    PD_LOG("UDP socket=%d\n", udpSock);
+
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(port);
+    if(bind(udpSock, (struct sockaddr*) &addr, sizeof(addr)) == -1)
+    {
+        PD_ERR("**failed bind() UPD(%d)\n", errno);
+    }
+
+    struct ip_mreq remote;
+    len = sizeof(remote);
+    remote.imr_multiaddr.s_addr = inet_addr(SSDP_MCAST_ADDR);
+    remote.imr_interface.s_addr = htonl(INADDR_ANY);
+
+    if(setsockopt(udpSock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &remote, len) == -1)
+    {
+        PD_ERR("**failed add membership(%d)\n", errno);
+    }
 
     while(1)
     {
         sleep(4);
+        len = sizeof(addr);
         size = recvfrom(udpSock, buf, sizeof(buf), 0,
                 (struct sockaddr *)&addr, &len);
         PD_ERR("Totally %ld bytes got\n", size);
         if(size > 0) {
-        PD_ERR("buf:%s\n", buf);
-        PD_ERR("IP:%s\n", inet_ntoa(addr.sin_addr));
+            PD_ERR("+buf:%s\n", buf);
+            if(!strncmp(buf, PAYLOAD, strlen(PAYLOAD)))
+            {
+                PD_ERR("IP:%s\n", inet_ntoa(addr.sin_addr));
+                item = (available_dev_t *) malloc(sizeof(available_dev_t));
+                if(item != NULL)
+                {
+                    add_ip_to_dev_list(&dev_list, item);
+                }
+            }
         }
     }
 
     close(udpSock);
 }
 
-int scan_all_available_devices(int sock, int method)
+/* TODO need cleanup(merge) with above function, currently temp used
+   by Android APK */
+int detect_dev_ssdp_quick(int port, char *ip)
+{
+    int udpSock;
+    char buf[128];
+    ssize_t size;
+    struct sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+    available_dev_t *item;
+
+    udpSock = socket(AF_INET, SOCK_DGRAM, 0);
+    if(udpSock < 0)
+    {
+        PD_ERR("failed create the UPD socket(%d)\n", errno);
+        return -1;
+    }
+
+    PD_LOG("->UDP socket=%d\n", udpSock);
+
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(port);
+    if(bind(udpSock, (struct sockaddr*) &addr, sizeof(addr)) == -1)
+    {
+        PD_ERR("**failed bind() UPD(%d)\n", errno);
+    }
+
+    struct ip_mreq remote;
+    len = sizeof(remote);
+    remote.imr_multiaddr.s_addr = inet_addr(SSDP_MCAST_ADDR);
+    remote.imr_interface.s_addr = htonl(INADDR_ANY);
+
+    if(setsockopt(udpSock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &remote, len) == -1)
+    {
+        PD_ERR("**failed add membership(%d)\n", errno);
+    }
+
+    while(1)
+    {
+        sleep(4);
+        len = sizeof(addr);
+        size = recvfrom(udpSock, buf, sizeof(buf), 0,
+                (struct sockaddr *)&addr, &len);
+        PD_ERR("@Totally %ld bytes got\n", size);
+        if(size > 0) {
+            PD_ERR("-buf:%s\n", buf);
+            if(!strncmp(buf, PAYLOAD, strlen(PAYLOAD)))
+            {
+                PD_ERR("IP:%s\n", inet_ntoa(addr.sin_addr));
+                strcpy(ip, inet_ntoa(addr.sin_addr));
+                break;
+            }
+        }
+    }
+
+    close(udpSock);
+
+    return 0;
+}
+
+int scan_all_available_devices(int method)
 {
     switch(method)
     {
@@ -236,7 +362,7 @@ int scan_all_available_devices(int sock, int method)
             break;
 
         case METHOD_SSDP:
-            detect_available_devices_ssdp(sock);
+            detect_available_devices_ssdp(glb_port);
             break;
 
         default:

@@ -1,41 +1,102 @@
 /**
  * for peer detect(IP address) under a WAN
  *
- * Note - 239.255.255.250 IP, 
- * keep sending out UDP on that IP, and check IF we can got it from client
  */
 
 #include "peer_detect.h"
 
+#ifdef _JNISO
+#include <jni.h>
+#include "com_caredear_detecter_MainActivity.h"
+#endif
+
+static void usage()
+{
+    PD_LOG("-s : server side(broadcasting for his IP)\n");
+    PD_LOG("-c : clinet side(checking target IP)\n");
+    PD_LOG("-h : output this text\n");
+    PD_LOG("-p 123 : speicfiy port (default is %d)\n", CONTROLLER_PORT);
+}
+
+int glb_port = CONTROLLER_PORT;
+
+
+#ifdef _JNISO
+/* JNI implementation, mainly for Android APK */
+JNIEXPORT void JNICALL Java_com_caredear_detecter_MainActivity_startServer(JNIEnv *env, jobject obj, jint port)
+{
+    PD_ERR("Java --> C to setup server with port %d\n", port);
+
+    prepare_ssdp_server(port);
+}
+
+JNIEXPORT jstring JNICALL Java_com_caredear_detecter_MainActivity_startClient (JNIEnv *env, jobject obj, jint port)
+{
+    char ip[32];
+    jstring ret;
+
+    ip[0] = '\0';
+
+    detect_dev_ssdp_quick(port, ip);
+
+    if(strlen(ip) > 1)
+    {
+        ret = (*env)->NewStringUTF(env, ip);
+    }
+    else
+    {
+        ret = (*env)->NewStringUTF(env, "unknow");
+    }
+
+    return ret;
+}
+
+#else
 int main(int argc, char **argv)
 {
-    int s;
+    int c;
+    int running_mode = 0; /* 0 - for server boradcasing, 1 - for client */
 
     if(argc < 2){
         PD_ERR("peer_detect -s/-c\n");
         exit(0);
     }
 
-    s = socket(AF_INET, SOCK_STREAM, 0);
-    if(s == -1)
-    {
-        PD_ERR("failed create the socket(%d)\n", errno);
-        exit(0);
+    while((c = getopt(argc, argv, "p:hsc")) != -1) {
+        switch(c) {
+        case 'p':
+            glb_port = atoi(optarg);
+            break;
+
+        case 's':
+            running_mode = 0;
+            break;
+
+        case 'c':
+            running_mode = 1;
+            break;
+
+        case 'h':
+            usage();
+            exit(1);
+
+        default:
+            break;
+        }
     }
 
-    if(!strcmp(argv[1], "-s"))
+    if(running_mode == 0)
     {
         PD_LOG("starting server...\n");
-        setup_server(s, METHOD_SSDP);
+        setup_server(METHOD_SSDP);
     }
-    else if(!strcmp(argv[1], "-c"))
+    else if(running_mode == 1)
     {
         PD_LOG("starting client(scan available devices...)...\n");
-        scan_all_available_devices(s, METHOD_SSDP);
+        scan_all_available_devices(METHOD_SSDP);
     }
-
-    close(s);
 
     PD_LOG("exit the program\n");
     return 0;
 }
+#endif

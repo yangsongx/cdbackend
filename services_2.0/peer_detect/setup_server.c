@@ -6,7 +6,7 @@ int prepare_server(int sock)
     struct sockaddr_in addr;
 
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(CONTROLLER_PORT);
+    addr.sin_port = htons(glb_port);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if(bind(sock, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
@@ -22,7 +22,7 @@ int prepare_server(int sock)
     return 0;
 }
 
-int prepare_ssdp_server(int sock)
+int prepare_ssdp_server(int port)
 {
     int udpSock = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in addr;
@@ -30,7 +30,7 @@ int prepare_ssdp_server(int sock)
     char *buf = "21KE";
 
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(CONTROLLER_PORT);
+    addr.sin_port = htons(port);
     addr.sin_addr.s_addr = inet_addr(SSDP_MCAST_ADDR);
 
     PD_ERR("try broadcasting...\n");
@@ -53,29 +53,23 @@ int prepare_ssdp_server(int sock)
  *
  *@method : see @enum METHOD_XXX definition
  */
-int setup_server(int sock, int method)
+int setup_server(int method)
 {
-#if 1
     switch(method)
     {
         case METHOD_UNICAST:
             break;
 
         case METHOD_SSDP:
-            prepare_ssdp_server(sock);
+            prepare_ssdp_server(glb_port);
+            break;
+
+        default:
             break;
     }
-#else
-    if(prepare_server(sock) == -1)
-    {
-        PD_ERR("can't prepare server\n");
-        return -1;
-    }
 
-    PD_LOG("Now, server ready, try accept incoming client...\n");
-
-#endif
     // probably need select here?
     // because we need consider the client disconnect and re-connect again case
+
     return 0;
 }

@@ -24,9 +24,9 @@ LDFLAGS = -lxml2
 
 OBJS = $(SRC:.c=.o)
 
-all:peer_detect
+all:pd
 
-peer_detect:$(OBJS)
+pd:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 .c.o:
@@ -34,5 +34,5 @@ peer_detect:$(OBJS)
 
 .PHONY:clean
 clean:
-	rm -rf *.o peer_detect
+	rm -rf *.o pd
 	find . -name '*.o' -exec rm -rf {} ";"
