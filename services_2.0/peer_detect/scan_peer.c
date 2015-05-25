@@ -348,7 +348,7 @@ int detect_dev_ssdp_quick(int port, char *ip)
         return -1;
     }
 
-    PD_LOG("www->UDP socket=%d\n", udpSock);
+    PD_LOG("UDP socket=%d\n", udpSock);
 
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -368,9 +368,19 @@ int detect_dev_ssdp_quick(int port, char *ip)
         PD_ERR("**failed add membership(%d)\n", errno);
     }
 
+    if(sem_init(&sem_stopclient, 1, 0) != 0)
+    {
+        PD_ERR("Warning, failed init unamed sem(%d)\n", errno);
+    }
+
     while(1)
     {
-        PD_ERR("entering loop...\n");
+        if(sem_trywait(&sem_stopclient) == 0)
+        {
+            PD_LOG("Wow, stop the client\n");
+            break;
+        }
+
         sleep(4);
         len = sizeof(addr);
         size = recvfrom(udpSock, buf, sizeof(buf), 0,
@@ -388,6 +398,7 @@ int detect_dev_ssdp_quick(int port, char *ip)
         }
     }
 
+    sem_destroy(&sem_stopclient);
     close(udpSock);
 
     return 0;
