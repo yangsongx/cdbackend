@@ -17,11 +17,27 @@ JNIEXPORT void JNICALL Java_com_caredear_detecter_MainActivity_startServer
 
 /*
  * Class:     com_caredear_detecter_MainActivity
- * Method:    startClient
+ * Method:    stopServer
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_com_caredear_detecter_MainActivity_stopServer
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_caredear_detecter_MainActivity
+ * Method:    fetchTargetDev
  * Signature: (I)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_com_caredear_detecter_MainActivity_startClient
+JNIEXPORT jstring JNICALL Java_com_caredear_detecter_MainActivity_fetchTargetDev
   (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     com_caredear_detecter_MainActivity
+ * Method:    stopClient
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_com_caredear_detecter_MainActivity_stopClient
+  (JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }

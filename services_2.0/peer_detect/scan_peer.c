@@ -214,6 +214,24 @@ int add_ip_to_dev_list(struct listnode *hdr, available_dev_t *node)
     {
         return -1;
     }
+#if 1
+    int i = 0;
+    PD_ERR("first, try know the list length...\n");
+    list_for_each(pos, hdr)
+    {
+        elem = node_to_item(pos, available_dev_t, list);
+        i++;
+    }
+
+    PD_ERR("totally %d  on the list\n", i);
+
+#endif
+    // empty would not check any elem
+    if(list_empty(hdr))
+    {
+        PD_ERR("empty, directly insert\n");
+        list_add_tail(hdr, &(node->list));
+    }
 
     list_for_each(pos, hdr)
     {
@@ -221,7 +239,9 @@ int add_ip_to_dev_list(struct listnode *hdr, available_dev_t *node)
         PD_ERR("the elem on list's data:%s\n", inet_ntoa(elem->dev_ip));
         if(memcmp(&(node->dev_ip), &(elem->dev_ip), sizeof(struct in_addr)))
         {
+            PD_ERR("will insert...\n");
             list_add_tail(hdr, &(node->list));
+            PD_ERR("insertion OK\n");
         }
         else
         {
@@ -236,7 +256,7 @@ int add_ip_to_dev_list(struct listnode *hdr, available_dev_t *node)
 int detect_available_devices_ssdp(int port)
 {
     int udpSock;
-    char buf[128];
+    char buf[256];
     ssize_t size;
     struct sockaddr_in addr;
     socklen_t len = sizeof(addr);
@@ -249,7 +269,7 @@ int detect_available_devices_ssdp(int port)
         return -1;
     }
 
-    PD_LOG("UDP socket=%d\n", udpSock);
+    PD_LOG("UDP socket=%d, the port=%d\n", udpSock, port);
 
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -271,8 +291,14 @@ int detect_available_devices_ssdp(int port)
 
     while(1)
     {
+        if(sem_trywait(&sem_stopclient) == 0)
+        {
+            PD_LOG("Wow, stop the client\n");
+            break;
+        }
         sleep(4);
         len = sizeof(addr);
+        PD_ERR("a22301---try recv...\n");
         size = recvfrom(udpSock, buf, sizeof(buf), 0,
                 (struct sockaddr *)&addr, &len);
         PD_ERR("Totally %ld bytes got\n", size);
@@ -281,20 +307,31 @@ int detect_available_devices_ssdp(int port)
             if(!strncmp(buf, PAYLOAD, strlen(PAYLOAD)))
             {
                 PD_ERR("IP:%s\n", inet_ntoa(addr.sin_addr));
+                PD_ERR("+full data from server:%s\n", buf);
+
                 item = (available_dev_t *) malloc(sizeof(available_dev_t));
                 if(item != NULL)
                 {
+                    memset(item, 0x00, sizeof(available_dev_t));
+                    item->dev_ip = addr.sin_addr;
+                    strncpy(item->dev_name, buf + strlen(PAYLOAD), 200);
                     add_ip_to_dev_list(&dev_list, item);
                 }
             }
         }
     }
 
+    PD_LOG("free the client's resource...\n");
+    sem_destroy(&sem_stopclient);
     close(udpSock);
+
+    return 0;
 }
 
-/* TODO need cleanup(merge) with above function, currently temp used
-   by Android APK */
+/**
+ * This will only get the first meet device
+ *
+ */
 int detect_dev_ssdp_quick(int port, char *ip)
 {
     int udpSock;
@@ -311,7 +348,7 @@ int detect_dev_ssdp_quick(int port, char *ip)
         return -1;
     }
 
-    PD_LOG("->UDP socket=%d\n", udpSock);
+    PD_LOG("www->UDP socket=%d\n", udpSock);
 
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -333,6 +370,7 @@ int detect_dev_ssdp_quick(int port, char *ip)
 
     while(1)
     {
+        PD_ERR("entering loop...\n");
         sleep(4);
         len = sizeof(addr);
         size = recvfrom(udpSock, buf, sizeof(buf), 0,
@@ -343,7 +381,8 @@ int detect_dev_ssdp_quick(int port, char *ip)
             if(!strncmp(buf, PAYLOAD, strlen(PAYLOAD)))
             {
                 PD_ERR("IP:%s\n", inet_ntoa(addr.sin_addr));
-                strcpy(ip, inet_ntoa(addr.sin_addr));
+                sprintf(ip, "%s|%s", inet_ntoa(addr.sin_addr),
+                        buf + strlen(PAYLOAD));
                 break;
             }
         }
@@ -359,6 +398,7 @@ int scan_all_available_devices(int method)
     switch(method)
     {
         case METHOD_UNICAST:
+            PD_ERR("Not support yet!(we don't want to use TCP to do this)\n");
             break;
 
         case METHOD_SSDP:

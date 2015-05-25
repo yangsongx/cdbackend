@@ -1,3 +1,7 @@
+/**
+ * All server side related code would implemented in this file.
+ *
+ */
 #include "peer_detect.h"
 
 
@@ -22,12 +26,52 @@ int prepare_server(int sock)
     return 0;
 }
 
+/**
+ * This is just let server don't broadcast the msg
+ *
+ */
+void stop_ssdp_server()
+{
+}
+
 int prepare_ssdp_server(int port)
 {
     int udpSock = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in addr;
     ssize_t size = 0;
-    char *buf = "21KE";
+    char buf[256];
+    char devname[200];
+
+    strcpy(buf, PAYLOAD);
+
+    if(sem_init(&sem_trigger, 1, 0) != 0)
+    {
+        PD_ERR("failed init the unname sem(%d)\n", errno);
+        // just output a warning..
+    }
+
+#ifdef ANDROID_ENV
+    /* Android specific info */
+    property_get("ro.product.model",
+            devname,
+            "generic-android");
+    strcat(buf, devname);
+#else
+    /* Generic Linux system info */
+    struct utsname u;
+    if(uname(&u) == 0)
+    {
+        strcat(buf, u.sysname);
+        strcat(buf, " ");
+        strcat(buf, u.machine);
+    }
+    else
+    {
+        /* make sure there's a default value */
+        strcat(buf, "generic-linux");
+    }
+#endif
+    PD_ERR("the devinfo:%s\n", buf);
 
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
@@ -37,6 +81,12 @@ int prepare_ssdp_server(int port)
 
     while(1)
     {
+        if(sem_trywait(&sem_trigger) == 0)
+        {
+            PD_LOG("Wow, stop broadcasting!\n");
+            break;
+        }
+
         sleep(5);
         PD_LOG("send out broadcasting\n");
         size = sendto(udpSock, buf, strlen(buf) + 1, 0,
@@ -44,6 +94,8 @@ int prepare_ssdp_server(int port)
         PD_ERR("totally %ld bytes wrote\n", size);
     }
 
+    PD_ERR("free resource...\n");
+    sem_destroy(&sem_trigger);
     close(udpSock);
 
     return 0;
@@ -58,6 +110,7 @@ int setup_server(int method)
     switch(method)
     {
         case METHOD_UNICAST:
+            PD_ERR("Currently NOT support yet(don't use tcp)\n");
             break;
 
         case METHOD_SSDP:
