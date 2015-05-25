@@ -3,9 +3,53 @@
  *
  *\page APK Calling Sample Code
  *
+ * The JNI library name is `libpeerdetect.so', APK will embeded it under libs/armeabi/.
+ *
+ * For server(who keep sending out broadcast msg), the code calling is like this:
+ *
  *\code
- *  int port = 2121;
+ * class Foo {
+ *   static {
+ *     System.loadLibrary("peerdetect");
+ *   }
+ *   public native void startServer(int port);
+ *   public native void stopServer(int port);
+ *
+ *   void foo() {
+ *     if(want to start) {
+ *       startServer(2121); // 2121 means port
+ *     } else {
+ *       stopServer();
+ *     }
+ *   }
+ * }
  *\endcode
+ *
+ * For client who want to find the targert device's info, the code callling is like this:
+ *
+ *\code
+ * class Foo {
+ *   static {
+ *     System.loadLibrary("peerdetect");
+ *   }
+ *   public native String fetchTargetDev(int port);
+ *   public native void stopClientr();
+ *
+ *   void foo() {
+ *     if(want to start) {
+ *       String val = fetchTargetDev(2121); // 2121 means port
+ *     } else {
+ *       stopClient();
+ *     }
+ *   }
+ * }
+ *\endcode
+ *
+ * Once code calling <emphasis>fetchTargetDev()</emphasis>, it will keep in loop until
+ * got a response data.
+ *
+ * The response data is in `IP | dev-name` format, such as "192.168.1.2|Huawei P7", Java
+ * APK should parse it and show them in the UI.
  */
 
 #include "peer_detect.h"
@@ -34,30 +78,6 @@ sem_t sem_stopclient;
 
 #ifdef _JNISO
 
-static int static_recv_broadcast_did = 0;
-
-// JNI need query the info long time, put boradcasting checking into a thread.
-void *recv_broadcast_thd(void *param)
-{
-    int p = *(int *) param;
-
-    PD_ERR("in background thread for port %d \n", p);
-    if(sem_init(&sem_stopclient, 1, 0) != 0)
-    {
-        PD_ERR("Warning, failed init unamed sem(%d)\n", errno);
-    }
-
-#if 0
-    char tmp[32];
-    detect_dev_ssdp_quick(p, tmp);
-    PD_ERR("tmp=%s\n", tmp);
-#else
-    detect_available_devices_ssdp(p);
-#endif
-
-    return NULL;
-}
-
 /* JNI implementation, mainly for Android APK */
 JNIEXPORT void JNICALL Java_com_caredear_detecter_MainActivity_startServer(JNIEnv *env, jobject obj, jint port)
 {
@@ -76,7 +96,7 @@ JNIEXPORT jstring JNICALL Java_com_caredear_detecter_MainActivity_fetchTargetDev
     available_dev_t *elem;
     pthread_t tid;
 
-    PD_ERR("entering the C++ world...(flag=%d)\n", static_recv_broadcast_did);
+    PD_ERR("entering the C++ world...(port=%d)\n", port);
 
 #if 1
     detect_dev_ssdp_quick(port, fulllist);
