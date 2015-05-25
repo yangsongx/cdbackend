@@ -8,9 +8,6 @@ SRC = peer_detect.c \
       list.c \
       setup_server.c
 
-#include ../../common/caredear_service_lib/common.mk
-CXXFLAGS = -I/usr/include/libxml2/ -fpermissive -std=c++0x -W -Wall -Wno-unused-parameter
-
 # Release should use -O2
 
 ifeq ($(DEBUG),false)
@@ -19,7 +16,7 @@ else
 CFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -lxml2
+LDFLAGS = -lxml2 -lrt -pthread
 
 
 OBJS = $(SRC:.c=.o)

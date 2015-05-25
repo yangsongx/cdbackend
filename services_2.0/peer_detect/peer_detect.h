@@ -10,9 +10,11 @@
 #include <cutils/logprint.h>
 #include <cutils/log.h>
 #include <cutils/list.h>
+#include <cutils/properties.h>
 
 #else /* ANDROID */
 
+#include <sys/utsname.h>
 #include "list.h" // only avaialbe for Non-Android
 
 #endif /* Generic Linux system */
@@ -29,6 +31,7 @@
 #include <sys/stat.h>
 #include <arpa/inet.h>
 #include <getopt.h>
+#include <semaphore.h>
 
 /* PD (Peer Detect) specific log macros... */
 #ifdef ANDROID_ENV
@@ -43,7 +46,7 @@
 #define MAXINTERFACES 16
 #define CONTROLLER_PORT  2121
 
-#define PAYLOAD "21KE"
+#define PAYLOAD "21KE:"
 #define RESPONSE "YES"
 
 #define SSDP_MCAST_ADDR  "239.255.255.250"
@@ -65,10 +68,14 @@ enum{
 typedef struct _available_dev_t{
     struct listnode list;
     struct in_addr  dev_ip;
+    char            dev_name[256]; /**< a device name descripter */
     /* FIXME maybe we need add more specific dev info data here */
 }available_dev_t;
 
 extern int glb_port;
+extern sem_t sem_trigger;
+extern sem_t sem_stopclient;
+extern struct listnode dev_list;
 
 /* FUNCTION PROTOTYPE */
 extern int prepare_ssdp_server(int port);
