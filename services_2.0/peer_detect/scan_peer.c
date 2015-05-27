@@ -334,12 +334,15 @@ int detect_available_devices_ssdp(int port)
  */
 int detect_dev_ssdp_quick(int port, char *ip)
 {
+    int rc;
     int udpSock;
     char buf[128];
     ssize_t size;
     struct sockaddr_in addr;
     socklen_t len = sizeof(addr);
     available_dev_t *item;
+    fd_set read_fds;
+    struct timeval timeout;
 
     udpSock = socket(AF_INET, SOCK_DGRAM, 0);
     if(udpSock < 0)
@@ -348,7 +351,7 @@ int detect_dev_ssdp_quick(int port, char *ip)
         return -1;
     }
 
-    PD_LOG("UDP socket=%d\n", udpSock);
+    PD_LOG("the UDP socket=%d\n", udpSock);
 
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -375,13 +378,40 @@ int detect_dev_ssdp_quick(int port, char *ip)
 
     while(1)
     {
-        if(sem_trywait(&sem_stopclient) == 0)
+        PD_ERR("Droping to the loop...\n");
+
+        FD_ZERO(&read_fds);
+        FD_SET(udpSock, &read_fds);
+
+        timeout.tv_sec = 4; // every 4 seconds return a value.
+        timeout.tv_usec = 0;
+
+        rc = select(udpSock + 1, &read_fds, NULL, NULL, &timeout);
+
+        if(rc < 0)
         {
-            PD_LOG("Wow, stop the client\n");
+            if(errno == EINTR || errno == EAGAIN)
+                continue;
+            //for other case, breakout
+            PD_ERR("select() got %d errno\n", errno);
             break;
         }
+        else if(!rc)
+        {
+            PD_ERR("time out case\n");
+            // timeout, check if Java want to quit the scanning or NOT
+            if(sem_trywait(&sem_stopclient) == 0)
+            {
+                PD_LOG("Wow, stop the client\n");
+                sprintf(ip, "NOT FOUND YET");
+                break;
+            }
+        }
+        else {
 
-        sleep(4);
+            if(FD_ISSET(udpSock, &read_fds))
+            {
+
         len = sizeof(addr);
         size = recvfrom(udpSock, buf, sizeof(buf), 0,
                 (struct sockaddr *)&addr, &len);
@@ -395,7 +425,17 @@ int detect_dev_ssdp_quick(int port, char *ip)
                         buf + strlen(PAYLOAD));
                 break;
             }
+            else
+            {
+                sprintf(ip, "NOT FOUND YET");
+                break;
+            }
         }
+
+        } /* FD_ISSET */
+
+
+        } /* else */
     }
 
     sem_destroy(&sem_stopclient);

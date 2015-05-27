@@ -45,7 +45,7 @@
  * }
  *\endcode
  *
- * Once code calling <emphasis>fetchTargetDev()</emphasis>, it will keep in loop until
+ * Once code calling <I>fetchTargetDev()</I>, it will keep in loop until
  * got a response data.
  *
  * The response data is in `IP | dev-name` format, such as "192.168.1.2|Huawei P7", Java
