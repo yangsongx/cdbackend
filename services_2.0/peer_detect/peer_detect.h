@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <sys/select.h>
 #include <linux/if.h>
 #include <linux/ip.h>
 #include <sys/stat.h>
