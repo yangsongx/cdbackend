@@ -56,7 +56,12 @@
 
 #ifdef _JNISO
 #include <jni.h>
+#if 0
 #include "com_caredear_detecter_MainActivity.h"
+#else
+#include "com_caredear_detecter_DetecterNativeUtils.h"
+#endif
+
 #endif
 
 static void usage()
@@ -79,14 +84,21 @@ sem_t sem_stopclient;
 #ifdef _JNISO
 
 /* JNI implementation, mainly for Android APK */
+#if 0
 JNIEXPORT void JNICALL Java_com_caredear_detecter_MainActivity_startServer(JNIEnv *env, jobject obj, jint port)
+#else
+JNIEXPORT void JNICALL Java_com_caredear_detecter_DetecterNativeUtils_startServer(JNIEnv *env, jobject obj, jint port)
+#endif
 {
     PD_ERR("Java --> C to setup server with port %d\n", port);
 
     prepare_ssdp_server(port);
 }
-
+#if 0
 JNIEXPORT jstring JNICALL Java_com_caredear_detecter_MainActivity_fetchTargetDev(JNIEnv *env, jobject obj, jint port)
+#else
+JNIEXPORT jstring JNICALL Java_com_caredear_detecter_DetecterNativeUtils_fetchTargetDev(JNIEnv *env, jobject obj, jint port)
+#endif
 {
     jstring ret;
 
@@ -148,8 +160,11 @@ JNIEXPORT jstring JNICALL Java_com_caredear_detecter_MainActivity_fetchTargetDev
 #endif
     return ret;
 }
-
+#if 0
 JNIEXPORT void JNICALL Java_com_caredear_detecter_MainActivity_stopServer (JNIEnv *env, jobject obj)
+#else
+JNIEXPORT void JNICALL Java_com_caredear_detecter_DetecterNativeUtils_stopServer(JNIEnv *env, jobject obj)
+#endif
 {
     /* Java just want the server don't broadcasting anymore,
        so we can just notify it via sem */
@@ -164,8 +179,11 @@ JNIEXPORT void JNICALL Java_com_caredear_detecter_MainActivity_stopServer (JNIEn
     }
     sem_post(&sem_trigger);
 }
-
+#if 0
 JNIEXPORT void JNICALL Java_com_caredear_detecter_MainActivity_stopClient (JNIEnv *env, jobject obj)
+#else
+JNIEXPORT void JNICALL Java_com_caredear_detecter_DetecterNativeUtils_stopClient(JNIEnv *env, jobject obj)
+#endif
 {
     int i = -1;
     if(sem_getvalue(&sem_stopclient, &i) == 0)

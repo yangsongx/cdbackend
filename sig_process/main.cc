@@ -7,8 +7,11 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+// below for libpng
+#include <png.h>
+
 using namespace cv;
-#if 1
+#if 0
 /************************************************************************/
 /* 
 Description:        手势检测
@@ -190,6 +193,21 @@ void rotate_img(double degree, Mat *pImg)
 
 int main(int argc, char **argv)
 {
+#if 1 // for libpng
+    png_image  img;
+    memset(&img, 0x00, sizeof(img));
+    img.version = PNG_IMAGE_VERSION;
+    if(png_image_begin_read_from_file(&img, "a.png") != 0)
+    {
+        printf("reading OK:\n");
+        printf("width=%d, height=%d, format:%d\n", img.width, img.height, img.format);
+        printf("the size is %d\n", PNG_IMAGE_SIZE(img));
+    }
+    else
+    {
+        printf("failed read the png file!\n");
+    }
+#else
     cv::Mat origin = cv::imread("a.png");
 
     printf("open file [OK]\n");
@@ -236,7 +254,7 @@ int main(int argc, char **argv)
 
     imshow("image", small_img);
     waitKey();
-
+#endif
     printf("exit the program\n");
     return 0;
 }
