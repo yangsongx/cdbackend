@@ -16,7 +16,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -lxml2 -lopencv_core -lopencv_highgui -lopencv_imgproc
+LDFLAGS = -lxml2 -lopencv_core -lopencv_highgui -lopencv_imgproc -lpng
 
 
 OBJS = $(SRC:.cc=.o)
