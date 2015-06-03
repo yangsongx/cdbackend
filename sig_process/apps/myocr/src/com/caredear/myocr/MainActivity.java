@@ -10,6 +10,10 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		String ret = OcrUtil.getImg("/data/data/tf.png");
+		
+		android.util.Log.e("a22301","@C++ tell me:" + ret);
 	}
 
 	@Override
