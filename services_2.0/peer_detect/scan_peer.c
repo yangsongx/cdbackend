@@ -378,8 +378,6 @@ int detect_dev_ssdp_quick(int port, char *ip)
 
     while(1)
     {
-        PD_ERR("Droping to the loop...\n");
-
         FD_ZERO(&read_fds);
         FD_SET(udpSock, &read_fds);
 

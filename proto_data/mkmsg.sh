@@ -88,3 +88,11 @@ else
   echo "VerifyCode IDL generation [**failed]"
 fi
 
+# For Maker system
+protoc --cpp_out="../services_2.0/maker/" MakerMessage.proto
+if [ $? -eq 0 ]; then
+  echo "Maker IDL generation [OK]"
+else
+  echo "Maker IDL generation [**failed]"
+fi
+

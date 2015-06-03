@@ -26,6 +26,10 @@ all:testimg
 
 testimg:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
+.PHONY:cutimg
+cutimg:
+	$(CC) $(CXXFLAGS) -c cutimg.cc -o cutimg.o 
+	$(CC) -o cutimg cutimg.o $(LDFLAGS)
 
 .cc.o:
 	$(CC) $(CXXFLAGS) -c $< -o $@

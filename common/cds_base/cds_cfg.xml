@@ -121,6 +121,20 @@
                 <password>opensipsrw</password>
             </sipsserver>
         </password_manager>
+        <maker>
+            <sqlserver>
+                <ip>yz-mysql1</ip>
+                <user>zyj</user>
+                <password>zhuyujie</password>
+                <!-- keep below blank -->
+                <databasename></databasename>
+            </sqlserver>
+            <qiniu>
+                <bucket>cdstatic</bucket>
+                <!-- 30 days -->
+                <expiration>2592000</expiration>
+            </qiniu>
+        </maker>
     </service_2>
 
     <xmpp_auth_2>

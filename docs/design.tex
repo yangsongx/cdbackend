@@ -39,6 +39,95 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
 \tableofcontents
 \end{frame}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{后台服务架构}
+
+%  ######################
+\begin{frame}
+\frametitle{基础架构}
+
+\begin{tikzpicture}
+\node {yz-admin}
+  [edge from parent fork down,font=\scriptsize]
+  child {node {yz-app-java1}}
+  child {node {yz-app-java2}
+  child [child anchor=north east]{node {child}}
+  child {node {child}} };
+\end{tikzpicture}
+
+
+\end{frame}
+
+%  ######################
+\begin{frame}
+\frametitle{各个服务分配情况}
+
+\begin{center}
+
+\bgroup
+\def\arraystretch{1.15} 
+\begin{tabular}{|c|c|}
+{服务名称} & {端口号}\\
+\hline
+{用户注册User Register Service(urs)} & {13000}  \\
+{用户登录User Login Service(uls)} & {13001}  \\
+{用户激活User Activation Service(acts)} & {13002} \\
+{用户鉴权User Authentication(uauth)} & {13003} \\
+{用户密码管理Password Manager(passwdmgr)} & {13004} \\
+{个人信息修改User Attribute Modify(attrmodify)} & {13005} \\
+{用户信息补齐(upusr)} & {13006} \\
+{激活码(vcs)} & {13007} \\
+\hline
+{网盘服务NetDisk Service(nds)} & {12001} \\
+{SIPs用户鉴权(opas)} & {12002} \\
+\end{tabular}
+\egroup
+
+\end{center}
+
+
+\end{frame}
+
+\begin{frame}
+\frametitle{服务的状态码}\label{lblServerStatusCode}
+
+目前服务器对请求的处理结果，使用状态码来标示成功与否，常见定义如下：
+
+\vspace{0.2cm}
+
+\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|c|l|c|l|}
+\hline
+{状态码} & {说明} & {状态码} & {说明}\\
+\hline
+{0} & {成功} & {1} & {请求数据过长} \\
+{2} & {内存不够} & {3} & {请求数据格式不对} \\
+{4} & {用户信息不匹配} & {5} & {token过期} \\
+{6} & {数据库连接断开} &  {7} & {SQL语句执行出错}\\
+{8} & {数据库中找不到指定记录} & {9} & {系统资源不足} \\
+{10} & {文件已存在} & {11} & {Quota超限制} \\
+\hline
+\end{tabular}
+\egroup
+
+\vspace{0.2cm}
+
+代码级别的定义在backend/common/cds\_base/cds\_public.h头文件中。
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{服务集群}
+
+TODO
+
+\end{frame}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{新用户注册设计}
 
@@ -51,40 +140,6 @@ int CdRecycleUsrData.restoreDeletedContactData(Context context);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{网盘设计}
-
-%  ######################
-\begin{frame}[fragile]
-\frametitle{架构}
-
-\begin{tikzpicture}
-% the input from APK
-\node [circle,draw,fill=black!20,thick,inner sep=0pt,minimum size=6mm] (IDApk) {APK};
-% proto section
-\node [mybox,right of = IDApk,xshift=5cm, yshift=3cm] (IDProto) {\begin{lstlisting}[frame=none,basicstyle=\tiny]
-message  req{
-  required int id = 0;
-  required string name = 1;
-}
-message  ret{
-  required int code = 0;
-}
-                     \end{lstlisting}
-};
-\node [rectangle, above of = IDProto,yshift=0.2cm, font=\tiny] () {backend/proto\_data/NetdiskMessage.proto};
-
-\node [mybox, right of = IDApk, xshift = 3cm] (IDJava) {Java};
-\node [mybox, right of = IDJava, xshift = 3cm] (IDCpp) {C++};
-
-%below arraows
-\draw [->,dashed, very thick] (IDProto) -- (IDJava);
-\draw [->,dashed, very thick] (IDProto) -- (IDCpp);
-
-\path (IDJava) edge[bend left=20] node[above] {setXXX()} (IDCpp);
-\path (IDCpp) edge[bend left=20] node[below] {getXXX()} (IDJava);
-
-\end{tikzpicture}
-\end{frame}
-
 
 %  ######################
 \begin{frame}[fragile]
@@ -154,6 +209,8 @@ message  ret{
 \hline
 {USERS} \\
 \hline
+{FILE\_INFO} \\
+\hline
 {FILES} \\
 \hline
                       \end{tabular}};
@@ -167,6 +224,13 @@ message  ret{
 \hline
                       \end{tabular}};
 
+\node [rectangle, right of = ID1,xshift=5.5cm] (IDFileinfo) {\tiny \begin{tabular}{|l|l|l|}
+\hline
+{FILENAME}  & {MD5SUM} & {FILETYPE} \\
+\hline
+{abc.png}  & {af378123jxx} & {png} \\
+\hline
+                      \end{tabular}};
 
 \node [rectangle, right of = ID1,xshift=5.5cm, yshift=-3cm] (IDFiles) {\tiny \begin{tabular}{|l|l|l|l|}
 \hline
@@ -180,100 +244,944 @@ message  ret{
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{DB分布式集群及读写数据}
-
+\section{用户中心}
 %  ######################
 \begin{frame}
-\frametitle{架构}
+\frametitle{数据库}
 
-
-\end{frame}
-
-%  ######################
-\begin{frame}
-\frametitle{使用示例}
-
-
-\end{frame}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Debug and Tips}
-
-%  ######################
-\begin{frame}
-\frametitle{调试}
-  \framesubtitle{运行情况}
 \begin{tikzpicture}
-\node [mybox] (ID21k) {21k-code};
-\node [mybox, right of = ID21k, xshift=2.8cm] (IDksadmin) {ksadmin};
-\node [mybox, right of = IDksadmin, xshift=2.9cm, yshift=1.5cm] (IDksapp1) {ksapp1};
-\node [mybox, right of = IDksadmin, xshift=2.9cm, yshift=-1.5cm] (IDksapp3) {ksapp3};
-% arrow
-\draw [->] (IDksadmin) -- (IDksapp1) node [pos=.4,above,font=\footnotesize,color=orange, sloped] {ksapp1};
-\draw [->] (IDksadmin) -- (IDksapp3) node [pos=.4,above,font=\footnotesize,color=orange, sloped] {ksapp3};
-\draw [->] (ID21k) -- (IDksadmin) node [pos=.5,above,font=\footnotesize,color=orange] {ksadmin};
-\node [green!90, above] at (IDksapp1.north) {UserCenter,Web前端};
-\node [green!90, above] at (IDksapp3.north) {Token验证服务器};
-\end{tikzpicture}
-
-服务端口分配:
-\bgroup
+\node [rectangle](IDtable) {\bgroup
 \def\arraystretch{1.15} 
-\begin{tabular}{|c|c|}
-{服务名称} & {端口号}\\
-        \hline
-{注册Token} & {11999(暂定)}  \\
-{Token验证(tauth)} & {12000}  \\
-{网盘服务(nds)} & {12001} \\
-{SIPS帐号服务(sipsaccount)} & {12002} \\
+\scriptsize
+\begin{tabular}{| l | l | l |}
+\hline
+{\bf id} & {\bf status} & {height} \\
+\hline
+{田凤}  & {1994-06-12}   & {162} \\
+{戴翊}  & {2002-6-22}     & {170}  \\
+{蔡爽爽} & {1995-01-09}    & {165} \\
+\hline
 \end{tabular}
 \egroup
+};
+
+\end{tikzpicture}
+
 \end{frame}
 
 %  ######################
-\begin{frame}
-\frametitle{调试}
-  \framesubtitle{Log文件位置}
+\begin{frame}[fragile]
+\frametitle{Web请求格式}
+
+Web通过http接受外来请求，每个HTTP请求都需要一个共同的头部内容：
+
 \begin{tikzpicture}
-\node [mybox] (ID21k) {21k-code};
-\node [mybox, right of = ID21k, xshift=1.0cm] (IDksadmin) {ksadmin};
-\node [mybox, right of = IDksadmin, xshift=2.5cm, yshift=1.5cm] (IDksapp1) {ksapp1};
-\node [mybox, right of = IDksadmin, xshift=2.5cm, yshift=-1.5cm] (IDksapp3) {ksapp3};
-% arrow
-\draw [->] (IDksadmin) -- (IDksapp1);
-\draw [->] (IDksadmin) -- (IDksapp3);
-\draw [->] (ID21k) -- (IDksadmin);
-\node [green!90, above] at (IDksapp1.north) {UserCenter,Web前端};
-\node [green!90, above] at (IDksapp3.north) {Token验证服务器};
-\node [blue!90, right, font=\scriptsize] at (IDksapp1.east) {/opt/usercenter/logs/application.log};
-\node [blue!90, right, font=\scriptsize] at (IDksapp3.east) {/home/tokenverify/nohup.out};
+
+\draw [fill=blue!30](0,0) rectangle (2, 0.6) node [pos=.5,font=\footnotesize] {devicetype};
+\draw (2, 0) rectangle (3, 0.6) node [pos=.5,font=\footnotesize] {sysid};
+\draw (3, 0) rectangle (5, 0.6) node [pos=.5,font=\footnotesize] {systicket};
+
+\node at (1, 1.5) [rectangle](IDtable) {\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{| l | l |}
+\hline
+{\bf 数值} & {\bf 说明} \\
+\hline
+{0}  & {Android} \\
+{1}  & {iOS}  \\
+{2} & {Caredear老人机} \\
+{3} & {PC} \\
+\hline
+\end{tabular}
+\egroup
+};
+
+\node at (6.5, 1.4) [rectangle](IDtable2) {\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{ l | l | l}
+\hline
+{\bf sysid}  & {systicket} & {\bf 说明} \\
+\hline
+{1}  & {Android} & {来自官网}\\
+{2}  & {638ce788-e3c3-47a7-b994-916b3c6b5efw}  & {app用户中心}\\
+{3} & {638ce788-e3c3-47a7-b924-916b3c6b5efd} & {亲连}\\
+\hline
+\end{tabular}
+\egroup
+};
+
+\node [above of = IDtable2, yshift=-0.5,font=\scriptsize] {源自数据库uc\_sys\_access表};
+
+\node [mybox, below of = IDtable2, yshift=-0.55, font=\tiny]{\begin{lstlisting}[frame=none]
+ curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'       
+                                              \end{lstlisting}
+};
+\end{tikzpicture}
+
+\end{frame}
+
+%  ######################
+\begin{frame}[fragile]
+\frametitle{注册新用户示例}
+
+\begin{tikzpicture}
+\node [mybox] () {\begin{lstlisting}[frame=none]
+curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'
+                  \end{lstlisting}
+};
 \end{tikzpicture}
 
 \end{frame}
 
 %  ######################
 \begin{frame}
-\frametitle{调试}
-  \framesubtitle{交换文件命令}
+\frametitle{修改密码}
+
 \begin{tikzpicture}
-\node [mybox] (ID21k) {21k-code};
-\node [mybox, right of = ID21k, xshift=1.0cm] (IDksadmin) {ksadmin};
-\node [mybox, right of = IDksadmin, xshift=2.5cm, yshift=1.5cm] (IDksapp1) {ksapp1};
-\node [mybox, right of = IDksadmin, xshift=2.5cm, yshift=-1.5cm] (IDksapp3) {ksapp3};
-% arrow
-\draw [->, thick] (IDksadmin) -- (IDksapp1);
-\draw [->] (IDksadmin) -- (IDksapp3);
-\draw [->] (ID21k) -- (IDksadmin);
-\node [green!90, above] at (IDksapp1.north) {UserCenter,Web前端};
-\node [green!90, above] at (IDksapp3.north) {Token验证服务器};
-\node [blue!90, right, font=\scriptsize] at (IDksapp1.east) {/opt/usercenter/logs/application.log};
-\node [blue!90, right, font=\scriptsize] at (IDksapp3.east) {/home/tokenverify/nohup.out};
+%\node [mybox] () {\begin{lstlisting}[frame=none]
+%curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'
+%                  \end{lstlisting}
+%};
 \end{tikzpicture}
 
 \end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{手机定制服务}
+
+%  ######################
+
+\subsection{架构与流程}
+\begin{frame}[fragile]
+\frametitle{定制服务架构}
+基于caredear统一用户中心来制作：
+
+\begin{tikzpicture}
+\draw [rounded corners, draw=red!20,fill=red!20, dashed] (2.0, 2.0) rectangle (9.7, -2.5);
+
+\node [mybox, font=\tiny] (IDbrowser) {浏览器};
+\node [mybox, below of = IDbrowser,font=\tiny] (IDphone) {21ke手机};
+
+\draw (2.2,-1.5) rectangle (3.5, 0.8) node [pos=.5, font=\tiny] (IDserver) {定制服务器};
+
+\draw (5.0, -1.5) rectangle (6.5, 0.8) node [pos=.5, font=\tiny] (IDc) {C++后台服务};
+
+\node at (8.5, -0.45) [cylinder , aspect=0.25,  draw, minimum width=1.5cm,
+                 cylinder body fill=blue!30, 
+                 cylinder end fill=blue!20, shape border rotate=90](IDdb){数据库};
+\node at (1.3, 0)[double arrow, draw,font=\tiny] {数据交换};
+\draw [<->, >=stealth'] (IDphone.east) -- ($(IDphone.east) + (1.4, 0)$) node [pos=.5, above, font=\tiny]() {请求下载};
+\draw [<->, >=stealth'] (IDserver.east) -- (IDc.west);
+\draw [<->, >=stealth'] (IDc.east) -- ($(IDdb.west) + (0, 0.1cm)$);
+\end{tikzpicture}
+
+\end{frame}
+
+%  ######################
+
+\begin{frame}
+\frametitle{定制开机动画}
+  \framesubtitle{使用场景}
+  
+\begin{itemize}
+ \item 在caredear官网登录用户中心，进入定制相关入口。
+ \item 在定制开机动画的子菜单中，选择购卖机型，接着选择本机照片(暂定2张)
+ \item 前端根据机型判断出屏幕大小，并在UI上绘制出裁剪区域:\begin{figure}
+
+
+\includegraphics[scale=0.15]{imgprocdemo.png}
+\end{figure}
+
+\end{itemize}
+
+\end{frame}
+
+%  ######################
+\begin{frame}
+\frametitle{定制开机动画}
+  \framesubtitle{使用场景(2)}
+  
+\begin{itemize}
+ \item 根据前端的具体实现\footnote{Qiniu Javascript具有这类插件}，提供编辑功能如：
+  \begin{enumerate}
+    \item 添加文字水印
+    \item 背景色调的改变
+  \end{enumerate}
+  \item 前端生成开机预览，用户确认提交。
+  \item 生成一个PIN码类识别符，标示定制过程成功
+\end{itemize}
+
+
+\end{frame}
+
+%  ######################
+\begin{frame}[fragile]
+\frametitle{定制开机动画}
+  \framesubtitle{服务器端处理}
+
+\begin{tikzpicture}
+\draw [rounded corners, draw=red, dashed] (0.6, 2.8) rectangle (9.7, -3.0);
+
+\draw [rounded corners, fill=green!30,draw=green!30, dashed] (4.9, 0.3) rectangle (9.3, -0.3);
+\draw [rounded corners, fill=red!30,draw=red!30, dashed] (4.9, -0.4) rectangle (9.3, -0.7);
+
+\node[rectangle, draw=black, fill=green!20,font=\scriptsize] (IDok) {确认};
+
+\node [rectangle, right of = IDok, xshift=7.5cm, yshift=1.8cm](IDmaintbl) {\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|}
+\hline
+{id} & {user} \\
+\hline
+{100} & {foo}  \\
+\hline
+\end{tabular}
+\egroup
+}; 
+\node[rectangle,font=\tiny, above of = IDmaintbl, yshift=-0.5cm] {uc.uc\_passport};
+
+%file table
+\node [rectangle, right of = IDok, xshift=6cm](IDtbl) {\bgroup
+\def\arraystretch{1.15} 
+\scriptsize
+\begin{tabular}{|l|l|l|l|}
+\hline
+{cid} & {md5(key)} & {suffix} & {type} \\
+\hline
+{100} & {xx-xxxx} & {jpg} & {image} \\
+{100} & {yy-yyyy} & {png} & {image} \\
+{100} & {zz-zzzz} & {zip} & {boot} \\
+\hline
+\end{tabular}
+\egroup
+}; 
+\node[rectangle,font=\scriptsize, above of = IDtbl, yshift=-0.02cm] {uc.makerfiles};
+
+%server process steps
+\node[rectangle, rounded corners, draw=black, below of = IDok, xshift=3cm, yshift=-0.5cm, fill=red!20,font=\scriptsize] (ID1) {JPG->PNG};
+\node[rectangle, rounded corners, draw=black, below of = ID1, fill=red!20,font=\scriptsize] (ID2) {打包文件};
+
+%lines
+\draw [] (7.5, 2) -- (5,2);
+\draw [->, >=stealth'] (5,2) -- (5,1);
+
+\draw [->, >=stealth'] (ID1) -- (ID2);
+\draw [->,>=stealth', very thick] (IDok) -- ($(IDok.east) + (4, 0)$);
+
+
+\draw [->, >=stealth'] ($(IDok.east) + (4.2, -0.1)$) -- (ID1.north);
+
+\draw (ID2.east) -- ($(ID2.east) + (3,0)$);
+\draw [->, >=stealth'] ($(ID2.east) + (3,0)$) -- ($(ID2.east) + (3,1.8)$);
+
+\end{tikzpicture}
+
+\end{frame}
+
+%  ######################
+\begin{frame}[fragile]
+\frametitle{定制开机动画}
+  \framesubtitle{服务器端打包流程}
+
+\begin{tikzpicture}
+%\draw [rounded corners, draw=red, dashed] (0.6, 2.8) rectangle (9.7, -3.0);
+
+\draw [rounded corners, fill=green!30,draw=green!30, dashed] (-2.2, 0.3) rectangle (2.6, -0.3);
+\draw [rounded corners, fill=red!30,draw=red!30, dashed] (-2.2, -0.4) rectangle (2.6, -0.7);
+
+%file table
+\node [rectangle](IDtbl) {\bgroup
+\def\arraystretch{1.15} 
+\scriptsize
+\begin{tabular}{|l|l|l|l|}
+\hline
+{cid} & {md5(key)} & {suffix} & {type} \\
+\hline
+{100} & {xx-xxxx} & {jpg} & {image} \\
+{100} & {yy-yyyy} & {png} & {image} \\
+{100} & {zz-zzzz} & {zip} & {boot} \\
+\hline
+\end{tabular}
+\egroup
+}; 
+\node[rectangle,font=\scriptsize, above of = IDtbl, yshift=-0.02cm] {uc.makerfiles};
+
+%server process steps
+\node[rectangle, rounded corners, draw=black, right of = IDtbl, xshift=3.6cm, yshift=1.5cm, fill=red!20,font=\scriptsize] (ID1) {JPG->PNG};
+\node[rectangle, rounded corners, draw=black, below of = ID1, fill=red!20,font=\scriptsize] (ID2) {打包文件};
+
+%lines
+\draw [] (2.5,0) -- (3.0,0);
+\draw [] (3.0,0.0) -- (3.0, 1.5);
+\draw [->, >=stealth'] (3.0, 1.5) -- (3.9, 1.5);
+
+\draw [->, >=stealth'] (ID1) -- (ID2);
+
+
+\draw [->] (ID2.east) -- ($(ID2.east) + (0.8,0)$);
+%\draw [->, >=stealth'] ($(ID2.east) + (3,0)$) -- ($(ID2.east) + (3,1.8)$);
+
+\node at (7.5, -0.5) [mybox, font=\tiny] () {\begin{lstlisting}[frame=none]
+|-- desc.txt
+|-- part0
+|   `-- part0.png
+|-- part1
+|   `-- part1.png
+...  ...
+|-- part12
+|   `-- part12.png
+                              \end{lstlisting}
+};
+
+\node [mybox, fill=red!20, below of = ID2, yshift=-0.9cm, font=\tiny](ID3)  {\$ zip -r -Z store b.zip *};
+\draw [->] ($(ID3.east) + (0.4,0)$) -- (ID3.east);
+
+\node at (0, -2.3) [mybox, fill=red!20, font=\tiny](IDfullpackage) {定制包};
+\draw [->] ($(IDfullpackage) + (0, 1.6cm)$) -- (IDfullpackage.north);
+
+\draw [->] (ID3.west) .. controls (1.2, -2.0)  .. ($(ID3.west) + (-3cm, 0.4cm)$);
+
+\node at (2, -3.3) [mybox, fill=black!20, font=\tiny](IDunpack) {解包};
+\draw [->] ($(IDunpack.west) + (-1.6, 0)$) -- (IDunpack.west);
+\draw [] ($(IDunpack.west) + (-1.6, 0)$) -- ($(IDunpack.west) + (-1.6, 0.6)$);
+
+\node at (5, -3.3) [rectangle, font=\tiny](ID4) {/data/local/bootanimation.zip};
+\draw [->] ($(ID4.south) + (-2.7cm, 0.2cm)$) .. controls (3.3, -3.9)  .. (ID4.south);
+\draw [rounded corners, draw=red, dashed] (0.6, -2.8) rectangle (8.5, -4.0);
+\end{tikzpicture}
+
+\end{frame}
+
+
+%  ######################
+\begin{frame}
+\frametitle{定制锁屏图像}
+  \framesubtitle{服务器端处理}
+  TODO
+\begin{tikzpicture}
+ 
+\end{tikzpicture}
+
+\end{frame}
+
+%  ######################
+\begin{frame}
+\frametitle{定制预装APP}
+  \framesubtitle{服务器端处理}
+  TODO
+\begin{tikzpicture}
+ 
+\end{tikzpicture}
+
+\end{frame}
+
+
+\subsection{Web接口设计}
+
+%  ######################
+\begin{frame}
+\frametitle{Web接口设计与定义}
+
+\begin{itemize}
+ \item 交换格式为JSON
+ \item 置于/v1/maker/的URL空间下
+ \item 各个功能模块的请求接口：
+ 
+ \vspace{0.2cm}
+ %table
+ \bgroup
+\def\arraystretch{1.15} 
+\scriptsize
+\begin{tabular}{|c|l|l|}
+\hline
+{id} &{URL} & {说明}\\
+\hline
+{1} &{/v1/maker/begin} & {开始定制内容(第\ref{lblMakerBegin}页)}  \\
+{2} &{/v1/maker/uptoken} & {定制内容上传凭证的获取(第\ref{lblMakreUptoken}页)}  \\
+{3} & {/v1/maker/uploaded} & {通知服务器已经上传的素材(第\ref{lblMakerUploaded}页)} \\
+{4} & {/v1/maker/gen} & {开始制作定制内容包(第\ref{lblMakreGen}页)}  \\
+{5} & {/v1/maker/down} & {从服务器下载定制包(第\ref{lblMakerDown}页)} \\
+{6} & {/v1/maker/finish} & {手机成功得到定制包(第\ref{lblMakerDown}页)} \\
+{7} & {/v1/maker/fetch} & {获取当前用户所有已经制作的定制包信息(第\ref{}页)} \\
+{8} & {/v1/maker/share} & {用户分享定制包(第\ref{}页)} \\
+{9} & {/v1/maker/modify} & {用户修改定制包(第\ref{lblMakerModify}页)} \\
+\hline
+\end{tabular}
+\egroup
+
+\end{itemize}
+
+\end{frame}
+
+%  ######################
+\begin{frame}[fragile]\label{lblMakerBegin}
+\frametitle{Web接口设计与定义}
+  \framesubtitle{开始定制的流程}
+
+\begin{enumerate}
+ \item 选择购机类型
+ \item 添加本次定制的描述信息(可选)
+ \item 开始制作自定义的操作
+\end{enumerate}
+
+上述过程需要接口入DB库：
+
+\begin{tikzpicture}
+\draw [rounded corners, draw=red!20,fill=red!20, dashed] (4.3, 1.3) rectangle (11.2, -2.1);
+\node [mybox, font=\tiny] (ID1) {浏览器};
+\draw (4.5,-1.6) rectangle (5.5, 1.0) node [pos=.5, font=\tiny] {服务器};
+
+\node [right of = ID1, xshift=1.2cm, font=\tiny] () {URL: /v1/maker/begin};
+
+%interface fields
+\draw [->] ($(ID1.east) + (0cm, 0.3cm)$) -- ($(ID1.east) + (4cm, 0.3cm)$) node [above, pos=.5]{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|}
+\hline
+{cid} & {model} & {description} \\
+\hline
+{100} & {M2D} & {爸爸的特制}  \\
+\hline
+\end{tabular}
+\egroup
+}; 
+
+\draw [->] ($(ID1.east) + (4cm, -0.3cm)$) -- ($(ID1.east) + (0cm, -0.3cm)$) node [below, pos=.5](IDresponse)
+{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|}
+\hline
+{code} & {makerID} \\
+\hline
+{0} & {21} \\
+\hline
+\end{tabular}
+\egroup
+}; 
+
+\node[rectangle,below of = IDresponse, xshift=-1.5cm, yshift=0.2cm, font=\tiny] (IDresCode) {0为成功，可参见第\ref{lblServerStatusCode}页的定义};
+
+\node[rectangle,below of = IDresponse, xshift=-0.5cm, yshift=-0.2cm, font=\tiny] () {makerID唯一标示用户的定制包};
+
+
+\node at (9.5, -0.45) [cylinder , aspect=0.25,  draw, minimum width=1.5cm,
+                 cylinder body fill=blue!30, 
+                 cylinder end fill=blue!20, shape border rotate=90,font=\tiny](IDdb){数据库};
+
+\draw [->] ($(IDdb.west) + (-3.0cm, 0.4cm)$) -- ($(IDdb.west) + (0, 0.4cm)$) node [above,pos=.9,font=\tiny]{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+{id} & {cid} & {model} &{description} & {created}\\
+\hline
+{20} & {88} & {M3} & {特制-1} & {2015-1-1} \\
+{21} & {100} & {M2D} & {爸爸的特制} & {2015-6-2} \\
+\hline
+\end{tabular}
+\egroup
+};
+
+%draw mapping arrows
+\draw [dashed, color=blue] (6.2,0.1) -- (6.2, -1.8);
+\draw [dashed, color=blue] (6.2, -1.8) -- (4.0, -1.8);
+\draw [dashed, color=blue] (4.0, -1.8) -- (4.0, -0.85);
+\draw [->, >=stealth', color=blue] (4.0, -0.85) -- (3.5, -0.85);
+\end{tikzpicture}
+
+用户接下来所有定制内容数据(包括修改等)，都是放在获取到的makerID范围下完成。
+
+\end{frame}
+
+%  ######################
+\begin{frame}[fragile]\label{lblMakreUptoken}
+\frametitle{Web接口设计与定义}
+  \framesubtitle{取上传凭证}
+单独的bucket存放，前端需要得到上传凭证：
+
+\vspace{0.1cm}
+
+\begin{tikzpicture}
+\draw [rounded corners, draw=red!20,fill=red!20, dashed] (6.3, 1.3) rectangle (8, -2.1);
+\node [mybox, font=\tiny] (ID1) {浏览器};
+\draw (6.5,-1.6) rectangle (7.5, 1.0) node [pos=.5, font=\tiny] {服务器};
+
+%interface fields
+\draw [->] ($(ID1.east) + (0cm, 0.3cm)$) -- ($(ID1.east) + (6cm, 0.3cm)$) node [above, pos=.5]{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|}
+\hline
+{cid} & {bucket} & {expire} \\
+\hline
+{100} & {(可选)} & {(可选)}  \\
+\hline
+\end{tabular}
+\egroup
+}; 
+
+\draw [->] ($(ID1.east) + (6cm, -0.3cm)$) -- ($(ID1.east) + (0cm, -0.3cm)$) node [below, pos=.5](IDresponse)
+{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|}
+\hline
+{code} & {uptoken} \\
+\hline
+{0} & {xxxxxxx} \\
+\hline
+\end{tabular}
+\egroup
+}; 
+
+\node [right of = ID1, xshift=2.2cm, font=\tiny] () {URL: /v1/maker/uptoken};
+
+\node[rectangle,below of = IDresponse, xshift=-1.5cm, yshift=0.2cm, font=\tiny] (IDresCode) {0为成功，可参见第\ref{lblServerStatusCode}页的定义};
+
+\node[rectangle,below of = IDresponse, xshift=1.3cm, yshift=-0.2cm, font=\tiny] () {用户可以上传Qiniu服务器的凭证}; 
+\end{tikzpicture}
+
+
+\end{frame}
+
+%  ######################
+\begin{frame}[fragile]\label{lblMakerUploaded}
+\frametitle{Web接口设计与定义}
+  \framesubtitle{文件上传成功}
+
+此时客户端(目前是浏览器)已经成功上传文件到Qiniu服务器，需要此接口通知定制服务器：
+
+\begin{tikzpicture}
+\draw [rounded corners, draw=red!20,fill=red!20, dashed] (6.8, 1.3) rectangle (11.8, -3.9);
+\node [mybox, font=\tiny] (ID1) {浏览器};
+\draw (7.5,-0.4) rectangle (8.5, 0.4) node [pos=.5, font=\tiny] (IDserver){服务器};
+
+%interface fields
+\draw [->] ($(ID1.east) + (0cm, 0.3cm)$) -- ($(ID1.east) + (7cm, 0.3cm)$) node [above, pos=.5]{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+{cid} & {makerID} & {md5} & {suffix} & {type}\\
+\hline
+{100} & {21} & {MD5sum} & {png} & {boot-x}\\
+\hline
+\end{tabular}
+\egroup
+}; 
+
+\draw [->] ($(ID1.east) + (7cm, -0.3cm)$) -- ($(ID1.east) + (0cm, -0.3cm)$) node [below, pos=.5](IDresponse)
+{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|}
+\hline
+{code} \\
+\hline
+{0}  \\
+\hline
+\end{tabular}
+\egroup
+}; 
+
+\node[rectangle,below of = IDresponse, xshift=-1.5cm, yshift=0.2cm, font=\tiny] (IDresCode) {0为成功，可参见第\ref{lblServerStatusCode}页的定义};
+
+\node [right of = ID1, xshift=3.2cm, font=\tiny] () {URL: /v1/maker/uploaded};
+
+\node [cylinder , below of = IDserver, yshift=-0.3cm, 
+                  aspect=0.25,  draw, minimum width=1.5cm,
+                 cylinder body fill=blue!30, 
+                 cylinder end fill=blue!20, shape border rotate=90,font=\tiny](IDdb){数据库};
+
+%\draw [->] ($(IDdb.west) + (-3.0cm, 0.4cm)$) -- ($(IDdb.west) + (0, 0.4cm)$) 
+\node [below of = IDdb,xshift=1.5cm, font=\tiny]{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|l|}
+\hline
+{makerID}  & {md5} &{suffix} & {type}\\
+\hline
+{21}  & {MD5sum} & {png} & {boot-x} \\
+\hline
+\end{tabular}
+\egroup
+};
+
+%arrows..
+\draw [->] (IDserver.south)-- (IDdb);
+\draw [->] (IDdb.south) -- ($(IDdb.south) + (0cm, -0.4cm)$);
+\end{tikzpicture}
+
+\end{frame}
+
+
+%  ######################
+\begin{frame}[fragile]\label{lblMakreGen}
+\frametitle{Web接口设计与定义}
+  \framesubtitle{确认制作定制包}
+  
+
+\begin{tikzpicture}
+ \draw [rounded corners, draw=red!20,fill=red!20, dashed] (4.3, 1.3) rectangle (11.2, -3.9);
+\node [mybox, font=\tiny] (ID1) {浏览器};
+\draw (4.5,-0.6) rectangle (7.5, 0.6) node [pos=.5, font=\tiny] {服务器};
+
+%interface fields
+\draw [->] ($(ID1.east) + (0cm, 0.3cm)$) -- ($(ID1.east) + (4cm, 0.3cm)$) node [above, pos=.5]{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|}
+\hline
+{cid} & {makerID} \\
+\hline
+{100} & {21} \\
+\hline
+\end{tabular}
+\egroup
+}; 
+
+\draw [->] ($(ID1.east) + (4cm, -0.3cm)$) -- ($(ID1.east) + (0cm, -0.3cm)$) node [below, pos=.5](IDresponse)
+{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|}
+\hline
+{code} & {PIN码} \\
+\hline
+{0} & {AB-XX-XX} \\
+\hline
+\end{tabular}
+\egroup
+}; 
+
+\node [right of = ID1, xshift=1.2cm, font=\tiny] () {URL: /v1/maker/gen};
+
+\node[rectangle,below of = IDresponse, xshift=-1.5cm, yshift=0.2cm, font=\tiny] (IDresCode) {0为成功，可参见第\ref{lblServerStatusCode}页的定义};
+
+\node[rectangle,below of = IDresponse, xshift=-0.5cm, yshift=-0.2cm, font=\tiny] () {输入该码可得到定制包};
+
+
+\node at (7.5, -2.45) [cylinder , aspect=0.25,  draw, minimum width=1.5cm,
+                 cylinder body fill=blue!30, 
+                 cylinder end fill=blue!20, shape border rotate=90,font=\tiny](IDdb){数据库};
+
+%\draw [->] ($(IDdb.west) + (-3.0cm, 0.4cm)$) -- ($(IDdb.west) + (0, 0.4cm)$)
+\node [above of = IDdb,yshift=0.1cm, font=\tiny] (IDrawtable){\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|}
+\hline
+{makerID} & {md5} & {type}\\
+\hline
+{21} & {yyy} & {boot-1} \\
+{21} & {xxx} & {boot-2} \\
+{21} & {xzz} & {铃声} \\
+\hline
+\end{tabular}
+\egroup
+};
+
+\node [below of = IDdb,yshift=0.2cm, font=\tiny](IDpackage){\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+{id} & {cid} & {model} &{md5} & {PIN码}\\
+\hline
+{21} & {100} & {M2D} & {\colorbox{green!30}{定制包}} &{\colorbox{green!30}{AB-XX-XX}} \\
+\hline
+\end{tabular}
+\egroup
+};
+
+\draw [] (IDrawtable.east) -- ($(IDrawtable.east) + (0.6cm, 0cm)$);
+\draw [->] ($(IDrawtable.east) + (0.6cm, 0cm)$) -- ($(IDrawtable.east) + (0.6cm, -1.5cm)$);
+
+\draw [dashed] ($(IDpackage.south) + (1.5cm, 0cm)$) -- ($(IDpackage.south) + (1.5cm, -0.4cm)$);
+\draw [dashed] ($(IDpackage.south) + (1.5cm, -0.4cm)$) -- ($(IDpackage.south) + (-4.0cm, -0.4cm)$);
+\draw [->, dashed] ($(IDpackage.south) + (-4.0cm, -0.4cm)$) -- ($(IDpackage.south) + (-4.0cm, 2.5cm)$);
+\end{tikzpicture}
+ 
+%==============================
+\end{frame}
+\begin{frame}[fragile]\label{lblMakerDown}
+\frametitle{Web接口设计与定义}
+  \framesubtitle{下载定制包}
+  
+
+\begin{tikzpicture}
+ \draw [rounded corners, draw=red!20,fill=red!20, dashed] (4.3, 1.3) rectangle (11.7, -4.1);
+\node [mybox, font=\tiny] (ID1) {21KE手机};
+\draw (4.5,-0.6) rectangle (7.5, 0.6) node [pos=.5, font=\tiny] {服务器};
+
+%interface fields
+\draw [->] ($(ID1.east) + (0cm, 0.3cm)$) -- ($(ID1.east) + (4cm, 0.3cm)$) node [above, pos=.5]{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|}
+\hline
+{PING码} \\
+\hline
+{AB-xx-xx} \\
+\hline
+\end{tabular}
+\egroup
+}; 
+
+\draw [->] ($(ID1.east) + (4cm, -0.3cm)$) -- ($(ID1.east) + (0cm, -0.3cm)$) node [below, pos=.5](IDresponse)
+{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|}
+\hline
+{code} & {downloadURL} \\
+\hline
+{0} & {xxx.qiniudn.com/xx} \\
+\hline
+\end{tabular}
+\egroup
+}; 
+
+\node [right of = ID1, xshift=1.2cm, font=\tiny] () {URL: /v1/maker/down};
+
+\node[rectangle,below of = IDresponse, xshift=-1.5cm, yshift=0.2cm, font=\tiny] (IDresCode) {0为成功，可参见第\ref{lblServerStatusCode}页的定义};
+
+\node[rectangle,below of = IDresponse, xshift=-0.5cm, yshift=-0.2cm, font=\tiny] () {定制包下载地址};
+
+
+\node at (9.0, -2.45) [cylinder , aspect=0.25,  draw, minimum width=1.5cm,
+                 cylinder body fill=blue!30, 
+                 cylinder end fill=blue!20, shape border rotate=90,font=\tiny](IDdb){数据库};
+
+%\draw [->] ($(IDdb.west) + (-3.0cm, 0.4cm)$) -- ($(IDdb.west) + (0, 0.4cm)$) 
+\node [above of = IDdb,xshift=-1.0cm,font=\tiny]{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+{id} & {cid} & {model}& {MD5} &{description} & {PIN码} &{dirty}\\
+\hline
+{11} & {100} & {M2c} & {xxxx} & {爸爸的M2C} & {\colorbox{green!30}{AB-XX-XX}}& {0} \\
+{21} & {100} & {M2D} & {zzzz} & {爸爸的特制} & {CD-XX-XX} & {0}\\
+\hline
+\end{tabular}
+\egroup
+};
+
+\draw [dashed] (4.4,-1.4) -- ( 3.6, -1.4);
+\draw [->, dashed] (3.6, -1.4) -- (3.6, -1.0);
+
+%\draw [->] ($(IDdb.west) + (-3.0cm, -1.9cm)$) -- ($(IDdb.west) + (0, -1.9cm)$)
+\node [below of = IDdb, xshift=-1.0cm, yshift=0.1cm, font=\tiny](IDafterdb){\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+{id} & {cid} & {model}& {MD5} &{description} & {PIN码} &{dirty}\\
+\hline
+{11} & {100} & {M2c} & {xxxx} & {爸爸的M2C} & {\colorbox{green!30}{AB-XX-XX}}& {\colorbox{green!30}{1}} \\
+{21} & {100} & {M2D} & {zzzz} & {爸爸的特制} & {CD-XX-XX} & {0}\\
+\hline
+\end{tabular}
+\egroup
+};
+
+\draw [->] ($(IDafterdb.west) + (-4.5cm, 0.3cm)$) -- ($(IDafterdb.west) + (0.1cm, 0.3cm)$) node [above, pos=.5] {\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|}
+\hline
+{PIN码} \\
+\hline
+{AB-xx-xx} \\
+\hline
+\end{tabular}
+\egroup};
+
+\node at (2, -3.42) [rectangle, font=\tiny] {URL: /v1/maker/finish};
+
+\draw [->] ($(IDafterdb.west) + (0.1cm, -0.4cm)$) -- ($(IDafterdb.west) + (-4.5cm, -0.4cm)$) node [below, pos=.5, font=\tiny] {\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|}
+\hline
+{code} \\
+\hline
+{0} \\
+\hline
+\end{tabular}
+\egroup};
+
+\end{tikzpicture}
+  
+\end{frame}
+
+\begin{frame}[fragile]\label{lblMakerModify}
+\frametitle{Web接口设计与定义}
+  \framesubtitle{修改定制包}
+  
+初始阶段暂时不实现。
+
+\end{frame}
+
+\subsection{定制包的设计}
+%  ######################
+\begin{frame}
+\frametitle{定制包的格式定义}
+所有的定制内容条款，如何组织成一个包，并且可以正确的解析出来。
+
+\begin{itemize}
+ \item 包和设备的对应关系
+ \item 打包
+ \item 解包(客户端)
+ \item 签名
+ \item CRC???
+\end{itemize}
+
+zip all above + manifest file
+
+\end{frame}
+
+\subsection{数据库的设计}
+%  ######################
+\begin{frame}
+
+\frametitle{数据库设计}
+草图：
+
+\vspace{0.2cm}
+\includegraphics[scale=0.095]{db.jpg}
+
+\end{frame}
+
+
+
+%  ######################
+\begin{frame}
+
+\frametitle{数据库设计}
+用户从统一帐号的数据库引出。
+
+\vspace{0.2cm}
+
+\begin{tikzpicture}
+\node [rectangle](IDmaintbl) {\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|}
+\hline
+{id} & {user} \\
+\hline
+{100} & {foo}  \\
+{101} & {abc}  \\
+\hline
+\end{tabular}
+\egroup
+}; 
+\node[rectangle,font=\tiny, above of = IDmaintbl, yshift=-0.4cm] {uc.uc\_passport};
+ 
+ 
+\node [rectangle,right of = IDmaintbl, xshift=3.6cm](IDmakertbl) {\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+{id} & {cid} & {model} & {description} & {PIN码} & {created}\\
+\hline
+{11} & {100} & {M2C} & {爸爸的M2C} & {AB-XX-XX} & {2015-1-1}\\
+{12} & {100} & {M3} & {妈妈的M3} & {} & {2012-1-1}\\
+{13} & {101} & {M2D} & {my-1} & {BD-XX-XX} & {2014-06-09}\\
+\hline
+\end{tabular}
+\egroup
+}; 
+\node[rectangle,font=\tiny, above of = IDmakertbl, yshift=-0.0cm] {uc.maker};
+
+\node [rectangle, below of = IDmakertbl, yshift=-1.6cm](IDmakerfile) {\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|l|}
+\hline
+{makerID} & {md5(key)} & {suffix} & {type} \\
+\hline
+{11} & {xx-xxxx} & {jpg} & {boot-1} \\
+{11} & {aa-xxxx} & {png} & {boot-2} \\
+{11} & {yy-yyyy} & {png} & {墙纸} \\
+{12} & {zz-zzzz} & {mp3} & {铃声}  \\
+{12} & {cc-xxxx} & {jpg} & {boot-1} \\
+{12} & {xx-xxxx} & {jpg} & {boot-2} \\
+\hline
+\end{tabular}
+\egroup
+}; 
+\node[rectangle,font=\scriptsize, above of = IDmakerfile, yshift=0.1cm,font=\tiny] {uc.makerfiles};
+
+\end{tikzpicture}
+
+\end{frame}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{小米帐号对接}
+
+%  ######################
+\begin{frame}
+\frametitle{准备工作}
+在dev.xiaomi.com网站注册成功如下企业开发者帐号：
+\begin{itemize}
+ \item 用户名：17705164171，密码:xiaomi123
+ \item 企业名称： 深圳市小田科技有限公司南京分公司
+\end{itemize}
+
+在该帐号下创建一个应用，具体信息如下：
+\begin{itemize}
+ \item 包名：com.caredear.note
+ \item AppID: 2882303761517332941
+ \item AppKey: 5121733211941
+ \item AppSecret: lFhFmxfRVDaW7PCXeQcYew==
+\end{itemize}
+
+在“帐号接入服务”菜单中，点击“启用”按钮，之后填入回调地址的URL
+
+\end{frame}
+
+%  ######################
+\begin{frame}[fragile]
+\frametitle{授权接口}
+
+\begin{tikzpicture}
+\node [mybox] (ID21k) {https://account.xiaomi.com/oauth2/authorize};
+
+\end{tikzpicture}
+
+尝试使用下面方法来调用：
+\begin{lstlisting}
+https://account.xiaomi.com/oauth2/authorize?client_id=2882303761517332941&redirect_uri=http%3A%2F%2Fservice2.caredear.com%2Fv1%2Fuc%2Fxiaomiaccount&response_type=token&userId=861457562
+
+https://account.xiaomi.com/oauth2/authorize?client_id=2882303761517332941&redirect_uri=http://service2.caredear.com/v1/uc/xiaomiaccount&response_type=token
+\end{lstlisting}
+
+
+\end{frame}
+
+%  ######################
+\begin{frame}
+\frametitle{APK接入}
+
+示例代码在login/3rd\_party\_login/目录下
+
+\end{frame}
+
 %  ######################
 \begin{frame}
 \frametitle{调试}
-  \framesubtitle{运算Token}
+  \framesubtitle{小米帐号对接}
   use openssl command and base64 command
 
 \end{frame}

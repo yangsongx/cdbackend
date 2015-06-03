@@ -1,0 +1,27 @@
+
+package com.caredear;
+
+
+enum MakerReqType {
+    GET_UPTOKEN = 0;
+    UPLOAD_FINISH = 1; // notify DB to add a entry for a raw file
+    GEN_PACKAGE = 2;
+    BEGIN_PACKAGE = 3;
+    GET_DOWNURL = 4; // get the target's package download URL
+    FINISH_DOWNURL = 5; // client already downloaded the target's package.
+};
+
+message MakerRequest {
+    required uint64 cid = 1; //caredear ID
+    required MakerReqType req_type = 2;
+    optional string model = 3; // the target phone's model name(such as M2c/M3)
+    optional string comments = 4; // text description for user cases...
+    optional uint32 makerID = 5; // user's package inner number ID, i.e, num-format for @comments for BEGIN_PACKAGE case
+    optional string md5 = 6; // a file MD5sum
+}
+
+
+message MakerResponse{
+    required int32 result_code = 1;
+    optional string extra_msg = 2; // further error msg if it has
+}
