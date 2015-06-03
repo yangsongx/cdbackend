@@ -191,13 +191,137 @@ void rotate_img(double degree, Mat *pImg)
 }
 
 
+static void clip_img_based_on_rectangle(Rect rc, Mat *in, Mat *out)
+{
+    *out = (*in)(rc);
+}
+/** learn how to extract out rectangle pic */
+void extract_out_img()
+{
+    //cv::Mat img = cv::imread("by.png");
+    cv::Mat img = cv::imread("by.png", 0);
+    assert(img.data!=NULL);
+
+    //cv::Mat bin = img.clone();//(Range::all(), Range::all(), 0);// = img.clone();
+    Size size(img.cols, img.rows);
+    printf("image size:x=%d,y=%d\n", img.cols, img.rows);
+
+    cv::Mat bin(size, IPL_DEPTH_8U) ;
+    //cv::cvtColor(img, bin,CV_BGR2GRAY);
+    //bin = c
+    cv::threshold(img, bin, 167, 255, CV_THRESH_BINARY);
+
+
+    cv::Rect rect(40,90, 130, 30);
+    cv::Mat txtSection(rect.size(), IPL_DEPTH_8U);
+    clip_img_based_on_rectangle(rect, &bin, &txtSection);
+
+
+    imwrite("test.png", txtSection);
+
+    vector<vector<Point> > contours;
+
+#if 0
+    cv::findContours(bin, contours,
+        CV_RETR_EXTERNAL,
+        CV_CHAIN_APPROX_SIMPLE/*, Point*/);
+    printf("Totally %d contour found\n", contours.size());
+    for(int i = 0; i < contours.size(); i++ )
+    {
+        printf("");
+    }
+#endif
+
+    namedWindow("win");
+
+    imshow("image", img);
+    imshow("bin", bin);
+    imshow("txt", txtSection);
+    //imshow("final", result);
+    waitKey();
+}
+
+
+void mydemo(const char *fn, cv::Rect theRect)
+{
+    cv::Mat img = cv::imread("by.png", 0);
+    assert(img.data!=NULL);
+
+    //cv::Mat bin = img.clone();//(Range::all(), Range::all(), 0);// = img.clone();
+    Size size(img.cols, img.rows);
+    printf("image size:x=%d,y=%d\n", img.cols, img.rows);
+
+    cv::Mat bin(size, IPL_DEPTH_8U) ;
+    //cv::cvtColor(img, bin,CV_BGR2GRAY);
+    //bin = c
+#if 1
+    cv::threshold(img, bin, 167, 255, CV_THRESH_BINARY_INV);
+#else
+    cv::adaptiveThreshold(img, bin, 255,
+            ADAPTIVE_THRESH_MEAN_C,
+            THRESH_BINARY,
+            3,
+            0);
+#endif
+
+    //cv::Rect rect(40,97, 130, 25);
+    //cv::Mat txtSection(rect.size(), IPL_DEPTH_8U);
+    //clip_img_based_on_rectangle(rect, &bin, &txtSection);
+
+
+    //imwrite("test.png", txtSection);
+
+    vector<vector<Point> > contours;
+
+#if 0
+    cv::findContours(bin, contours,
+        CV_RETR_EXTERNAL,
+        CV_CHAIN_APPROX_SIMPLE/*, Point*/);
+    printf("Totally %d contour found\n", contours.size());
+    for(int i = 0; i < contours.size(); i++ )
+    {
+        printf("");
+    }
+#endif
+
+    namedWindow("win");
+
+    imshow("image", img);
+    imshow("bin", bin);
+    //imshow("txt", txtSection);
+    //imshow("final", result);
+    waitKey();
+}
+
+void simpleopenpng(const char *fn)
+{
+    cv::Mat img = cv::imread(fn);
+    if(!img.data)
+        return;
+
+    printf("image's x=%d,y=%d\n", img.cols, img.rows);
+    printf("elemsize=%ld, total=%ld\n", img.elemSize(), img.total());
+}
+
+void histdemo(const char *fn)
+{
+    cv::Mat img = cv::imread(fn);
+    if(!img.data)
+        return;
+
+    vector<Mat> bgr_planes;
+    split(img, bgr_planes);
+    printf("the picture totally had %d planes\n", bgr_planes.size());
+    printf("B plan, size=%d, row:%d\n", bgr_planes[0].depth(), bgr_planes[0].rows);
+    printf("G plan, size=%d, row:%d\n", bgr_planes[1].depth(), bgr_planes[1].rows);
+    printf("R plan, size=%d\n", bgr_planes[2].depth());
+}
+
 int main(int argc, char **argv)
 {
-#if 1 // for libpng
+#if 0 // for libpng
     png_image  img;
-    memset(&img, 0x00, sizeof(img));
-    img.version = PNG_IMAGE_VERSION;
-    if(png_image_begin_read_from_file(&img, "a.png") != 0)
+    memset(&img, 0x00, sizeof(img)); img.version = PNG_IMAGE_VERSION; if(png_image_begin_read_from_file(&img, "a.png") != 0)
     {
         printf("reading OK:\n");
         printf("width=%d, height=%d, format:%d\n", img.width, img.height, img.format);
@@ -208,52 +332,10 @@ int main(int argc, char **argv)
         printf("failed read the png file!\n");
     }
 #else
-    cv::Mat origin = cv::imread("a.png");
+    simpleopenpng(argv[1]);
 
-    printf("open file [OK]\n");
-    printf("cols=%d, rows=%d\n", origin.cols, origin.rows);
-    cv::Size size = origin.size();
-    printf("After got the size,x=%d,y=%d\n", size.width, size.height);
-
-    printf("will try scal image...\n");
-    scale_img(0.5, &origin);
-
-    Mat tmp = origin.clone();
-    Rect rect(origin.cols/4, origin.rows/4, origin.cols/2, origin.rows/2);
-    cv::Mat small_img = tmp(rect);
-
-
-    // next try jpg->png
-    Mat jpg = cv::imread("b.jpg");
-    if(!jpg.data)
-    {
-        printf("failed open the jpg file\n");
-    }
-    else
-    {
-        printf("JPEG cols=%d, rows=%d\n", jpg.cols, jpg.rows);
-        Mat newpng = jpg.clone();
-
-        vector<int> param;
-        param.push_back(CV_IMWRITE_PNG_COMPRESSION);
-        param.push_back(9);
-
-        if(imwrite("key.png", newpng/*, param*/) == true)
-        {
-            printf("cool to jpg->PNG\n");
-        }
-        else
-        {
-            printf("failed convert to PNG\n");
-        }
-    }
-    
-
-    printf("show the gui...\n");
-    namedWindow("win");
-
-    imshow("image", small_img);
-    waitKey();
+    //histdemo(argv[1]);
+    mydemo("by.png", Rect(10,10, 120, 30));
 #endif
     printf("exit the program\n");
     return 0;

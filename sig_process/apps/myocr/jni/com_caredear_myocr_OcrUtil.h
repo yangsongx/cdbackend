@@ -13,7 +13,23 @@ extern "C" {
  * Signature: (Ljava/lang/String;)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_caredear_myocr_OcrUtil_getImg
-  (JNIEnv *, jobject, jstring);
+  (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     com_caredear_myocr_OcrUtil
+ * Method:    matchingTextOnImg
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_caredear_myocr_OcrUtil_matchingTextOnImg
+  (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     com_caredear_myocr_OcrUtil
+ * Method:    processTargetImg
+ * Signature: (Ljava/lang/String;IIII)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_caredear_myocr_OcrUtil_processTargetImg
+  (JNIEnv *, jclass, jstring, jint, jint, jint, jint);
 
 #ifdef __cplusplus
 }
