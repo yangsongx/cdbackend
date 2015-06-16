@@ -42,11 +42,13 @@ enum VerifyType {
   MOBILE_PHONE = 0,
   EMAIL = 1,
   OTHERS = 2,
-  CHECK_PASSWD_VALIDATION = 3
+  CHECK_PASSWD_VALIDATION = 3,
+  ADD_DB_MOBILE = 4,
+  ADD_DB_EMAIL = 5
 };
 bool VerifyType_IsValid(int value);
 const VerifyType VerifyType_MIN = MOBILE_PHONE;
-const VerifyType VerifyType_MAX = CHECK_PASSWD_VALIDATION;
+const VerifyType VerifyType_MAX = ADD_DB_EMAIL;
 const int VerifyType_ARRAYSIZE = VerifyType_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* VerifyType_descriptor();

@@ -28,6 +28,8 @@ class VerifyCodeOperation : public com::caredear::Operation {
     int check_password(VerifyRequest *reqobj, VerifyResponse *respobj);
     int record_code_to_db(VerifyRequest *reqobj, const char *code);
 
+    int add_code_to_db(VerifyType type, const char *value, const char *code);
+
 public:
     VerifyCodeOperation() {
     }

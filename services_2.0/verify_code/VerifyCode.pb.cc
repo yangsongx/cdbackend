@@ -110,9 +110,10 @@ void protobuf_AddDesc_VerifyCode_2eproto() {
     "fyRequest\022&\n\004type\030\001 \002(\0162\030.com.caredear.V"
     "erifyType\022\016\n\006ticket\030\002 \002(\t\022\016\n\006passwd\030\003 \001("
     "\t\"8\n\016VerifyResponse\022\023\n\013result_code\030\001 \002(\005"
-    "\022\021\n\textra_msg\030\002 \001(\t*R\n\nVerifyType\022\020\n\014MOB"
+    "\022\021\n\textra_msg\030\002 \001(\t*w\n\nVerifyType\022\020\n\014MOB"
     "ILE_PHONE\020\000\022\t\n\005EMAIL\020\001\022\n\n\006OTHERS\020\002\022\033\n\027CH"
-    "ECK_PASSWD_VALIDATION\020\003", 263);
+    "ECK_PASSWD_VALIDATION\020\003\022\021\n\rADD_DB_MOBILE"
+    "\020\004\022\020\n\014ADD_DB_EMAIL\020\005", 300);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "VerifyCode.proto", &protobuf_RegisterTypes);
   VerifyRequest::default_instance_ = new VerifyRequest();
@@ -138,6 +139,8 @@ bool VerifyType_IsValid(int value) {
     case 1:
     case 2:
     case 3:
+    case 4:
+    case 5:
       return true;
     default:
       return false;

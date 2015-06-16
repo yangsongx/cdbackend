@@ -1,6 +1,7 @@
 /**
  *
  * \history
+ * [2015-06-16] support record a SMS/EMail verify code into DB
  * [2015-04-10] correct verify code update logic
  * [2015-04-08] Refractor the code be consistent with all service modules
  */
@@ -67,9 +68,50 @@ int VerifyCodeOperation::record_code_to_db(VerifyRequest *reqobj, const char *co
             reqobj->ticket().c_str()); // TODO, heqi use ticket name, but actually is CID
 
     ret = sql_cmd(sqlcmd, NULL, NULL);
-printf("the sql cmd:%s\n", sqlcmd);
+    if(ret != CDS_OK)
+    {
+        ERR("the sql cmd:%s\n", sqlcmd);
+    }
+
     return ret;
 }
+
+int VerifyCodeOperation::add_code_to_db(VerifyType type, const char *value, const char *code)
+{
+    int ret;
+    char sqlcmd[1024];
+
+    if(type == VerifyType::ADD_DB_MOBILE)
+    {
+        snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE %s SET accode=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
+            "WHERE usermobile=\'%s\'",
+            USERCENTER_MAIN_TBL, code, ((VerifyCodeConfig *)m_pCfg)->m_iMobileVerifyExpir,
+            value);
+    }
+    else if(type == VerifyType::ADD_DB_EMAIL)
+    {
+        snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE %s SET accode=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
+            "WHERE email=\'%s\'",
+            USERCENTER_MAIN_TBL, code, ((VerifyCodeConfig *)m_pCfg)->m_iMobileVerifyExpir,
+            value);
+    }
+    else
+    {
+        // otherwise case...
+        return 0;
+    }
+
+    ret = sql_cmd(sqlcmd, NULL, NULL);
+    if(ret != CDS_OK)
+    {
+        ERR("the sql cmd:%s\n", sqlcmd);
+    }
+
+    return ret;
+}
+
 
 int VerifyCodeOperation::check_password(VerifyRequest *reqobj, VerifyResponse *respobj)
 {
@@ -158,6 +200,14 @@ int VerifyCodeOperation::handling_request(::google::protobuf::Message *preqobj, 
 
         case VerifyType::CHECK_PASSWD_VALIDATION:
             ret = check_password(reqobj, respobj);
+            break;
+
+        case VerifyType::ADD_DB_MOBILE:
+        case VerifyType::ADD_DB_EMAIL:
+            /* Reuse the passwd field for verify code data */
+            ret = add_code_to_db(reqobj->type(), reqobj->ticket().c_str(), reqobj->passwd().c_str());
+            break;
+
             break;
 
         default:

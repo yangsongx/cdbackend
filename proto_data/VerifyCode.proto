@@ -7,11 +7,13 @@ enum VerifyType{
     EMAIL = 1;
     OTHERS = 2;
     CHECK_PASSWD_VALIDATION = 3; // required by ShenZhen, to check the passwd is correct or not
+    ADD_DB_MOBILE = 4; // add the verify SMS code into DB(for user forget password case)
+    ADD_DB_EMAIL = 5; // add for EMAIL case
 }
 
 message VerifyRequest{
     required VerifyType type = 1;  //
-    required string     ticket = 2;
+    required string     ticket = 2;   // TODO, heqi use ticket name, but actually is CID
     optional string     passwd = 3;  // only available for VerifyType::CHECK_PASSWD_VALIDATION
 }
 
