@@ -14,10 +14,10 @@
 
 #include <assert.h>
 
-#include "utils.h"
 
 int main(int argc, char const *const *argv)
 {
+#if 0
   int status;
   char const *exchange = "amq.direct";
   char const *bindingkey = "test";
@@ -105,5 +105,6 @@ failure:
   die_on_amqp_error(amqp_connection_close(conn, AMQP_REPLY_SUCCESS), "Closing connection");
   die_on_error(amqp_destroy_connection(conn), "Ending connection");
 */
+#endif
   return 0;
 }

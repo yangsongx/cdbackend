@@ -2,7 +2,7 @@ THIRD_PARTY=../../3rd_party/
 
 CC = gcc
 
-PSRC = thep.c utils.c
+PSRC = thep.c
 CSRC = thec.c
 
 CFLAGS += -I$(THIRD_PARTY)rabbitMQ/rabbitmq-c/librabbitmq/ -W -Wall -Wno-unused-parameter
