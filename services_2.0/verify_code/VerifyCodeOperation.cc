@@ -1,6 +1,7 @@
 /**
  *
  * \history
+ * [2015-07-09] Avoid record SMS verify code in a wrong DB item
  * [2015-06-16] support record a SMS/EMail verify code into DB
  * [2015-04-10] correct verify code update logic
  * [2015-04-08] Refractor the code be consistent with all service modules
@@ -66,6 +67,17 @@ int VerifyCodeOperation::record_code_to_db(VerifyRequest *reqobj, const char *co
             "WHERE id=\'%s\'",
             USERCENTER_MAIN_TBL, code, ((VerifyCodeConfig *)m_pCfg)->m_iMobileVerifyExpir,
             reqobj->ticket().c_str()); // TODO, heqi use ticket name, but actually is CID
+
+    if(reqobj->type() == VerifyType::MOBILE_PHONE)
+    {
+        INFO("try update SMS code via mobile phone:%s\n", reqobj->ticket().c_str());
+        /* 2015-07-09 use mobile like add_code_to_db() */
+        snprintf(sqlcmd, sizeof(sqlcmd),
+            "UPDATE %s SET accode=\'%s\',codetime=UNIX_TIMESTAMP(date_add(now(), interval %d second)) "
+            "WHERE usermobile=\'%s\'",
+            USERCENTER_MAIN_TBL, code, ((VerifyCodeConfig *)m_pCfg)->m_iMobileVerifyExpir,
+            reqobj->ticket().c_str());
+    }
 
     ret = sql_cmd(sqlcmd, NULL, NULL);
     if(ret != CDS_OK)
