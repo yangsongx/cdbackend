@@ -72,6 +72,22 @@ int VerifyCodeOperation::record_code_to_db(VerifyRequest *reqobj, const char *co
     {
         ERR("the sql cmd:%s\n", sqlcmd);
     }
+    else
+    {
+        int i = mysql_affected_rows(m_pCfg->m_Sql);
+        if(i != 1)
+        {
+            ERR("the write got %d result (type:%d,cid:%s,passwd:%s)\n",
+                    i, reqobj->type(), reqobj->ticket().c_str(),
+                    reqobj->has_passwd() ? reqobj->passwd().c_str() : "NULL");
+        }
+        else
+        {
+            INFO("Record accode OK(type:%d,cid:%s,passwd:%s)\n",
+                    reqobj->type(), reqobj->ticket().c_str(),
+                    reqobj->has_passwd() ? reqobj->passwd().c_str() : "NULL");
+        }
+    }
 
     return ret;
 }
