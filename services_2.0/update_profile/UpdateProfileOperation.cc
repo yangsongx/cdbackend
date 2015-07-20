@@ -1,6 +1,7 @@
 /**
  *
  * \history
+ * [2015-07-31] The bind a phone number under email logic is incorrect
  * [2015-04-27] Add SIPs DB entry for mobile case
  * [2015-04-12] Fix the  unique SQL check logic
  */
@@ -118,9 +119,23 @@ int UpdateProfileOperation::pass_code_verify(UpdateRequest *reqobj)
     int ret;
     int result = 0;
     char sqlcmd[1024];
-    snprintf(sqlcmd, sizeof(sqlcmd),
-            "SELECT id FROM %s WHERE id=\'%s\' AND accode=\'%s\' AND codetime-UNIX_TIMESTAMP(NOW())>0",
-            USERCENTER_MAIN_TBL, reqobj->uid().c_str(), reqobj->vcode().c_str());
+    if(reqobj->reg_type() == Updatetype::MOBILE_PHONE)
+    {
+        snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT id FROM %s WHERE usermobile=\'%s\' AND accode=\'%s\' AND codetime-UNIX_TIMESTAMP(NOW())>0",
+            USERCENTER_MAIN_TBL, reqobj->update_data().c_str(), reqobj->vcode().c_str());
+    }
+    else if(reqobj->reg_type() == Updatetype::EMAIL)
+    {
+        snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT id FROM %s WHERE email=\'%s\' AND accode=\'%s\' AND codetime-UNIX_TIMESTAMP(NOW())>0",
+            USERCENTER_MAIN_TBL, reqobj->update_data().c_str(), reqobj->vcode().c_str());
+    }
+    else
+    {
+        ERR("unknow type(%d), ignore this action, mark as failure\n", reqobj->reg_type());
+        return 0;
+    }
 
     ret = sql_cmd(sqlcmd, cb_check_code, &result);
     if(ret == CDS_OK && result == 1)
@@ -227,23 +242,30 @@ int UpdateProfileOperation::add_mobile_to_sips_db(UpdateRequest *reqobj)
     return 0;
 }
 
+/**
+ * Adding a mobile phone under an existed email account
+ *
+ */
 int UpdateProfileOperation::add_user_mobile_phone(UpdateRequest *reqobj)
 {
     int ret = CDS_OK;
     int count;
     char sqlcmd[1024];
 
-    // first check mobile code is correct or not
-    if(pass_code_verify(reqobj) != 1)
-    {
-        ERR("The mobile veify code is incorrect\n");
-        return CDS_ERR_INCORRECT_CODE;
-    }
-
+    /* Note on 2015-07-20
+     * I think need check existence as the first step!
+     */
     if(unique_record(reqobj) != 1)
     {
         ERR("this record existed!\n");
         return CDS_ERR_USER_ALREADY_EXISTED;
+    }
+
+    // next, check mobile code is correct or not
+    if(pass_code_verify(reqobj) != 1)
+    {
+        ERR("The mobile veify code is incorrect\n");
+        return CDS_ERR_INCORRECT_CODE;
     }
 
     // 2015-4-24 Need remove in-active mobiles for such case
