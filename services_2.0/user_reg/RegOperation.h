@@ -35,12 +35,15 @@ class RegOperation : public com::caredear::Operation{
         int overwrite_inactive_user_entry(RegisterRequest *pRegInfo, unsigned long user_id);
         int add_opensips_entry(RegisterRequest *pRegInfo);
 
+        int avoid_frequent_smscode(uint64_t cid, char *code);
+
         struct user_existence{
             uint64_t  ue_cid;
             int       ue_active_status;
         };
 
         static int cb_check_user_existence(MYSQL_RES *p_result, void *p_extra);
+        static int cb_check_smscode(MYSQL_RES *p_result, void *p_extra);
 
     public:
         // constructors...

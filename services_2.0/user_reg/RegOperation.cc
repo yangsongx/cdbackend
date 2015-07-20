@@ -1,6 +1,8 @@
 /**
+ * This is the handling code for user register component
  *
  * \history
+ * [2015-07-20] avoid frequent SMS verify code request in registeration
  * [2015-05-18] make the iOS workaround only usable for mobile case
  * [2015-05-15] a workaround for iOS older user case
  * [2015-04-14] redirect random code generation to base class
@@ -34,6 +36,32 @@ int RegOperation::cb_check_user_existence(MYSQL_RES *p_result, void *p_extra)
         data->ue_active_status = atoi(row[1]);
         INFO("an existed entry(id-%lu,status-%d)\n",
                 data->ue_cid, data->ue_active_status);
+    }
+
+    return 0;
+}
+
+int RegOperation::cb_check_smscode(MYSQL_RES *p_result, void *p_extra)
+{
+    MYSQL_ROW row;
+    char *data = (char *)p_extra;
+    row = mysql_fetch_row(p_result);
+    if(row == NULL)
+    {
+        INFO("blank result, so the older SMS code need be overwrite\n");
+        data[0] = '\0';
+    }
+    else
+    {
+        if(row[0] != NULL)
+        {
+            strncpy(data, row[0], 32); /* FIXME - hope the 32 here is safe enough */
+        }
+        else
+        {
+            ERR("a NULL SMS code\n");
+            data[0] = '\0';
+        }
     }
 
     return 0;
@@ -77,6 +105,7 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
     char buf[32];
     RegisterRequest *reqobj = (RegisterRequest*)reg_req;
     RegisterResponse *respobj = (RegisterResponse *) reg_resp;
+    char smscode[32];
 
     /* error checking */
     if(m_pCfg == NULL)
@@ -88,6 +117,7 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
 
     unsigned long usr_id;
     int status_flag;
+    int keep_smscode = 0;
     bool existed = user_already_exist(reqobj, &status_flag, &usr_id);
 
     if(existed && status_flag == 1)
@@ -109,6 +139,21 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
         else
         {
             INFO("Found an existed user in DB(ID-%ld), but not activated, so overwrite it!\n", usr_id);
+            /* Note at 2015-07-20:
+             * Don't simply overwrite it, we need check verify code
+             * to avoid frequent sending, as phone's SMS gateway
+             * service provider is very weak!
+             */
+            if(reqobj->reg_type() == RegLoginType::MOBILE_PHONE || reqobj->reg_type() == RegLoginType::PHONE_PASSWD)
+            {
+                // TODO - sms verify code checking?
+                if(avoid_frequent_smscode(usr_id, smscode) == 0)
+                {
+                    INFO("Keep the sms code(%s)\n", smscode);
+                    keep_smscode = 1;
+                }
+            }
+
             ret = overwrite_inactive_user_entry(reqobj, usr_id);
         }
 
@@ -123,6 +168,12 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
             respobj->set_reg_verifycode(verifycode);
 
             LOG("==>the verification code=%s\n", verifycode);
+
+            if(keep_smscode == 1)
+            {
+                LOG("keep sms code case(it is %s)...\n", smscode);
+                respobj->set_reg_verifycode(smscode);
+            }
 
             // need update them into DB for later verification...
             ret = record_user_verifiy_code_to_db(reqobj, respobj, (UserRegConfig *)m_pCfg);
@@ -481,4 +532,33 @@ int RegOperation::record_user_verifiy_code_to_db(RegisterRequest *reqobj, Regist
     ret = sql_cmd(sqlcmd, NULL, NULL);
 
     return ret;
+}
+
+/**
+ *
+ * @cid : The caredear-ID(i.e, 'id' column of 'uc_passport' in DB)
+ * @code : Store the SMS code, only available for function return 0 case
+ *
+ * return 0 means dont need keep older SMS code, otherwise return -1
+ */
+int RegOperation::avoid_frequent_smscode(uint64_t cid, char *code)
+{
+    int i = -1;
+    int ret;
+    char sqlcmd[1024];
+
+    /* FIXME - currently, last 5 minutes(300sec) would be considered to
+     * overwrite code, otherwise,keep this SMS code in DB
+     */
+    snprintf(sqlcmd, sizeof(sqlcmd),
+            "SELECT accode FROM %s WHERE id=%ld AND codetime-UNIX_TIMESTAMP(NOW())>300",
+            USERCENTER_MAIN_TBL, cid);
+
+    ret = sql_cmd(sqlcmd, cb_check_smscode, code);
+    if(ret == CDS_OK && strlen(code) > 0)
+    {
+        i = 0;
+    }
+
+    return i;
 }
