@@ -173,6 +173,11 @@ int RegOperation::handling_request(::google::protobuf::Message *reg_req, ::googl
             {
                 LOG("keep sms code case(it is %s)...\n", smscode);
                 respobj->set_reg_verifycode(smscode);
+                /* Added at 2015-07-21
+                 * add extra info, so Java won't request SMS sending,
+                 * saving money for the company :)
+                 */
+                respobj->set_extra_msg("SAVING-MONEY");
             }
 
             // need update them into DB for later verification...
