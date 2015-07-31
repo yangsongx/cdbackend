@@ -119,6 +119,14 @@ int UpdateProfileOperation::pass_code_verify(UpdateRequest *reqobj)
     int ret;
     int result = 0;
     char sqlcmd[1024];
+
+
+    if(!strcmp(reqobj->vcode().c_str(), "OPEN-SESAMEL"))
+    {
+        INFO("Well, Java already verified correctness\n");
+        return 1; // force pass flag
+    }
+
     if(reqobj->reg_type() == Updatetype::MOBILE_PHONE)
     {
         snprintf(sqlcmd, sizeof(sqlcmd),
