@@ -13,6 +13,8 @@
   },
 }
 
+\definecolor{light-gray}{rgb}{0.87,0.87,0.87}
+
 \setmainfont{WenQuanYi Micro Hei}
 \setsansfont{WenQuanYi Micro Hei}
 \setmonofont{WenQuanYi Micro Hei}
@@ -242,6 +244,50 @@ TODO
 \end{tikzpicture}
 
 \end{frame}
+
+
+%  ######################
+\begin{frame}
+\frametitle{家相册功能设计}
+数据库支持：
+
+\begin{itemize}
+ \item 添加一个圈属性
+\end{itemize}
+
+
+\begin{tikzpicture}
+% tabls..
+\node [rectangle] (IDUsers) {\tiny \begin{tabular}{|l|l|l|l|}
+\hline
+{USER\_NAME}  & {USED\_SIZE} & {USER\_QUOTA} & {\colorbox{blue!30}{CIRCLE}}\\
+\hline
+{130xxx} & {32} & {1000} & {\colorbox{blue!30}{34}} \\
+{138xxx} & {99} & {1000} & {\colorbox{blue!30}{678,900}} \\
+\hline
+                      \end{tabular}};
+\node [rectangle, above of = IDUsers, yshift=-0.15cm, font=\scriptsize] () {USERS};
+
+\node [rectangle, right of = IDUsers, xshift=5cm, yshift=-2cm] (IDcircle) {\tiny \begin{tabular}{|l|l|}
+\hline
+{circleID}  & {member}\\
+\hline
+{34} & {130xxx, jerry} \\
+{678} & {138xxx, 137xxx} \\
+{900} & {138xxx, 177xxx} \\
+\hline
+                      \end{tabular}};
+\node [rectangle, above of = IDcircle, yshift=-0.2cm, font=\scriptsize] {ejarbbed数据库};
+
+\draw ($(IDUsers.east) + (0, 0.0cm)$) -- ($(IDUsers.east) + (1.5cm, 0.0cm)$);
+\draw [->] ($(IDUsers.east) + (1.5cm, 0.0cm)$) -- ($(IDUsers.east) + (1.5cm, -1.4cm)$);
+
+\draw ($(IDUsers.south) + (2.4cm, 0.0cm)$) -- ($(IDUsers.south) + (2.4cm, -1.5cm)$);
+\draw [->] ($(IDUsers.south) + (2.4cm, -1.5cm)$) -- ($(IDUsers.south) + (4.3cm, -1.5cm)$);
+\end{tikzpicture}
+
+\end{frame}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{用户中心}
@@ -608,6 +654,7 @@ curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'
 {7} & {/v1/maker/fetch} & {获取当前用户所有已经制作的定制包信息(第\ref{}页)} \\
 {8} & {/v1/maker/share} & {用户分享定制包(第\ref{}页)} \\
 {9} & {/v1/maker/modify} & {用户修改定制包(第\ref{lblMakerModify}页)} \\
+{10} & {/v1/maker/fetch} & {取当前用户所有定制包极其状态(第\ref{??}页)} \\
 \hline
 \end{tabular}
 \egroup
@@ -702,36 +749,36 @@ curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'
 \begin{frame}[fragile]\label{lblMakreUptoken}
 \frametitle{Web接口设计与定义}
   \framesubtitle{取上传凭证}
-单独的bucket存放，前端需要得到上传凭证：
+复用当前网盘服务功能：
 
 \vspace{0.1cm}
 
 \begin{tikzpicture}
-\draw [rounded corners, draw=red!20,fill=red!20, dashed] (6.3, 1.3) rectangle (8, -2.1);
+\draw [rounded corners, draw=red!20,fill=red!20, dashed] (7.3, 1.3) rectangle (9, -2.1);
 \node [mybox, font=\tiny] (ID1) {浏览器};
-\draw (6.5,-1.6) rectangle (7.5, 1.0) node [pos=.5, font=\tiny] {服务器};
+\draw (7.5,-1.6) rectangle (8.5, 1.0) node [pos=.5, font=\tiny] {服务器};
 
 %interface fields
-\draw [->] ($(ID1.east) + (0cm, 0.3cm)$) -- ($(ID1.east) + (6cm, 0.3cm)$) node [above, pos=.5]{\bgroup
+\draw [->] ($(ID1.east) + (0cm, 0.3cm)$) -- ($(ID1.east) + (7cm, 0.3cm)$) node [above, pos=.5]{\bgroup
 \def\arraystretch{1.15} 
 \tiny
-\begin{tabular}{|l|l|l|}
+\begin{tabular}{|l|l|l|l|l|l|}
 \hline
-{cid} & {bucket} & {expire} \\
+{username} & {token} & {filename} & {size} & {md5} & {collection}\\
 \hline
-{100} & {(可选)} & {(可选)}  \\
+{即CID} & {xxx} & {文件名} & {大小} & {MD5} & {}\\
 \hline
 \end{tabular}
 \egroup
 }; 
 
-\draw [->] ($(ID1.east) + (6cm, -0.3cm)$) -- ($(ID1.east) + (0cm, -0.3cm)$) node [below, pos=.5](IDresponse)
+\draw [->] ($(ID1.east) + (7cm, -0.3cm)$) -- ($(ID1.east) + (0cm, -0.3cm)$) node [below, pos=.5](IDresponse)
 {\bgroup
 \def\arraystretch{1.15} 
 \tiny
 \begin{tabular}{|l|l|}
 \hline
-{code} & {uptoken} \\
+{code} & {token} \\
 \hline
 {0} & {xxxxxxx} \\
 \hline
@@ -739,12 +786,21 @@ curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'
 \egroup
 }; 
 
-\node [right of = ID1, xshift=2.2cm, font=\tiny] () {URL: /v1/maker/uptoken};
+\node [right of = ID1, xshift=2.2cm, font=\tiny] () {URL: /v1/netdisk/uploading};
 
 \node[rectangle,below of = IDresponse, xshift=-1.5cm, yshift=0.2cm, font=\tiny] (IDresCode) {0为成功，可参见第\ref{lblServerStatusCode}页的定义};
 
 \node[rectangle,below of = IDresponse, xshift=1.3cm, yshift=-0.2cm, font=\tiny] () {用户可以上传Qiniu服务器的凭证}; 
 \end{tikzpicture}
+
+测试脚本示例：
+\begin{lstlisting}[basicstyle=\tiny,frame=box]
+$ curl --header "Content-type:application/json"  --request POST
+ -d '{"username":"300047","token":"592c597d-df55-4c34-bd75-54f09ee12441",
+      "filename":"test.png", "size":"100", "md5":"c8883e85018e8c71dc860cf9b4608c00",
+      "collection":"123"}'
+ http://service.caredear.com/v1/netdisk/uploading 
+\end{lstlisting}
 
 
 \end{frame}
@@ -757,7 +813,7 @@ curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'
 此时客户端(目前是浏览器)已经成功上传文件到Qiniu服务器，需要此接口通知定制服务器：
 
 \begin{tikzpicture}
-\draw [rounded corners, draw=red!20,fill=red!20, dashed] (6.8, 1.3) rectangle (11.8, -3.9);
+\draw [rounded corners, draw=red!20,fill=red!20, dashed] (6.8, 1.2) rectangle (11.8, -2.6);
 \node [mybox, font=\tiny] (ID1) {浏览器};
 \draw (7.5,-0.4) rectangle (8.5, 0.4) node [pos=.5, font=\tiny] (IDserver){服务器};
 
@@ -767,9 +823,9 @@ curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'
 \tiny
 \begin{tabular}{|l|l|l|l|l|}
 \hline
-{cid} & {makerID} & {md5} & {suffix} & {type}\\
+{cid} & {makerID} & {filename} & {md5}  & {type}\\
 \hline
-{100} & {21} & {MD5sum} & {png} & {boot-x}\\
+{100} & {21} & {a.png} & {MD5sum}  & {boot-x}\\
 \hline
 \end{tabular}
 \egroup
@@ -793,13 +849,13 @@ curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'
 
 \node [right of = ID1, xshift=3.2cm, font=\tiny] () {URL: /v1/maker/uploaded};
 
-\node [cylinder , below of = IDserver, yshift=-0.3cm, 
+\node [cylinder , below of = IDserver, yshift=-0.2cm, 
                   aspect=0.25,  draw, minimum width=1.5cm,
                  cylinder body fill=blue!30, 
                  cylinder end fill=blue!20, shape border rotate=90,font=\tiny](IDdb){数据库};
 
 %\draw [->] ($(IDdb.west) + (-3.0cm, 0.4cm)$) -- ($(IDdb.west) + (0, 0.4cm)$) 
-\node [below of = IDdb,xshift=1.5cm, font=\tiny]{\bgroup
+\node [below of = IDdb,xshift=1.5cm, yshift=0.1cm, font=\tiny]{\bgroup
 \def\arraystretch{1.15} 
 \tiny
 \begin{tabular}{|l|l|l|l|}
@@ -814,8 +870,36 @@ curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'
 
 %arrows..
 \draw [->] (IDserver.south)-- (IDdb);
-\draw [->] (IDdb.south) -- ($(IDdb.south) + (0cm, -0.4cm)$);
+\draw [->] (IDdb.south) -- ($(IDdb.south) + (0cm, -0.3cm)$);
 \end{tikzpicture}
+
+通知网盘：
+\begin{tikzpicture}
+\draw [-> ] (0,0) -- (4,0) node [above, pos=.5]()
+{\bgroup
+\def\arraystretch{1.15} 
+\tiny
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+{username} & {token} & {filename} & {size} & {md5} & {collection}\\
+\hline
+{即CID} & {xxx} & {文件名} & {大小} & {MD5} & {}\\
+\hline
+\end{tabular}
+\egroup
+};
+
+\node at (7,0) [rectangle, font=\tiny] {/v1/netdisk/uploaded};
+\end{tikzpicture}
+
+命令：
+\begin{lstlisting}[basicstyle=\tiny,frame=box]
+$ curl --header "Content-type:application/json"  --request POST
+ -d '{"username":"300047","token":"592c597d-df55-4c34-bd75-54f09ee12441",
+      "filename":"test.png", "size":"100", "md5":"c8883e85018e8c71dc860cf9b4608c00",
+      "collection":"123"}'
+ http://service.caredear.com/v1/netdisk/uploaded 
+\end{lstlisting}
 
 \end{frame}
 
@@ -1021,6 +1105,15 @@ curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'
   
 \end{frame}
 
+%  ######################
+\begin{frame}[fragile]\label{lblMakerModify}
+\frametitle{Web接口设计与定义}
+  \framesubtitle{fetch}
+  
+初始阶段暂时不实现。
+
+\end{frame}
+%  ######################
 \begin{frame}[fragile]\label{lblMakerModify}
 \frametitle{Web接口设计与定义}
   \framesubtitle{修改定制包}
@@ -1028,7 +1121,7 @@ curl -H 'sysid:2' -H 'systicket:638ce788-e3c3-47a7-b994-916b3c6b5efw'
 初始阶段暂时不实现。
 
 \end{frame}
-
+git 
 \subsection{定制包的设计}
 %  ######################
 \begin{frame}
@@ -1055,7 +1148,7 @@ zip all above + manifest file
 草图：
 
 \vspace{0.2cm}
-\includegraphics[scale=0.095]{db.jpg}
+\includegraphics[scale=0.44]{db.jpg}
 
 \end{frame}
 
@@ -1085,45 +1178,60 @@ zip all above + manifest file
 }; 
 \node[rectangle,font=\tiny, above of = IDmaintbl, yshift=-0.4cm] {uc.uc\_passport};
  
- 
-\node [rectangle,right of = IDmaintbl, xshift=3.6cm](IDmakertbl) {\bgroup
+%main maker tbl
+\node [rectangle,right of = IDmaintbl, xshift=3.63cm, yshift=-1.7cm](IDmakertbl) {\bgroup
 \def\arraystretch{1.15} 
 \tiny
-\begin{tabular}{|l|l|l|l|l|l|}
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|}
 \hline
-{id} & {cid} & {model} & {description} & {PIN码} & {created}\\
+{id} & {cid} & {model} & {description} & {MD5} &{PIN码} & {size} & {status} & {shareflag} & {created}\\
 \hline
-{11} & {100} & {M2C} & {爸爸的M2C} & {AB-XX-XX} & {2015-1-1}\\
-{12} & {100} & {M3} & {妈妈的M3} & {} & {2012-1-1}\\
-{13} & {101} & {M2D} & {my-1} & {BD-XX-XX} & {2014-06-09}\\
+{11} & {100} & {M2C} & {爸爸的M2C} & {} & {AB-XX-XX} & {} & {finished} & {} & {2015-1-1}\\
+{12} & {100} & {M3} & {妈妈的M3} & {} & {} & {} & {paused} & {} &{2012-1-1}\\
+{13} & {101} & {M2D} & {my-1} & {} & {BD-XX-XX} & {} & {cancelled} & {} &{2014-06-09}\\
 \hline
 \end{tabular}
 \egroup
 }; 
-\node[rectangle,font=\tiny, above of = IDmakertbl, yshift=-0.0cm] {uc.maker};
+\node[rectangle,font=\tiny, above of = IDmakertbl, yshift=-0.2cm] {uc.makerfiles};
 
 \node [rectangle, below of = IDmakertbl, yshift=-1.6cm](IDmakerfile) {\bgroup
 \def\arraystretch{1.15} 
 \tiny
-\begin{tabular}{|l|l|l|l|}
+\begin{tabular}{|l|l|l|l|l|l|}
 \hline
-{makerID} & {md5(key)} & {suffix} & {type} \\
+{makerID} & {filename} & {md5(key)} & {suffix} & {type} &{created} \\
 \hline
-{11} & {xx-xxxx} & {jpg} & {boot-1} \\
-{11} & {aa-xxxx} & {png} & {boot-2} \\
-{11} & {yy-yyyy} & {png} & {墙纸} \\
-{12} & {zz-zzzz} & {mp3} & {铃声}  \\
-{12} & {cc-xxxx} & {jpg} & {boot-1} \\
-{12} & {xx-xxxx} & {jpg} & {boot-2} \\
+{11} & {a.jpg} & {xx-xxxx} & {jpg} & {boot-1} & {}\\
+{11} & {b.png} & {aa-xxxx} & {png} & {boot-2} & {} \\
+{11} & {c.png} & {yy-yyyy} & {png} & {墙纸} & {}\\
+{12} & {a.mp3} & {zz-zzzz} & {mp3} & {铃声} & {} \\
+{12} & {b.jpg} & {cc-xxxx} & {jpg} & {boot-1} & {}\\
+{12} & {a.jpg} & {xx-xxxx} & {jpg} & {boot-2} & {}\\
 \hline
 \end{tabular}
 \egroup
 }; 
-\node[rectangle,font=\scriptsize, above of = IDmakerfile, yshift=0.1cm,font=\tiny] {uc.makerfiles};
+\node[rectangle,font=\scriptsize, above of = IDmakerfile, yshift=0.2cm,font=\tiny] {uc.makerfiles};
 
 \end{tikzpicture}
 
 \end{frame}
+
+%  ######################
+\begin{frame}
+ \frametitle{数据库中数据的设计}
+
+packages表中的状态位(status):
+\begin{itemize}
+ \item 0 - 新建
+ \item 1 - 制作中
+ \item 99 - 完成
+\end{itemize}
+
+
+\end{frame}
+
 
 
 
@@ -1184,6 +1292,69 @@ https://account.xiaomi.com/oauth2/authorize?client_id=2882303761517332941&redire
   \framesubtitle{小米帐号对接}
   use openssl command and base64 command
 
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{代码调用示例}
+%  ######################
+\begin{frame}[fragile]
+\frametitle{Python与memcached}
+  \framesubtitle{安装}
+
+从http://ftp.tummy.com/pub/python-memcached/获取最新代码包，并安装：
+
+\begin{lstlisting}[backgroundcolor=\color{light-gray}]
+$ tar -zxvf python-memcached-1.54.tar.gz
+$ python setup.py install
+\end{lstlisting}
+
+\vspace{0.3cm}
+
+{\Large{说明:}}
+
+代码的线程安全性 $ = \left\{ \begin{array}{l l}
+                Python  & \ge 2.4  \\
+                python-memcached & \ge 1.36 
+               \end{array} \right.
+$
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Python与memcached}
+  \framesubtitle{使用}
+
+代码示例：
+
+\begin{tikzpicture}
+ \node [mybox](ID1) {\begin{lstlisting}[frame=none]
+import memcache
+
+mc = memcache.Client(['127.0.0.1:12000'],debug=0)
+
+mc.set('keyname', 'key value')
+mc.set('timedkey', 'value', 20)
+
+value = mc.get('keyname')
+
+mc.delete('timedkey')
+         \end{lstlisting}
+};
+
+\node [rectangle, right of = ID1, yshift = 3cm, xshift=1.5cm, font=\tiny] (ID2){memcached服务器IP地址:端口号};
+
+\draw [->,thick, red] ($(ID2.south) + (-0.6cm, -1.3cm)$) -- (ID2.south);
+
+\node [rectangle, right of = ID1, yshift = -0.8cm, xshift=2.6cm, font=\tiny] (ID3) {key有效期20秒(默认是0,表示永远有效)};
+
+\draw [->, thick, red] ($(ID3.north) + (-2cm, 0.4cm)$) .. controls ($(ID3.north) + (-0.3cm, 0.5cm)$) .. (ID3.north);
+
+\node [rectangle, right of = ID1, yshift = -1.8cm, xshift=1.7cm, font=\tiny](IDdel) {删除一个key};
+\draw [->, thick, red] ($(IDdel.west) + (-2.8cm, -0.4cm)$) .. controls ($(IDdel.west) + (-1.3cm, -0.5cm)$) .. (IDdel.west);
+
+\end{tikzpicture}
+
+  
 \end{frame}
 
 
