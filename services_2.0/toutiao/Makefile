@@ -2,22 +2,22 @@
 #
 DEBUG=true
 
-CC = gcc
+CC = g++
 
-SRC = toutiao.c
+SRC = toutiao.cc
 
 #include ../../common/caredear_service_lib/common.mk
-CFLAGS = -W -Wall -Wno-unused-parameter
+CXXFLAGS = `mysql_config --cflags` -W -Wall -Wno-unused-parameter -std=c++0x
 
 # Release should use -O2
 
 ifeq ($(DEBUG),false)
-CFLAGS += -DDEBUG -O2
+CXXFLAGS += -DDEBUG -O2
 else
-CFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
+CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -lxml2 -lcurl
+LDFLAGS = -lxml2 -lcurl -lmemcached `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
@@ -25,15 +25,15 @@ ifeq ($(STATICLIB),false)
 LDFLAGS += -lm -ldl -lz -lrt -static
 endif
 
-OBJS = $(SRC:.c=.o)
+OBJS = $(SRC:.cc=.o)
 
 all:toutiao
 
 toutiao:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-.c.o:
-	$(CC) $(CFLAGS) -c $< -o $@
+.cc.o:
+	$(CC) $(CXXFLAGS) -c $< -o $@
 
 .PHONY:clean
 clean:
