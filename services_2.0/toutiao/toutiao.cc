@@ -59,7 +59,7 @@ int post_each_gid(const char *token, unsigned long groupid, const char *post_tar
                     \"data\" : {\"group_id\":%ld}"
                   "}]"
             "}", token, cur, groupid);
-    LOG("the post data are: %s\n", post_data);
+    //LOG("the post data are: %s\n", post_data);
 
     curl_easy_setopt(curl, CURLOPT_URL, post_target);
     curl_easy_setopt(curl, CURLOPT_POST, 1);
@@ -96,7 +96,7 @@ int do_feedback(struct user_info *info, char *groupid, CURL *curl)
                     "\"data\" : {\"group_id\":%ld}"
                   "}]"
             "}", info->info_token, cur, atol(groupid));
-    LOG("the post data are: %s\n", postdata);
+    //LOG("the post data are: %s\n", postdata);
     curl_easy_setopt(curl, CURLOPT_URL, posturl);
     curl_easy_setopt(curl, CURLOPT_POST, 1);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postdata);
@@ -166,7 +166,8 @@ int choose_user_from_db(MYSQL *ms)
             struct user_info item;
             while((row = mysql_fetch_row(mresult)) != NULL)
             {
-                LOG("%s | %s | %s |\n", row[0], row[1], row[2]);
+                // avoid too many outputs...
+                //LOG("%s | %s | %s |\n", row[0], row[1], row[2]);
                 strcpy(item.info_token, row[1]);
                 item.info_time = atol(row[2]);
                 item.info_rand = atoi(row[3]);
@@ -260,10 +261,11 @@ int get_db_data(MYSQL *ms, const char *dbIP, const char *user, const char *passw
 }
 
 /**
- * specified SQL IP(-s),  memcached IP(-m) and interval(-t, in seconds Unit):
+ * specified SQL IP(-s),  memcached IP(-m) and interval(-t, in seconds Unit)
+ * if want to use http proxy, use -p option:
  *
  * ========================================
- * ./a.out -s x.x.x.x -m y.y.y.y:11211 -t 3600
+ * ./a.out -s x.x.x.x -m y.y.y.y:11211 -t 3600 -p x.x.x.x:1234
  * ========================================
  */
 int main(int argc, char **argv)
@@ -274,9 +276,12 @@ int main(int argc, char **argv)
     memcached_st *memc;
     char sql_ip[32] = "192.168.1.19";
     char mem_ip[64] = "--SERVER=127.0.0.1:11211";
+    char proxy[128];
     int  timeinterval = 20*60; // default is 20 miniutes
 
-    while((c = getopt(argc, argv, "s:m:")) != -1) {
+    proxy[0] = '\0';
+
+    while((c = getopt(argc, argv, "s:m:p:")) != -1) {
         switch(c){
             case 's':
                 strcpy(sql_ip, optarg);
@@ -291,9 +296,24 @@ int main(int argc, char **argv)
                 timeinterval = atoi(optarg);
                 break;
 
+            case 'p':
+                snprintf(proxy, sizeof(proxy),
+                        "http_proxy=http://%s", optarg);
+                break;
+
             default:
                 break;
         }
+    }
+
+    if(strlen(proxy) > 0)
+    {
+        LOG("the proxy : %s\n", proxy);
+        setenv("http_proxy", proxy, 1/* overwrite */);
+    }
+    else
+    {
+        LOG("Not use the proxy\n");
     }
 
     cu = curl_easy_init();
