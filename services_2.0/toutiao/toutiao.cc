@@ -29,6 +29,7 @@
 
 using namespace std;
 
+static int glb_db_connected = 0;
 
 struct user_info{
     char   info_token[64];
@@ -240,21 +241,24 @@ int get_db_data(MYSQL *ms, const char *dbIP, const char *user, const char *passw
 {
     int ret = -1;
 
-    if(!mysql_real_connect(ms, dbIP, user, passwd,
-                dbname, 0, NULL, 0))
+    if(glb_db_connected == 0)
     {
-        LOG("***failed connect to MySQL(%d) %s\n",
+        if(!mysql_real_connect(ms, dbIP, user, passwd,
+                dbname, 0, NULL, 0))
+        {
+            LOG("***failed connect to MySQL(%d) %s\n",
                 mysql_errno(ms), mysql_error(ms));
+        }
+        else
+        {
+            glb_db_connected = 1;
+            choose_user_from_db(ms);
+        }
     }
     else
     {
         LOG("  ... connecting to DB...[connected]\n");
-
-
         choose_user_from_db(ms);
-
-        LOG(" ... close the DB\n");
-        mysql_close(ms);
     }
 
     return ret;
