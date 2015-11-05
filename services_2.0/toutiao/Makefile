@@ -17,7 +17,7 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -lxml2 -lcurl -lmemcached `mysql_config --libs`
+LDFLAGS = -lcrypto -lssl -lxml2 -lcurl -lmemcached `mysql_config --libs`
 
 # Let static link as default
 # use `make STATICLIB=false' to build out shared lib.
