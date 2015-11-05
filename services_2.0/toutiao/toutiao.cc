@@ -7,6 +7,7 @@
 #include <getopt.h>
 #include <time.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include <list>
 #include <map>
@@ -19,6 +20,9 @@
 
 #include <libmemcached/memcached.h>
 
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
 
 #define LOG printf
 
@@ -40,6 +44,93 @@ struct user_info{
 };
 
 map<string, struct user_info> glb_list;
+
+char *base64_encode(const char *input, int len, bool with_newline)
+{
+    BIO *b64 = NULL;
+    BIO *bmem = NULL;
+    BUF_MEM *bptr = NULL;
+
+    b64 = BIO_new(BIO_f_base64());
+    if(!with_newline)
+    {
+        BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+    }
+
+    bmem = BIO_new(BIO_s_mem());
+    b64 = BIO_push(b64, bmem);
+    BIO_write(b64, input, len);
+    BIO_flush(b64);
+    BIO_get_mem_ptr(b64, &bptr);
+    char *buff = (char *)malloc(bptr->length + 1);
+    memcpy(buff, bptr->data, bptr->length);
+    buff[bptr->length] = '\0';
+
+    return buff;
+}
+
+
+int demo_post_with_header(CURL *curl, char *img)
+{
+    CURLcode cret = CURLE_OK;
+    const char *url = "http://apis.baidu.com/apistore/idlocr/ocr";
+    const char *key = "75ff8fa32eeb8de7186527b8acf6dde9";
+    char post_data[1921024];
+    char header_data[512];
+    //CURLOPT_HEADERDATA
+    sprintf(header_data, "apikey:%s", key);
+    snprintf(post_data, sizeof(post_data),
+      "fromdevice=pc&clientip=10.10.10.0&detecttype=LocateRecognize&languagetype=CHN_ENG&imagetype=1&image=%s",
+      img);
+
+    LOG("the post data:%s\n", post_data);
+    LOG("the header:%s\n", header_data);
+
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, header_data);
+    curl_easy_setopt(curl, CURLOPT_POST, 1);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    LOG("trigger to baidu...\n");
+
+    cret = curl_easy_perform(curl);
+    LOG("the curl ret = %d\n", cret);
+
+    return 0;
+}
+
+int send_ocr_to_baidu(CURL *curl, const char *fn)
+{
+    struct stat st;
+
+    if(stat(fn, &st) == 0)
+    {
+        int len = (int)st.st_size;
+        char *ptr = (char *)malloc(len);
+        if(ptr)
+        {
+            FILE *fp = fopen(fn, "rb");
+            if(fp)
+            {
+                fread(ptr, len, 1, fp);
+                fclose(fp);
+
+                char *ret = base64_encode(ptr, len, false);
+                assert(ret != NULL);
+                demo_post_with_header(curl, ret);
+
+                free(ret);
+            }
+
+            free(ptr);
+        }
+    }
+    else
+    {
+        LOG("File not existed at all\n");
+    }
+    return 0;
+}
 
 int post_each_gid(const char *token, unsigned long groupid, const char *post_target, CURL *curl)
 {
@@ -328,6 +419,7 @@ int main(int argc, char **argv)
     }
 
     LOG("== Init libcurl == [OK]\n");
+    send_ocr_to_baidu(cu, "/home/yang/testbaidu.jpg");
 
 
     msql = mysql_init(NULL);

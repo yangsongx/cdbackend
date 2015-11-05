@@ -30,6 +30,10 @@ testimg:$(OBJS)
 cutimg:
 	$(CC) $(CXXFLAGS) -c cutimg.cc -o cutimg.o 
 	$(CC) -o cutimg cutimg.o $(LDFLAGS)
+.PHONY:enimg
+enimg:
+	$(CC) $(CXXFLAGS) -c enhanceimg.cc -o enimg.o 
+	$(CC) -o enimg enimg.o $(LDFLAGS)
 
 .cc.o:
 	$(CC) $(CXXFLAGS) -c $< -o $@
