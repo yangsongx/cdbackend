@@ -1,4 +1,7 @@
 # For image processing study
+#
+# make
+#
 DEBUG=true
 
 CC = g++
@@ -16,16 +19,21 @@ else
 CXXFLAGS += -DCHECK_MEM_LEAK -DDEBUG -g -O0
 endif
 
-LDFLAGS = -lxml2 -lopencv_core -lopencv_highgui -lopencv_imgproc -lpng
+LDFLAGS = -lxml2 -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lpng
 
 
 OBJS = $(SRC:.cc=.o)
 TESTOBJS = $(TESTSRC:.cc=.o)
 
-all:testimg
+.PHONY:all
+all:extrimg
 
 testimg:$(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
+.PHONY:extrimg
+extrimg:
+	$(CC) $(CXXFLAGS) -c extractimg.cc -o extrimg.o 
+	$(CC) -o extrimg extrimg.o $(LDFLAGS)
 .PHONY:cutimg
 cutimg:
 	$(CC) $(CXXFLAGS) -c cutimg.cc -o cutimg.o 
