@@ -288,6 +288,19 @@ int parse_cfgfile(const char *filename)
     return 0;
 }
 
+void send_data_package()
+{
+    char cmd[1024];
+
+    snprintf(cmd, sizeof(cmd),
+            "tar -zcf zsdata.tar.gz a22301/rel/*");
+    system(cmd);
+
+    snprintf(cmd, sizeof(cmd),
+            "bash push.sh");
+    system(cmd);
+}
+
 void collecting_weather_data()
 {
     int i;
@@ -337,7 +350,7 @@ void collecting_weather_data()
 
     send_out_email(NULL/* not used */);
 
-    // TODO, next , will try zip data file and copy to remote target machine...
+    send_data_package();
 }
 
 /**
