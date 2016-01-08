@@ -83,7 +83,7 @@ sub do_parse_zs(){
         $meet = 0; # reset
 
         #FIXME - BUGGY here, how to make last element without ',' symbole?
-        if($glb_count == 5) {
+        if($glb_count == 4) {
             printf($rf "}");
         } else {
             printf($rf "},");
@@ -166,11 +166,12 @@ sub execute_task() {
 
             # next will try parse it
             &do_parse_zs($city_id);
-            $retry = 0; # don't loop as it successed
+            $retry = -1; # don't loop as it successed
         } else {
-            open(LOG, "+<body.txt") || warn "failed open the log file\n";
+            open(LOG, ">>body.txt") || warn "failed open the log file\n";
             $now = localtime();
-            print(LOG "$now failed open the agent($city_id), retry($retry remained)\n");
+            print(LOG "  (from Perl) $now failed open the agent($city_id), retry($retry remained)\n");
+            close(LOG);
 
             sleep(2);
         }

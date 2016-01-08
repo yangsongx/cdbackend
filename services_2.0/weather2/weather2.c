@@ -55,21 +55,11 @@
 
 #define CITY_DB "city_code.db"
 
-#if 1
 #define KA_CURL_ARGV "-n", "--ssl-reqd", "--mail-from", "<service@caredear.com>", \
                      "--mail-rcpt", "<13614278@qq.com>", \
                      "--url", "smtps://smtp.exmail.qq.com:465", \
-                     "-T", KA_MAILMSG, \
+                     "-T", "full_mail.dat", \
                      "-u", "service@caredear.com:nanjing21k"
-#else
-#define KA_CURL_ARGV "-n", "--ssl-reqd", "--mail-from", "<service@caredear.com>", \
-                     "--mail-rcpt", "<13614278@qq.com>", \
-                     "--mail-rcpt", "<server@caredear.com>", \
-                     "--url", "smtps://smtp.exmail.qq.com:465", \
-                     "-T", KA_MAILMSG, \
-                     "-u", "service@caredear.com:nanjing21k"
-
-#endif
 
 #define KA_MAIL_MSG "From: \"Caredear Service\" <service@caredear.com>\n" \
                     "To: \"Caredear Server\" <server@caredear.com>\n"   \
@@ -187,45 +177,6 @@ int init_db()
     return 0;
 }
 
-static char *map_component_code(int code, char *component)
-{
-    // TODO map ping_response::pr_component to a textual string here.
-    switch(code){
-        case USR_REG:
-            strcpy(component, "Register(urs)");
-            break;
-
-        case USR_LOGIN:
-            strcpy(component, "Login(uls)");
-            break;
-
-        case USR_ACTIVATION:
-            strcpy(component, "activation(acts)");
-            break;
-
-        case USR_AUTH:
-            strcpy(component, "User Auth(uauth)");
-            break;
-
-        case USR_PASSWD:
-            strcpy(component, "Password(passwdmgr)");
-            break;
-
-        case USR_NETDISK:
-            strcpy(component, "Netdisk(nds)");
-            break;
-
-        case USR_SIPS:
-            strcpy(component, "OpenSIPs(opas)");
-            break;
-
-        default:
-            strcpy(component, "Unknow");
-                break;
-    }
-
-    return component;
-}
 
 static int current_datetime(char *stored_data, size_t size_data)
 {
@@ -236,58 +187,44 @@ static int current_datetime(char *stored_data, size_t size_data)
     return (strftime(stored_data, size_data, "%Y-%m-%d %H:%M:%S",
                 localtime(&cur)) == 0 ? -1 : 0);
 }
+
+static void prepare_mail_data()
+{
+    char cmd[1024];
+
+    /* FIXME - call system() is not a good idea,
+     * but it works */
+    snprintf(cmd, sizeof(cmd),
+            "cat mail_header body.txt > full_mail.dat");
+    system(cmd);
+}
 /**
  * Send out the email to notify the error case
  *
  */
 static void send_out_email(char *mail_body)
 {
-#if 0
-    ERR("the response of body:%s\n", mail_body);
-#else
-    char mail_cmd[256];
-    FILE *p;
     pid_t pid;
 
-    p = fopen(KA_MAILMSG, "w");
-    if(!p)
-    {
-        ERR("failed creating mail body data:%d\n", errno);
-        return;
-    }
-
-    fputs(KA_MAIL_MSG, p);
-    fputs(mail_body, p);
-
-    fclose(p);
-
-    LOG("%s", mail_cmd);
+    prepare_mail_data();
 
     pid = fork();
     if(pid == 0)
     {
         /* Child section */
+        printf("in child will trigger the curl...\n");
+        //snprintf(cmd, sizeof(cmd),
         execl("/usr/bin/curl", "curl", KA_CURL_ARGV, NULL);
     }
     else if(pid > 0)
     {
         waitpid(pid, NULL, 0);
+        printf("child finished, parent return\n");
     }
     else
     {
         ERR("**Failed calling the fork():%d\n", errno);
     }
-#endif
-}
-
-void healthy_summary(time_t elapse_time)
-{
-    char buf[128];
-    snprintf(buf, sizeof(buf),
-            "Service run-ed for %d days totally without any error.\n",
-            (int)(elapse_time/(3600*24))
-            );
-    send_out_email(buf);
 }
 
 /**
@@ -355,9 +292,6 @@ void collecting_weather_data()
 {
     int i;
     pid_t pid;
-    ssize_t rc;
-    struct ping_response resp;
-    char    buff[256];
     char   *city_id;
 
     /* each collecting, clear previously result body text */
@@ -370,13 +304,22 @@ void collecting_weather_data()
         }
     }
 
-    KPI("Collecting begin!\n");
+    if(access("full_mail.dat", F_OK) == 0) {
+        LOG("clear previous file...");
+        if(unlink("full_mail.dat") == 0) {
+            LOG("delete [OK]\n");
+        } else {
+            LOG("delete [Failed]\n");
+        }
+    }
 
-    for(i = 0; i < 5/*nr_cities*/; i ++)
+    KPI("Collecting begin(%d items)!\n", nr_cities);
+
+    for(i = 0; i < nr_cities; i++)
     {
         city_id = (city_list + i)->id;
 
-        LOG("[%s <->%s]\n", city_id, (city_list + i)->name);
+        LOG("(%d) [%s <->%s]\n", i, city_id, (city_list + i)->name);
 
         pid = fork();
         if(pid == 0){
@@ -391,6 +334,10 @@ void collecting_weather_data()
     }
 
     KPI("Finished data collecting\n");
+
+    send_out_email(NULL/* not used */);
+
+    // TODO, next , will try zip data file and copy to remote target machine...
 }
 
 /**
@@ -400,13 +347,9 @@ void collecting_weather_data()
  */
 int main(int argc, char **argv)
 {
-    char *homedir;
     int c;
     struct timeval t;
-    char   cfgfile[256];
-
     struct timeval t1;
-
 
     /* arguments can override config options in HOME/.keep_alive cfg */
     while((c = getopt(argc, argv, "a:p:m:r:t:h")) != -1)
