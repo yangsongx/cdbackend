@@ -28,6 +28,7 @@ ray_des = {
     '3':'涂擦SPF大于15、PA+防晒护肤品', #强
 }
 
+sick_vals = ['少发', '易发', '较易发', '极易发']
 sick_des = {
     '0' : '无明显降温，感冒机率较低', #少发
     '0' : '昼夜温差大，易感冒', #易发
@@ -45,6 +46,7 @@ cloth_des = {
     '5' : '建议着厚羽绒服等隆冬服装', #寒冷
 }
 
+car_vals = ['较适宜', '较不宜', '不宜']
 car_des = {
     '0' : '无雨且风力较小，易保持清洁度', # 较适宜
     '0' : '风力较大，洗车后会蒙上灰尘', # 较不宜
@@ -253,9 +255,39 @@ def _map_cloth_vals(val):
 
     return i
 #####################################################################
+def _map_ray_vals(val):
+    i = 0
+    en_val = u''.join(val).encode('utf-8')
+    for it in ray_vals:
+        if en_val == it:
+            break;
+        i += 1
+
+    return i
+#####################################################################
+def _map_car_vals(val):
+    i = 0
+    en_val = u''.join(val).encode('utf-8')
+    for it in car_vals:
+        if en_val == it:
+            break;
+        i += 1
+
+    return i
+#####################################################################
+def _map_sick_vals(val):
+    i = 0
+    en_val = u''.join(val).encode('utf-8')
+    for it in sick_vals:
+        if en_val == it:
+            break;
+        i += 1
+
+    return i
+#####################################################################
 # @c_id - cloth index, check @cloth_vals
-def _create_train_data(c_id, obj, wid):
-    fmt = '/tmp/a22301/%d_%s.txt' %(c_id, wid)
+def _create_train_data(r_id, s_id, c_id, car_id, obj, wid):
+    fmt = '/tmp/a22301/%d_%d_%d_%d_%s.txt' %(r_id, s_id, c_id, car_id, wid)
 
 #body_txt = '天1高%s 天1低%s 天1差%s 天2高%s 天2低%s 天2差%s 况1%s 况2%s 风1%s-%s 风2%s-%s' \
     body_txt = '天1高%s 天1低%s 天1差%s 天2高%s 天2低%s 天2差%s 况1%s 况2%s 风1%s-%s 风2%s-%s' \
@@ -290,7 +322,9 @@ def _json_action(fn):
         zs = js_data['zs']
         zs_cloth = zs['z3']['v']
         cloth_index = _map_cloth_vals(zs_cloth)
-        print '[DEBUG] %d < --> %s' %(cloth_index, zs_cloth)
+        car_index = _map_car_vals(zs['z4']['v'])
+        sick_index = _map_sick_vals(zs['z2']['v'])
+        ray_index = _map_ray_vals(zs['z1']['v'])
 
         temp_high1 = js_data['fc']['a1']['d3']
         temp_low1 = js_data['fc']['a1']['d7']
@@ -325,7 +359,7 @@ def _json_action(fn):
 
         print '%s - %s delta = %d' %(temp_high1, temp_low1, delta_temp1)
 
-        _create_train_data(cloth_index, obj, fn)
+        _create_train_data(ray_index, sick_index, cloth_index,car_index, obj, fn)
     except:
            print '%s || %s' %(sys.exc_info()[0], sys.exc_info()[1])
     finally:
