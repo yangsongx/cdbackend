@@ -4,6 +4,7 @@ use LWP;
 use LWP::UserAgent;
 use LWP::Simple;
 
+
 $DEBUG = 0; # set 1 as debug for offline mode
 $glb_count = 0;
 
@@ -149,7 +150,7 @@ sub do_parse_zs(){
 sub execute_task() {
     $UA = LWP::UserAgent->new(keep_alive=>1);
     my $retry = 5;
-    my ($url, $city_id) = @_;
+    my ($url, $city_id, $city_name) = @_;
 
     do {
         $retry --;
@@ -168,12 +169,17 @@ sub execute_task() {
             &do_parse_zs($city_id);
             $retry = -1; # don't loop as it successed
         } else {
-            open(LOG, ">>body.txt") || warn "failed open the log file\n";
-            $now = localtime();
-            print(LOG "  (from Perl) $now failed open the agent($city_id), retry($retry remained)\n");
-            close(LOG);
 
-            sleep(2);
+            if($retry == -1) {
+                # this is failed case
+                $now = localtime();
+                open(LOG, ">>body.txt") || warn "failed open the log file\n";
+                print(LOG "  (from Perl) $now failed open the agent($city_id <--> $city_name)\n");
+                close(LOG);
+            } else {
+                # keep next retry
+                sleep(2);
+            }
         }
     }while($retry >= 0);
 }
@@ -181,6 +187,8 @@ sub execute_task() {
 ### MAIN STARTING POINT
 
 $CITY_ID = $ARGV[0];
+$CITY_NAME = $ARGV[1];
+
 $url = "http://www.weather.com.cn/weather1d/" . $CITY_ID . ".shtml";
 printf("the city id = $CITY_ID\n");
 printf("the whole URL = $url\n");
@@ -192,5 +200,5 @@ if($DEBUG == 1) {
     die "exit for debugging mode...\n";
 }
 
-&execute_task($url, $CITY_ID);
+&execute_task($url, $CITY_ID, $CITY_NAME);
 

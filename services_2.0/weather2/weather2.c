@@ -306,6 +306,7 @@ void collecting_weather_data()
     int i;
     pid_t pid;
     char   *city_id;
+    char   *city_name;
 
     /* each collecting, clear previously result body text */
     if(access("body.txt", F_OK) == 0) {
@@ -331,13 +332,14 @@ void collecting_weather_data()
     for(i = 0; i < nr_cities; i++)
     {
         city_id = (city_list + i)->id;
+        city_name = (city_list + i)->name;
 
-        LOG("(%d) [%s <->%s]\n", i, city_id, (city_list + i)->name);
+        LOG("(%d) [%s <->%s]\n", i, city_id, city_name);
 
         pid = fork();
         if(pid == 0){
             /* child section */
-            execl("/usr/bin/perl", "perl", "zs.pl", city_id, NULL);
+            execl("/usr/bin/perl", "perl", "zs.pl", city_id, city_name, NULL);
         } else if (pid > 0) {
             waitpid(pid, NULL, 0);
             LOG("%d created, waiting....[OK]\n", pid);
