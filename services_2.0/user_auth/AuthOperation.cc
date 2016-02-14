@@ -2,6 +2,7 @@
  * User Auth operation class
  *
  * \history
+ * [2016-02-14] try avoid login rejection happen
  * [2015-04-15] avod overflow for the too-long session case
  * [2015-04-08] For mem value corrupt case, need restore it from DB
  * [2015-04-02] Fix a mem value miss-field bug (normally, value is in 3 column, we need avoid Non-3 column case)
@@ -243,6 +244,13 @@ bool AuthOperation::is_allowed_access(AuthRequest *reqobj)
     {
         c = it->second;
         allowed = c.sfg_allow_multilogin == 1 ? true : false;
+    }
+    else if(reqobj->auth_sysid() == 2)
+    {
+        // Note at 2016-02-14 - sysid - 2 won't be changed anymore,
+        // as so many products delievered in the market
+        INFO("FORCE the Login Continue...\n");
+        allowed = true;
     }
     else
     {
