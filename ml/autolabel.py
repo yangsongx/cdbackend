@@ -9,7 +9,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import Pipeline
 from sklearn import metrics
-
+# testing git push case
 def predict_with_bayes(learn_data, learn_idx, check_data, check_idx):
     # create the pipline for Classifier
     bs_clf = Pipeline(
